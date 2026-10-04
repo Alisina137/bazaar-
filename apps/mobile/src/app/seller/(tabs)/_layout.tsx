@@ -1,9 +1,56 @@
 import { Redirect, Tabs } from "expo-router";
+import { SymbolView } from "expo-symbols";
 
 import { Screen, StateView } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 import { useStores } from "@/store/provider";
+
+const sellerTabIcons = {
+  dashboard: {
+    ios: "square.grid.2x2.fill",
+    android: "dashboard",
+    web: "dashboard"
+  },
+  products: {
+    ios: "cube.box.fill",
+    android: "inventory_2",
+    web: "inventory_2"
+  },
+  orders: {
+    ios: "doc.text.fill",
+    android: "receipt_long",
+    web: "receipt_long"
+  },
+  store: {
+    ios: "storefront.fill",
+    android: "store",
+    web: "store"
+  },
+  more: {
+    ios: "ellipsis.circle.fill",
+    android: "more_horiz",
+    web: "more_horiz"
+  }
+} as const;
+
+function TabIcon({
+  name,
+  color,
+  size
+}: {
+  name: keyof typeof sellerTabIcons;
+  color: string;
+  size: number;
+}) {
+  return (
+    <SymbolView
+      name={sellerTabIcons[name]}
+      tintColor={color}
+      size={size}
+    />
+  );
+}
 
 export default function SellerTabsLayout() {
   const theme = useAppTheme();
@@ -32,7 +79,10 @@ export default function SellerTabsLayout() {
       name="index"
       options={{
         title: t("seller.nav.dashboard"),
-        tabBarAccessibilityLabel: t("seller.nav.dashboard")
+        tabBarAccessibilityLabel: t("seller.nav.dashboard"),
+        tabBarIcon: ({ color, size }) => (
+          <TabIcon name="dashboard" color={color} size={size} />
+        )
       }}
     />,
     <Tabs.Screen
@@ -40,7 +90,10 @@ export default function SellerTabsLayout() {
       name="products"
       options={{
         title: t("seller.nav.products"),
-        tabBarAccessibilityLabel: t("seller.nav.products")
+        tabBarAccessibilityLabel: t("seller.nav.products"),
+        tabBarIcon: ({ color, size }) => (
+          <TabIcon name="products" color={color} size={size} />
+        )
       }}
     />,
     <Tabs.Screen
@@ -48,7 +101,10 @@ export default function SellerTabsLayout() {
       name="orders"
       options={{
         title: t("seller.nav.orders"),
-        tabBarAccessibilityLabel: t("seller.nav.orders")
+        tabBarAccessibilityLabel: t("seller.nav.orders"),
+        tabBarIcon: ({ color, size }) => (
+          <TabIcon name="orders" color={color} size={size} />
+        )
       }}
     />,
     <Tabs.Screen
@@ -56,7 +112,10 @@ export default function SellerTabsLayout() {
       name="store"
       options={{
         title: t("seller.nav.store"),
-        tabBarAccessibilityLabel: t("seller.nav.store")
+        tabBarAccessibilityLabel: t("seller.nav.store"),
+        tabBarIcon: ({ color, size }) => (
+          <TabIcon name="store" color={color} size={size} />
+        )
       }}
     />,
     <Tabs.Screen
@@ -64,7 +123,10 @@ export default function SellerTabsLayout() {
       name="more"
       options={{
         title: t("seller.nav.more"),
-        tabBarAccessibilityLabel: t("seller.nav.more")
+        tabBarAccessibilityLabel: t("seller.nav.more"),
+        tabBarIcon: ({ color, size }) => (
+          <TabIcon name="more" color={color} size={size} />
+        )
       }}
     />
   ];
@@ -79,9 +141,12 @@ export default function SellerTabsLayout() {
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
           borderTopColor: theme.colors.border,
-          minHeight: 64,
+          minHeight: 68,
           paddingTop: theme.spacing.xs,
           paddingBottom: theme.spacing.sm
+        },
+        tabBarIconStyle: {
+          marginTop: 2
         },
         tabBarLabelStyle: {
           fontSize: theme.fontSizes.caption,

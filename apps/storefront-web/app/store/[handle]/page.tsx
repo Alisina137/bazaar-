@@ -94,7 +94,6 @@ export default async function StorePage({ params }: StorePageProps) {
 
       <section className="storefront__header">
         {store.logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             className="storefront__logo"
             src={store.logoUrl}

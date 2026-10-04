@@ -1,0 +1,9 @@
+{
+  "expo": {
+    "name": "BazaarLink",
+    "slug": "bazaarlink",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic"
+  }
+}

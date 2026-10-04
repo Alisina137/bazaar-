@@ -7,6 +7,7 @@ import {
   createDatabaseClient
 } from "../src/client.js";
 import { parseDatabaseConfig } from "../src/env.js";
+import { describeDatabaseRuntimeError } from "./runtime-error.js";
 
 loadEnv({
   path: resolve(process.cwd(), "../../.env"),
@@ -26,6 +27,9 @@ try {
   });
 
   process.stdout.write("Database migrations applied successfully.\n");
+} catch (error) {
+  process.stderr.write(describeDatabaseRuntimeError(error) + "\n");
+  process.exitCode = 1;
 } finally {
   await closeDatabaseClient(client);
 }

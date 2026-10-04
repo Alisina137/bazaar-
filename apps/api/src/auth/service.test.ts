@@ -2,7 +2,6 @@ import type { AuthUser } from "@bazaarlink/contracts";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import type { AuthConfig } from "./config.js";
-import { AuthError } from "./errors.js";
 import { hashPassword } from "./password.js";
 import type {
   AuthRepository,

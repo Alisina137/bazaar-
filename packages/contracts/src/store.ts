@@ -123,7 +123,9 @@ export type UpdateStoreInput = Partial<
 export const storeErrorCodes = [
   "invalid_request",
   "invalid_session",
+  "account_unavailable",
   "forbidden",
+  "rate_limited",
   "store_not_found",
   "handle_in_use",
   "store_suspended",

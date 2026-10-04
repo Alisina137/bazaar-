@@ -5,6 +5,7 @@ import {
   type AuthErrorCode
 } from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 
@@ -72,6 +73,7 @@ function modeKey(mode: AppMode): TranslationKey {
 }
 
 export default function AccountScreen() {
+  const router = useRouter();
   const theme = useAppTheme();
   const { isRTL, locale, t } = useLocalization();
   const { status, user, login, register, logout } = useAuth();
@@ -153,6 +155,19 @@ export default function AccountScreen() {
         <Card>
           <View style={{ gap: theme.spacing.lg }}>
             <AppText variant="heading">{t("account.title")}</AppText>
+            <Button
+              onPress={() => {
+                router.push(
+                  user.roles.includes("merchant_owner")
+                    ? "/seller/(tabs)"
+                    : "/seller/onboarding"
+                );
+              }}
+            >
+              {user.roles.includes("merchant_owner")
+                ? t("account.openSellerDashboard")
+                : t("account.sellOnBazaarLink")}
+            </Button>
             <AppText tone="muted">{t("auth.sessionProtected")}</AppText>
             <Button
               variant="secondary"

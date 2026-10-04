@@ -1,7 +1,54 @@
 import { Tabs } from "expo-router";
+import { SymbolView } from "expo-symbols";
 
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
+
+const customerTabIcons = {
+  home: {
+    ios: "house.fill",
+    android: "home",
+    web: "home"
+  },
+  marketplace: {
+    ios: "bag.fill",
+    android: "storefront",
+    web: "storefront"
+  },
+  cart: {
+    ios: "cart.fill",
+    android: "shopping_cart",
+    web: "shopping_cart"
+  },
+  orders: {
+    ios: "doc.text.fill",
+    android: "receipt_long",
+    web: "receipt_long"
+  },
+  account: {
+    ios: "person.fill",
+    android: "person",
+    web: "person"
+  }
+} as const;
+
+function TabIcon({
+  name,
+  color,
+  size
+}: {
+  name: keyof typeof customerTabIcons;
+  color: string;
+  size: number;
+}) {
+  return (
+    <SymbolView
+      name={customerTabIcons[name]}
+      tintColor={color}
+      size={size}
+    />
+  );
+}
 
 export default function CustomerTabsLayout() {
   const theme = useAppTheme();
@@ -13,7 +60,10 @@ export default function CustomerTabsLayout() {
       name="index"
       options={{
         title: t("nav.home"),
-        tabBarAccessibilityLabel: t("nav.home")
+        tabBarAccessibilityLabel: t("nav.home"),
+        tabBarIcon: ({ color, size }) => (
+          <TabIcon name="home" color={color} size={size} />
+        )
       }}
     />,
     <Tabs.Screen
@@ -21,7 +71,10 @@ export default function CustomerTabsLayout() {
       name="marketplace"
       options={{
         title: t("nav.marketplace"),
-        tabBarAccessibilityLabel: t("nav.marketplace")
+        tabBarAccessibilityLabel: t("nav.marketplace"),
+        tabBarIcon: ({ color, size }) => (
+          <TabIcon name="marketplace" color={color} size={size} />
+        )
       }}
     />,
     <Tabs.Screen
@@ -29,7 +82,10 @@ export default function CustomerTabsLayout() {
       name="cart"
       options={{
         title: t("nav.cart"),
-        tabBarAccessibilityLabel: t("nav.cart")
+        tabBarAccessibilityLabel: t("nav.cart"),
+        tabBarIcon: ({ color, size }) => (
+          <TabIcon name="cart" color={color} size={size} />
+        )
       }}
     />,
     <Tabs.Screen
@@ -37,7 +93,10 @@ export default function CustomerTabsLayout() {
       name="orders"
       options={{
         title: t("nav.orders"),
-        tabBarAccessibilityLabel: t("nav.orders")
+        tabBarAccessibilityLabel: t("nav.orders"),
+        tabBarIcon: ({ color, size }) => (
+          <TabIcon name="orders" color={color} size={size} />
+        )
       }}
     />,
     <Tabs.Screen
@@ -45,7 +104,10 @@ export default function CustomerTabsLayout() {
       name="account"
       options={{
         title: t("nav.account"),
-        tabBarAccessibilityLabel: t("nav.account")
+        tabBarAccessibilityLabel: t("nav.account"),
+        tabBarIcon: ({ color, size }) => (
+          <TabIcon name="account" color={color} size={size} />
+        )
       }}
     />
   ];
@@ -60,9 +122,12 @@ export default function CustomerTabsLayout() {
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
           borderTopColor: theme.colors.border,
-          minHeight: 64,
+          minHeight: 68,
           paddingTop: theme.spacing.xs,
           paddingBottom: theme.spacing.sm
+        },
+        tabBarIconStyle: {
+          marginTop: 2
         },
         tabBarLabelStyle: {
           fontSize: theme.fontSizes.caption,

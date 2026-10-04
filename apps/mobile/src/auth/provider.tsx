@@ -30,6 +30,7 @@ type AuthStatus = "loading" | "signedOut" | "signedIn";
 interface AuthContextValue {
   status: AuthStatus;
   user: AuthUser | null;
+  sessionToken: string | null;
   login: (input: {
     email: string;
     password: string;
@@ -40,6 +41,7 @@ interface AuthContextValue {
     displayName: string | null;
     preferredLocale: "fa-AF" | "ps-AF" | "en";
   }) => Promise<void>;
+  refreshSession: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -141,6 +143,31 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }
   }, []);
 
+  const refreshSession = useCallback(async () => {
+    if (!sessionToken) {
+      return;
+    }
+
+    try {
+      const restored = await restoreSession(sessionToken);
+      setUser(restored.user);
+      setStatus("signedIn");
+    } catch (error) {
+      if (
+        error instanceof AuthApiError &&
+        (error.code === "invalid_session" ||
+          error.code === "account_unavailable")
+      ) {
+        await clearStoredSessionToken();
+        setSessionToken(null);
+        setUser(null);
+        setStatus("signedOut");
+      }
+
+      rethrowAuthError(error);
+    }
+  }, [sessionToken]);
+
   const logout = useCallback(async () => {
     const token = sessionToken;
 
@@ -160,11 +187,21 @@ export function AuthProvider({ children }: PropsWithChildren) {
     () => ({
       status,
       user,
+      sessionToken,
       login,
       register,
+      refreshSession,
       logout
     }),
-    [status, user, login, register, logout]
+    [
+      status,
+      user,
+      sessionToken,
+      login,
+      register,
+      refreshSession,
+      logout
+    ]
   );
 
   return (

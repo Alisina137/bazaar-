@@ -13,6 +13,7 @@
     "build": "expo export --platform web --output-dir dist"
   },
   "dependencies": {
+    "@bazaarlink/contracts": "workspace:*",
     "@bazaarlink/design-tokens": "workspace:*",
     "@bazaarlink/localization": "workspace:*",
     "@react-native-async-storage/async-storage": "^3.1.1",
@@ -21,6 +22,7 @@
     "expo-linking": "~57.0.11",
     "expo-localization": "~57.0.2",
     "expo-router": "~57.0.24",
+    "expo-secure-store": "~57.0.1",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",

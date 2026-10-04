@@ -1,8 +1,10 @@
 export {
+  appRole,
   authAccountProvider,
   authAccounts,
   authSessions,
   authVerificationTokens,
+  userRoles,
   userStatus,
   users,
   verificationPurpose,
@@ -11,5 +13,7 @@ export {
   type NewAuthAccount,
   type NewAuthSession,
   type NewUser,
-  type User
+  type NewUserRole,
+  type User,
+  type UserRole
 } from "./auth.js";

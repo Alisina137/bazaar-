@@ -28,6 +28,10 @@ export default function SellerSubscriptionScreen() {
     );
   }
 
+  const upgradePlans = plans.filter(
+    (plan) => plan.code !== currentStore.subscription.plan
+  );
+
   return (
     <Screen>
       <AppText variant="title">{t("seller.subscription.title")}</AppText>
@@ -61,9 +65,7 @@ export default function SellerSubscriptionScreen() {
         </View>
       </Card>
 
-      {plans
-        .filter((plan) => plan.code !== currentStore.subscription.plan)
-        .map((plan) => (
+      {upgradePlans.map((plan) => (
           <Card key={plan.code} muted>
             <View style={{ gap: theme.spacing.sm }}>
               <AppText variant="heading">{plan.code.toUpperCase()}</AppText>

@@ -11,6 +11,7 @@ type TextVariant =
   | "display"
   | "title"
   | "heading"
+  | "bodyLarge"
   | "body"
   | "bodyStrong"
   | "label"
@@ -54,6 +55,12 @@ export function AppText({
           fontSize: theme.fontSizes.heading,
           lineHeight: theme.lineHeights.heading,
           fontWeight: theme.fontWeights.semibold
+        };
+      case "bodyLarge":
+        return {
+          fontSize: theme.fontSizes.bodyLarge,
+          lineHeight: theme.lineHeights.bodyLarge,
+          fontWeight: theme.fontWeights.regular
         };
       case "bodyStrong":
         return {

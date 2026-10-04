@@ -1,8 +1,5 @@
 name: Verify
 
-permissions:
-  contents: write
-
 on:
   push:
   pull_request:
@@ -53,40 +50,10 @@ jobs:
       - name: Verify migration history
         run: pnpm db:check
 
-      - name: Generate migration candidate
-        run: pnpm db:generate
-
-      - name: Backfill existing users in generated role migration
-        if: (github.event_name == 'push' && github.ref_name == 'phase-01-foundation') || (github.event_name == 'pull_request' && github.head_ref == 'phase-01-foundation')
-        shell: bash
-        run: |
-          if ! git diff --quiet -- packages/database/drizzle; then
-            migration="$(ls packages/database/drizzle/*.sql | sort | tail -n 1)"
-            if grep -q 'CREATE TABLE "user_roles"' "$migration" && ! grep -q 'INSERT INTO "user_roles"' "$migration"; then
-              cat >> "$migration" <<'SQL'
-          --> statement-breakpoint
-          INSERT INTO "user_roles" ("user_id", "role")
-          SELECT "id", 'customer'::"app_role"
-          FROM "users"
-          ON CONFLICT DO NOTHING;
-          SQL
-            fi
-          fi
-
-      - name: Commit generated role migration
-        if: (github.event_name == 'push' && github.ref_name == 'phase-01-foundation') || (github.event_name == 'pull_request' && github.head_ref == 'phase-01-foundation')
-        shell: bash
-        run: |
-          if ! git diff --quiet -- packages/database/drizzle; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add packages/database/drizzle
-            git commit -m "chore(database): add account role migration"
-            git push origin HEAD:phase-01-foundation
-          fi
-
       - name: Verify schema has committed migrations
-        run: git diff --exit-code -- packages/database/drizzle
+        run: |
+          pnpm db:generate
+          git diff --exit-code -- packages/database/drizzle
 
       - name: Apply database migrations
         run: pnpm db:migrate

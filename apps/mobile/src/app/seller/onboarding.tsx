@@ -120,7 +120,11 @@ export default function SellerOnboardingScreen() {
         <StateView
           kind="error"
           title={t("store.error.serviceUnavailable")}
-          message={error ? t(storeErrorKey(error.code)) : undefined}
+          message={
+            error
+              ? t(storeErrorKey(error.code))
+              : t("store.error.serviceUnavailable")
+          }
           actionLabel={t("seller.onboarding.continue")}
           onAction={() => {
             void refresh();

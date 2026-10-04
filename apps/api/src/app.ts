@@ -1,7 +1,16 @@
+import rateLimit from "@fastify/rate-limit";
 import Fastify from "fastify";
+
+import {
+  registerAuthRoutes
+} from "./auth/routes.js";
+import type {
+  AuthServiceContract
+} from "./auth/service.js";
 
 export interface AppDependencies {
   databaseHealthCheck?: () => Promise<void>;
+  authService?: AuthServiceContract;
 }
 
 export function buildApp(
@@ -38,6 +47,21 @@ export function buildApp(
       });
     }
   });
+
+  if (dependencies.authService) {
+    app.register(async (authApp) => {
+      await authApp.register(rateLimit, {
+        global: false,
+        errorResponseBuilder: () => ({
+          error: {
+            code: "rate_limited"
+          }
+        })
+      });
+
+      registerAuthRoutes(authApp, dependencies.authService!);
+    });
+  }
 
   return app;
 }

@@ -47,10 +47,40 @@ export const enMessages = {
 
   "account.title": "Account",
   "account.description":
-    "Authentication and role-aware account behavior are intentionally deferred to their Phase 1 tasks.",
-  "account.statusTitle": "Account foundation ready",
-  "account.statusMessage":
-    "Registration, sessions, merchant mode, and role boundaries will be connected after the database and authentication foundations.",
+    "Sign in or create an account to keep your BazaarLink activity connected securely.",
+
+  "auth.restoringTitle": "Restoring your session",
+  "auth.restoringMessage": "Checking your saved secure session.",
+  "auth.signInTitle": "Welcome back",
+  "auth.signInDescription": "Sign in with your email and password.",
+  "auth.registerTitle": "Create your account",
+  "auth.registerDescription":
+    "Create a secure BazaarLink account to begin shopping and later access seller tools.",
+  "auth.displayName": "Name (optional)",
+  "auth.email": "Email",
+  "auth.password": "Password",
+  "auth.passwordHint": "Use at least 8 characters.",
+  "auth.signInAction": "Sign in",
+  "auth.registerAction": "Create account",
+  "auth.needAccount": "Need an account? Create one",
+  "auth.haveAccount": "Already have an account? Sign in",
+  "auth.activeSession": "Secure session active",
+  "auth.signedInTitle": "Signed in",
+  "auth.signedInMessage": "Your account is connected to this device.",
+  "auth.sessionProtected":
+    "Your session token is stored in the device's secure storage and can be revoked by signing out.",
+  "auth.signOut": "Sign out",
+  "auth.error.invalidRequest":
+    "Please check the information you entered and try again.",
+  "auth.error.emailInUse": "An account already uses this email.",
+  "auth.error.invalidCredentials": "Email or password is incorrect.",
+  "auth.error.sessionExpired": "Your session is no longer valid. Please sign in again.",
+  "auth.error.accountUnavailable":
+    "This account is currently unavailable. Please contact support if you need help.",
+  "auth.error.rateLimited":
+    "Too many attempts. Please wait a few minutes and try again.",
+  "auth.error.serviceUnavailable":
+    "BazaarLink could not reach the authentication service. Check your connection and try again.",
 
   "notFound.title": "Page not found",
   "notFound.message": "The requested screen does not exist in the current application.",

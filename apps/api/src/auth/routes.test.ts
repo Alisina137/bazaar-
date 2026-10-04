@@ -15,7 +15,8 @@ const success: AuthSuccessResponse = {
     id: "00000000-0000-4000-8000-000000000010",
     displayName: "Route User",
     preferredLocale: "en",
-    status: "active"
+    status: "active",
+    roles: ["customer"]
   },
   session: {
     token: "route-test-token",
@@ -25,8 +26,10 @@ const success: AuthSuccessResponse = {
 
 class FakeAuthService implements AuthServiceContract {
   loginError: Error | null = null;
+  registerCalls = 0;
 
   async register(): Promise<AuthSuccessResponse> {
+    this.registerCalls += 1;
     return success;
   }
 
@@ -106,6 +109,33 @@ describe("authentication routes", () => {
         code: "invalid_request"
       }
     });
+  });
+
+  it("rejects client attempts to self-assign privileged roles", async () => {
+    const service = new FakeAuthService();
+    const app = buildApp({
+      authService: service
+    });
+    apps.push(app);
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/auth/register",
+      payload: {
+        email: "attacker@example.com",
+        password: "password123",
+        preferredLocale: "en",
+        roles: ["super_admin"]
+      }
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toEqual({
+      error: {
+        code: "invalid_request"
+      }
+    });
+    expect(service.registerCalls).toBe(0);
   });
 
   it("returns generic invalid credentials", async () => {

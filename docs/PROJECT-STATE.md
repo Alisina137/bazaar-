@@ -209,6 +209,20 @@ Verified database gates:
 - Main Task 1.4 implementation: af2a6546e5bde34fd66ffc92a673d12ff3baaf9d
 - Initial migration + migration drift guard: 07a9548b3fd1c572998664343eef732abf4f40b5
 
+### Local development correction
+
+Root cause: the example DATABASE_URL points to localhost, while CI automatically provided PostgreSQL but the repository did not provide an equivalent local PostgreSQL startup workflow. This could make local db:migrate/db:health fail even though CI was green.
+
+Correction:
+- added PostgreSQL 17 Docker Compose service
+- added db:up, db:down, db:logs, and db:setup commands
+- db:setup starts PostgreSQL, waits for health, migrates, and verifies connectivity
+- database migration/health scripts now report actionable connection, credential, host, database, and SSL diagnostics
+- added focused runtime-diagnostic regression tests
+- documented local and hosted PostgreSQL workflows
+
+Verification: GitHub Actions run 37201345518 passed migration history, schema drift, fresh migrations, database connectivity, and full repository verification after the correction.
+
 ## Current task
 
 Task 1.4 is complete. Awaiting `Start Task 1.5`.

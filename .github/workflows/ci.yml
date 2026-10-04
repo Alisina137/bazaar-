@@ -57,7 +57,7 @@ jobs:
         run: pnpm db:generate
 
       - name: Backfill existing users in generated role migration
-        if: github.event_name == 'push' && github.ref_name == 'phase-01-foundation'
+        if: (github.event_name == 'push' && github.ref_name == 'phase-01-foundation') || (github.event_name == 'pull_request' && github.head_ref == 'phase-01-foundation')
         shell: bash
         run: |
           if ! git diff --quiet -- packages/database/drizzle; then
@@ -74,7 +74,7 @@ jobs:
           fi
 
       - name: Commit generated role migration
-        if: github.event_name == 'push' && github.ref_name == 'phase-01-foundation'
+        if: (github.event_name == 'push' && github.ref_name == 'phase-01-foundation') || (github.event_name == 'pull_request' && github.head_ref == 'phase-01-foundation')
         shell: bash
         run: |
           if ! git diff --quiet -- packages/database/drizzle; then

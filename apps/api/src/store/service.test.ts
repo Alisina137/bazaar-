@@ -212,6 +212,23 @@ describe("StoreService", () => {
     });
   });
 
+  it("keeps repeated publish idempotent", async () => {
+    const repository = new FakeStoreRepository();
+    const publishedAt = new Date(Date.now() - 60_000).toISOString();
+    repository.store = sampleStore({
+      status: "published",
+      publishedAt
+    });
+
+    const service = new StoreService(repository);
+    const published = await service.publishStore(
+      repository.store.ownerUserId,
+      repository.store.id
+    );
+
+    expect(published.publishedAt).toBe(publishedAt);
+  });
+
   it("returns only published stores publicly", async () => {
     const repository = new FakeStoreRepository();
     const service = new StoreService(repository);

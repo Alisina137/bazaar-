@@ -8,14 +8,12 @@ import { eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import {
   afterAll,
-  beforeAll,
   describe,
   expect,
   it
 } from "vitest";
 
 import { parseAuthConfig } from "./config.js";
-import { AuthError } from "./errors.js";
 import { DatabaseAuthRepository } from "./repository.js";
 import { AuthService } from "./service.js";
 
@@ -27,9 +25,6 @@ describe.skipIf(!hasDatabase)("database-backed authentication", () => {
   const service = new AuthService(repository, parseAuthConfig());
   let createdUserId: string | null = null;
 
-  beforeAll(async () => {
-    // The CI workflow applies migrations before repository tests run.
-  });
 
   afterAll(async () => {
     if (createdUserId) {

@@ -7,9 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { buildApp } from "../app.js";
 import { AuthError } from "./errors.js";
 import type {
-  AuthServiceContract,
-  LoginInput,
-  RegisterInput
+  AuthServiceContract
 } from "./service.js";
 
 const success: AuthSuccessResponse = {

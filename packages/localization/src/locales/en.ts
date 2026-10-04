@@ -67,6 +67,19 @@ export const enMessages = {
   "auth.activeSession": "Secure session active",
   "auth.signedInTitle": "Signed in",
   "auth.signedInMessage": "Your account is connected to this device.",
+  "auth.rolesLabel": "Account roles",
+  "auth.authorizedModesLabel": "Authorized modes",
+  "auth.rolesManagedByServer":
+    "Roles are assigned by BazaarLink on the server. They cannot be changed from this device.",
+  "auth.mode.shopping": "Shopping",
+  "auth.mode.seller": "Seller access",
+  "auth.mode.platform": "Platform access",
+  "role.customer": "Customer",
+  "role.merchantOwner": "Merchant owner",
+  "role.merchantStaff": "Merchant staff",
+  "role.platformSupport": "Platform support",
+  "role.platformAdmin": "Platform admin",
+  "role.superAdmin": "Super admin",
   "auth.sessionProtected":
     "Your session token is stored in the device's secure storage and can be revoked by signing out.",
   "auth.signOut": "Sign out",
@@ -77,6 +90,8 @@ export const enMessages = {
   "auth.error.sessionExpired": "Your session is no longer valid. Please sign in again.",
   "auth.error.accountUnavailable":
     "This account is currently unavailable. Please contact support if you need help.",
+  "auth.error.forbidden":
+    "Your account does not have permission to use this area.",
   "auth.error.rateLimited":
     "Too many attempts. Please wait a few minutes and try again.",
   "auth.error.serviceUnavailable":

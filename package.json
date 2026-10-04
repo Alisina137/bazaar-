@@ -1,0 +1,37 @@
+{
+  "name": "bazaarlink",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@12.6.0",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --if-present dev",
+    "dev:api": "pnpm --filter @bazaarlink/api dev",
+    "dev:mobile": "pnpm --filter @bazaarlink/mobile dev",
+    "dev:admin": "pnpm --filter @bazaarlink/admin dev",
+    "dev:storefront": "pnpm --filter @bazaarlink/storefront-web dev",
+    "db:up": "docker compose up -d --wait postgres",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
+    "db:setup": "pnpm db:up && pnpm db:migrate && pnpm db:health",
+    "db:generate": "pnpm --filter @bazaarlink/database db:generate",
+    "db:check": "pnpm --filter @bazaarlink/database db:check",
+    "db:migrate": "pnpm --filter @bazaarlink/database db:migrate",
+    "db:health": "pnpm --filter @bazaarlink/database db:health",
+    "db:studio": "pnpm --filter @bazaarlink/database db:studio",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "build": "pnpm -r --if-present build",
+    "verify:localization": "node scripts/verify-mobile-localization.mjs",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm verify:localization && pnpm build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.38.0",
+    "eslint": "^9.38.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.0"
+  }
+}

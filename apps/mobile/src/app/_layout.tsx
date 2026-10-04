@@ -14,6 +14,7 @@ import {
   LocalizationProvider,
   useLocalization
 } from "@/localization/provider";
+import { StoreProvider } from "@/store/provider";
 
 function RootNavigator() {
   const theme = useAppTheme();
@@ -32,6 +33,7 @@ function RootNavigator() {
         }}
       >
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="seller" />
       </Stack>
     </>
   );
@@ -43,7 +45,9 @@ export default function RootLayout() {
       <AppThemeProvider>
         <LocalizationProvider>
           <AuthProvider>
-            <RootNavigator />
+            <StoreProvider>
+              <RootNavigator />
+            </StoreProvider>
           </AuthProvider>
         </LocalizationProvider>
       </AppThemeProvider>

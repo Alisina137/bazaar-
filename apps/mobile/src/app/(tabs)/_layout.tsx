@@ -1,50 +1,28 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs } from "expo-router";
-import { SymbolView } from "expo-symbols";
+import type { ComponentProps } from "react";
 
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 
-const customerTabIcons = {
-  home: {
-    ios: "house.fill",
-    android: "home",
-    web: "home"
-  },
-  marketplace: {
-    ios: "bag.fill",
-    android: "storefront",
-    web: "storefront"
-  },
-  cart: {
-    ios: "cart.fill",
-    android: "shopping_cart",
-    web: "shopping_cart"
-  },
-  orders: {
-    ios: "doc.text.fill",
-    android: "receipt_long",
-    web: "receipt_long"
-  },
-  account: {
-    ios: "person.fill",
-    android: "person",
-    web: "person"
-  }
-} as const;
+type IoniconName = ComponentProps<typeof Ionicons>["name"];
 
-function TabIcon({
-  name,
-  color,
-  size
-}: {
-  name: keyof typeof customerTabIcons;
-  color: string;
-  size: number;
-}) {
-  return (
-    <SymbolView
-      name={customerTabIcons[name]}
-      tintColor={color}
+function tabIcon(
+  filled: IoniconName,
+  outline: IoniconName
+) {
+  return ({
+    color,
+    size,
+    focused
+  }: {
+    color: string;
+    size: number;
+    focused: boolean;
+  }) => (
+    <Ionicons
+      name={focused ? filled : outline}
+      color={color}
       size={size}
     />
   );
@@ -61,9 +39,7 @@ export default function CustomerTabsLayout() {
       options={{
         title: t("nav.home"),
         tabBarAccessibilityLabel: t("nav.home"),
-        tabBarIcon: ({ color, size }) => (
-          <TabIcon name="home" color={color} size={size} />
-        )
+        tabBarIcon: tabIcon("home", "home-outline")
       }}
     />,
     <Tabs.Screen
@@ -72,9 +48,7 @@ export default function CustomerTabsLayout() {
       options={{
         title: t("nav.marketplace"),
         tabBarAccessibilityLabel: t("nav.marketplace"),
-        tabBarIcon: ({ color, size }) => (
-          <TabIcon name="marketplace" color={color} size={size} />
-        )
+        tabBarIcon: tabIcon("storefront", "storefront-outline")
       }}
     />,
     <Tabs.Screen
@@ -83,9 +57,7 @@ export default function CustomerTabsLayout() {
       options={{
         title: t("nav.cart"),
         tabBarAccessibilityLabel: t("nav.cart"),
-        tabBarIcon: ({ color, size }) => (
-          <TabIcon name="cart" color={color} size={size} />
-        )
+        tabBarIcon: tabIcon("cart", "cart-outline")
       }}
     />,
     <Tabs.Screen
@@ -94,9 +66,7 @@ export default function CustomerTabsLayout() {
       options={{
         title: t("nav.orders"),
         tabBarAccessibilityLabel: t("nav.orders"),
-        tabBarIcon: ({ color, size }) => (
-          <TabIcon name="orders" color={color} size={size} />
-        )
+        tabBarIcon: tabIcon("receipt", "receipt-outline")
       }}
     />,
     <Tabs.Screen
@@ -105,9 +75,7 @@ export default function CustomerTabsLayout() {
       options={{
         title: t("nav.account"),
         tabBarAccessibilityLabel: t("nav.account"),
-        tabBarIcon: ({ color, size }) => (
-          <TabIcon name="account" color={color} size={size} />
-        )
+        tabBarIcon: tabIcon("person", "person-outline")
       }}
     />
   ];

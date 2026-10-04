@@ -2,6 +2,7 @@ import {
   closeDatabaseClient,
   createDatabaseClient,
   parseDatabaseConfig,
+  userRoles,
   users
 } from "@bazaarlink/database";
 import { eq } from "drizzle-orm";
@@ -25,7 +26,6 @@ describe.skipIf(!hasDatabase)("database-backed authentication", () => {
   const service = new AuthService(repository, parseAuthConfig());
   let createdUserId: string | null = null;
 
-
   afterAll(async () => {
     if (createdUserId) {
       await client.db.delete(users).where(eq(users.id, createdUserId));
@@ -34,7 +34,7 @@ describe.skipIf(!hasDatabase)("database-backed authentication", () => {
     await closeDatabaseClient(client);
   });
 
-  it("registers, restores, logs in, and revokes a real PostgreSQL session", async () => {
+  it("registers, restores roles, logs in, and revokes a real PostgreSQL session", async () => {
     const email = "auth-" + randomUUID() + "@example.com";
 
     const registered = await service.register({
@@ -46,6 +46,7 @@ describe.skipIf(!hasDatabase)("database-backed authentication", () => {
 
     createdUserId = registered.user.id;
 
+    expect(registered.user.roles).toEqual(["customer"]);
     expect(registered.session.token).toBeTruthy();
 
     const restored = await service.authenticateToken(
@@ -53,6 +54,21 @@ describe.skipIf(!hasDatabase)("database-backed authentication", () => {
     );
 
     expect(restored.user.id).toBe(registered.user.id);
+    expect(restored.user.roles).toEqual(["customer"]);
+
+    await client.db.insert(userRoles).values({
+      userId: registered.user.id,
+      role: "merchant_owner"
+    });
+
+    const merchantSession = await service.authenticateToken(
+      registered.session.token
+    );
+
+    expect(merchantSession.user.roles).toEqual([
+      "customer",
+      "merchant_owner"
+    ]);
 
     const loggedIn = await service.login({
       email,
@@ -60,6 +76,10 @@ describe.skipIf(!hasDatabase)("database-backed authentication", () => {
     });
 
     expect(loggedIn.user.id).toBe(registered.user.id);
+    expect(loggedIn.user.roles).toEqual([
+      "customer",
+      "merchant_owner"
+    ]);
 
     await service.logout(loggedIn.session.token);
 

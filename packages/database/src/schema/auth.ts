@@ -3,6 +3,7 @@ import {
   integer,
   pgEnum,
   pgTable,
+  primaryKey,
   timestamp,
   uniqueIndex,
   uuid,
@@ -13,6 +14,15 @@ export const userStatus = pgEnum("user_status", [
   "active",
   "suspended",
   "disabled"
+]);
+
+export const appRole = pgEnum("app_role", [
+  "customer",
+  "merchant_owner",
+  "merchant_staff",
+  "platform_support",
+  "platform_admin",
+  "super_admin"
 ]);
 
 export const authAccountProvider = pgEnum("auth_account_provider", [
@@ -51,6 +61,30 @@ export const users = pgTable(
   (table) => [
     index("users_status_idx").on(table.status),
     index("users_created_at_idx").on(table.createdAt)
+  ]
+);
+
+export const userRoles = pgTable(
+  "user_roles",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: appRole("role").notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date"
+    })
+      .defaultNow()
+      .notNull()
+  },
+  (table) => [
+    primaryKey({
+      name: "user_roles_pk",
+      columns: [table.userId, table.role]
+    }),
+    index("user_roles_user_id_idx").on(table.userId),
+    index("user_roles_role_idx").on(table.role)
   ]
 );
 
@@ -160,6 +194,8 @@ export const authVerificationTokens = pgTable(
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
+export type UserRole = typeof userRoles.$inferSelect;
+export type NewUserRole = typeof userRoles.$inferInsert;
 export type AuthAccount = typeof authAccounts.$inferSelect;
 export type NewAuthAccount = typeof authAccounts.$inferInsert;
 export type AuthSession = typeof authSessions.$inferSelect;

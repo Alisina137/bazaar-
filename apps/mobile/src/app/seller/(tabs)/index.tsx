@@ -11,7 +11,10 @@ import {
 } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
-import { storeStatusKey } from "@/store/messages";
+import {
+  storeErrorKey,
+  storeStatusKey
+} from "@/store/messages";
 import { useStores } from "@/store/provider";
 
 export default function SellerDashboardScreen() {

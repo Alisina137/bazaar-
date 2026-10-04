@@ -5,6 +5,7 @@ import {
   SafeAreaProvider
 } from "react-native-safe-area-context";
 
+import { AuthProvider } from "@/auth/provider";
 import {
   AppThemeProvider,
   useAppTheme
@@ -41,7 +42,9 @@ export default function RootLayout() {
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <AppThemeProvider>
         <LocalizationProvider>
-          <RootNavigator />
+          <AuthProvider>
+            <RootNavigator />
+          </AuthProvider>
         </LocalizationProvider>
       </AppThemeProvider>
     </SafeAreaProvider>

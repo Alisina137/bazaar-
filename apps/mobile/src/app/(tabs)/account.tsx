@@ -1,4 +1,9 @@
-import type { AuthErrorCode } from "@bazaarlink/contracts";
+import {
+  getAvailableAppModes,
+  type AppMode,
+  type AppRole,
+  type AuthErrorCode
+} from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
 import { useState } from "react";
 import { View } from "react-native";
@@ -33,6 +38,8 @@ function authErrorKey(code: AuthErrorCode): TranslationKey {
       return "auth.error.sessionExpired";
     case "account_unavailable":
       return "auth.error.accountUnavailable";
+    case "forbidden":
+      return "auth.error.forbidden";
     case "rate_limited":
       return "auth.error.rateLimited";
     case "service_unavailable":
@@ -41,9 +48,32 @@ function authErrorKey(code: AuthErrorCode): TranslationKey {
   }
 }
 
+function roleKey(role: AppRole): TranslationKey {
+  const keys: Record<AppRole, TranslationKey> = {
+    customer: "role.customer",
+    merchant_owner: "role.merchantOwner",
+    merchant_staff: "role.merchantStaff",
+    platform_support: "role.platformSupport",
+    platform_admin: "role.platformAdmin",
+    super_admin: "role.superAdmin"
+  };
+
+  return keys[role];
+}
+
+function modeKey(mode: AppMode): TranslationKey {
+  const keys: Record<AppMode, TranslationKey> = {
+    shopping: "auth.mode.shopping",
+    seller: "auth.mode.seller",
+    platform: "auth.mode.platform"
+  };
+
+  return keys[mode];
+}
+
 export default function AccountScreen() {
   const theme = useAppTheme();
-  const { locale, t } = useLocalization();
+  const { isRTL, locale, t } = useLocalization();
   const { status, user, login, register, logout } = useAuth();
 
   const [mode, setMode] = useState<AuthMode>("login");
@@ -66,6 +96,8 @@ export default function AccountScreen() {
   }
 
   if (status === "signedIn" && user) {
+    const availableModes = getAvailableAppModes(user.roles);
+
     return (
       <Screen>
         <View style={{ gap: theme.spacing.sm }}>
@@ -75,6 +107,48 @@ export default function AccountScreen() {
           </AppText>
           <AppText tone="muted">{t("auth.signedInMessage")}</AppText>
         </View>
+
+        <Card>
+          <View style={{ gap: theme.spacing.lg }}>
+            <AppText variant="heading">{t("auth.rolesLabel")}</AppText>
+            <View
+              style={{
+                flexDirection: isRTL ? "row-reverse" : "row",
+                flexWrap: "wrap",
+                gap: theme.spacing.sm
+              }}
+            >
+              {user.roles.map((role) => (
+                <Badge
+                  key={role}
+                  label={t(roleKey(role))}
+                  tone="primary"
+                />
+              ))}
+            </View>
+
+            <AppText variant="heading">{t("auth.authorizedModesLabel")}</AppText>
+            <View
+              style={{
+                flexDirection: isRTL ? "row-reverse" : "row",
+                flexWrap: "wrap",
+                gap: theme.spacing.sm
+              }}
+            >
+              {availableModes.map((appMode) => (
+                <Badge
+                  key={appMode}
+                  label={t(modeKey(appMode))}
+                  tone="neutral"
+                />
+              ))}
+            </View>
+
+            <AppText variant="caption" tone="muted">
+              {t("auth.rolesManagedByServer")}
+            </AppText>
+          </View>
+        </Card>
 
         <Card>
           <View style={{ gap: theme.spacing.lg }}>

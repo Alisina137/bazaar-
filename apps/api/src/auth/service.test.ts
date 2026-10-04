@@ -20,7 +20,8 @@ const user: AuthUser = {
   id: "00000000-0000-4000-8000-000000000001",
   displayName: "Test User",
   preferredLocale: "fa-AF",
-  status: "active"
+  status: "active",
+  roles: ["customer"]
 };
 
 class FakeAuthRepository implements AuthRepository {
@@ -85,6 +86,7 @@ describe("AuthService", () => {
     });
 
     expect(result.user).toEqual(user);
+    expect(result.user.roles).toEqual(["customer"]);
     expect(result.session.token.length).toBeGreaterThan(32);
     expect(repository.createdTokenHash).toHaveLength(64);
     expect(repository.createdTokenHash).not.toBe(result.session.token);

@@ -51,12 +51,25 @@ export function buildApp(
   if (dependencies.authService) {
     app.register(async (authApp) => {
       await authApp.register(rateLimit, {
-        global: false,
-        errorResponseBuilder: () => ({
+        global: false
+      });
+
+      authApp.setErrorHandler((error, request, reply) => {
+        if (error.statusCode === 429) {
+          return reply.code(429).send({
+            error: {
+              code: "rate_limited"
+            }
+          });
+        }
+
+        request.log.error(error);
+
+        return reply.code(503).send({
           error: {
-            code: "rate_limited"
+            code: "service_unavailable"
           }
-        })
+        });
       });
 
       registerAuthRoutes(authApp, dependencies.authService!);

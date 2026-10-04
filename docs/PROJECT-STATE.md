@@ -37,7 +37,7 @@ The application boots reliably and users can authenticate in all supported langu
 
 - [x] 1.1 Repository and monorepo foundation
 - [x] 1.2 Shared design system and mobile application shell
-- [ ] 1.3 Localization, RTL/LTR, and AFN formatting foundation
+- [x] 1.3 Localization, RTL/LTR, and AFN formatting foundation
 - [ ] 1.4 Core PostgreSQL data layer and database tooling
 - [ ] 1.5 Authentication and secure session foundation
 - [ ] 1.6 Account roles, authorization boundaries, and Phase 1 integration/regression
@@ -117,12 +117,60 @@ Verified gates:
 - Text variant correction: 3828bc60b3c1835ab5329aea32f872fab038ea15
 - Metro/module-resolution correction: bf37be398a0d8ab985744311758611758fc7a7ea
 
+## Task 1.3 — Localization, RTL/LTR, and AFN formatting foundation
+
+### Status
+
+Complete and verified.
+
+### Delivered
+
+- shared typed localization package for Dari (`fa-AF`), Pashto (`ps-AF`), and English
+- complete translation-key parity for current Phase 1 mobile UI
+- Dari fallback when the device locale is unsupported
+- device locale detection via Expo Localization
+- persistent user language selection via AsyncStorage
+- runtime language switching without requiring a new account or reinstall
+- RTL metadata for Dari and Pashto, LTR metadata for English
+- direction-aware text, inputs, links, badges, buttons, badge rows, and tab ordering
+- localized tab labels and current Phase 1 route content
+- localized number formatting
+- AFN currency formatting through `Intl.NumberFormat`
+- language switcher using native language labels
+- Expo Localization configuration in the mobile app
+- automated localization tests
+- verification guard against raw user-facing English strings in route/foundation UI
+
+### Verification
+
+GitHub Actions run 37197209869 passed on Task 1.3.
+
+Verified gates:
+
+- dependency installation
+- ESLint
+- all workspace TypeScript checks
+- API focused test
+- 3 design-token invariant tests
+- 4 localization foundation tests
+- mobile localization raw-string verification
+- all shared-package builds
+- Fastify API build
+- Next.js admin production build
+- Next.js storefront production build
+- Expo Router web export
+
+### Git
+
+- Main Task 1.3 implementation: a09d412f96ac8c0a7f12a4f77830e0766361ebb9
+- Lint verification correction: a2952f20ea17a032be78cd280f43792d198ce54f
+
 ## Current task
 
-Task 1.2 is complete. Awaiting `Start Task 1.3`.
+Task 1.3 is complete. Awaiting `Start Task 1.4`.
 
 ## Known external requirements
 
-No external credentials are required for Task 1.2.
+No external credentials are required for Task 1.3.
 
-Database credentials will be required when Task 1.4 reaches live PostgreSQL integration.
+A PostgreSQL connection string will be required when Task 1.4 reaches live database migration/connectivity verification.

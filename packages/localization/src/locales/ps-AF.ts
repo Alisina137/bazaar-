@@ -49,10 +49,40 @@ export const psAfMessages = {
 
   "account.title": "حساب",
   "account.description":
-    "ننوتل، ناستې او د رول پر بنسټ چلند قصداً د لومړي فاز راتلونکو دندو ته پرېښودل شوي.",
-  "account.statusTitle": "د حساب بنسټ چمتو دی",
-  "account.statusMessage":
-    "ثبت‌نام، ناستې، د پلورونکي حالت او د رول حدود به د ډیټابېس او احراز هویت له بنسټ وروسته ونښلول شي.",
+    "د بازارلینک فعالیتونو د خوندي ساتلو لپاره ننوځئ یا نوی حساب جوړ کړئ.",
+
+  "auth.restoringTitle": "ستاسو ناسته بېرته راګرځي",
+  "auth.restoringMessage": "ستاسو خوندي ساتل شوې ناسته کتل کېږي.",
+  "auth.signInTitle": "بیا ښه راغلاست",
+  "auth.signInDescription": "د خپل ایمیل او پټنوم له لارې ننوځئ.",
+  "auth.registerTitle": "خپل حساب جوړ کړئ",
+  "auth.registerDescription":
+    "خوندي بازارلینک حساب جوړ کړئ ترڅو پېر پیل کړئ او وروسته د پلورونکي وسایلو ته لاسرسی ومومئ.",
+  "auth.displayName": "نوم (اختیاري)",
+  "auth.email": "ایمیل",
+  "auth.password": "پټنوم",
+  "auth.passwordHint": "لږ تر لږه ۸ توري وکاروئ.",
+  "auth.signInAction": "ننوتل",
+  "auth.registerAction": "حساب جوړول",
+  "auth.needAccount": "حساب نه لرئ؟ نوی حساب جوړ کړئ",
+  "auth.haveAccount": "حساب لرئ؟ ننوځئ",
+  "auth.activeSession": "خوندي ناسته فعاله ده",
+  "auth.signedInTitle": "ننوتلي یاست",
+  "auth.signedInMessage": "ستاسو حساب په خوندي ډول له دې وسیلې سره نښلول شوی.",
+  "auth.sessionProtected":
+    "ستاسو د ناستې ټوکن د وسیلې په خوندي ذخیره کې ساتل کېږي او د وتلو له لارې باطلېدای شي.",
+  "auth.signOut": "وتل",
+  "auth.error.invalidRequest":
+    "مهرباني وکړئ داخل شوي معلومات وګورئ او بیا هڅه وکړئ.",
+  "auth.error.emailInUse": "دا ایمیل لا دمخه د یوه حساب لپاره کارول شوی.",
+  "auth.error.invalidCredentials": "ایمیل یا پټنوم ناسم دی.",
+  "auth.error.sessionExpired": "ستاسو ناسته نوره معتبره نه ده. بیا ننوځئ.",
+  "auth.error.accountUnavailable":
+    "دا حساب اوس د لاسرسي وړ نه دی. د مرستې لپاره له ملاتړ سره اړیکه ونیسئ.",
+  "auth.error.rateLimited":
+    "ډېرې هڅې وشوې. څو دقیقې وروسته بیا هڅه وکړئ.",
+  "auth.error.serviceUnavailable":
+    "بازارلینک د ننوتلو خدمت ته ونه رسېد. خپله اړیکه وګورئ او بیا هڅه وکړئ.",
 
   "notFound.title": "پاڼه ونه موندل شوه",
   "notFound.message": "غوښتل شوې پاڼه د اپ په اوسنۍ نسخه کې نشته.",

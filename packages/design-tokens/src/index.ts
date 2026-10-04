@@ -8,7 +8,7 @@ export {
   radii,
   sizes,
   spacing
-} from "./primitives.js";
+} from "./primitives";
 
 export {
   darkColors,
@@ -16,4 +16,4 @@ export {
   themes,
   type AppTheme,
   type ThemeScheme
-} from "./semantic.js";
+} from "./semantic";

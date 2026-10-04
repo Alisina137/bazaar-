@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { darkColors, lightColors, sizes, spacing, themes } from "./index.js";
+import { darkColors, lightColors, sizes, spacing, themes } from "./index";
 
 describe("design tokens", () => {
   it("keeps interactive controls at an accessible touch size", () => {

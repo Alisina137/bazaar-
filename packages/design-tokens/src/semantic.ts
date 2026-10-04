@@ -8,7 +8,7 @@ import {
   radii,
   sizes,
   spacing
-} from "./primitives.js";
+} from "./primitives";
 
 export const lightColors = {
   background: palette.slate50,

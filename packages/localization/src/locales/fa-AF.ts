@@ -69,6 +69,19 @@ export const faAfMessages = {
   "auth.activeSession": "نشست امن فعال است",
   "auth.signedInTitle": "وارد شده‌اید",
   "auth.signedInMessage": "حساب شما به‌صورت امن به این دستگاه متصل است.",
+  "auth.rolesLabel": "نقش‌های حساب",
+  "auth.authorizedModesLabel": "حالت‌های مجاز",
+  "auth.rolesManagedByServer":
+    "نقش‌ها توسط بازارلینک در سرور تعیین می‌شوند و از این دستگاه قابل تغییر نیستند.",
+  "auth.mode.shopping": "خرید",
+  "auth.mode.seller": "دسترسی فروشنده",
+  "auth.mode.platform": "دسترسی پلتفرم",
+  "role.customer": "مشتری",
+  "role.merchantOwner": "مالک فروشگاه",
+  "role.merchantStaff": "کارمند فروشگاه",
+  "role.platformSupport": "پشتیبانی پلتفرم",
+  "role.platformAdmin": "مدیر پلتفرم",
+  "role.superAdmin": "مدیر ارشد",
   "auth.sessionProtected":
     "توکن نشست شما در ذخیره‌سازی امن دستگاه نگهداری می‌شود و با خروج می‌توانید آن را باطل کنید.",
   "auth.signOut": "خروج",
@@ -79,6 +92,8 @@ export const faAfMessages = {
   "auth.error.sessionExpired": "نشست شما دیگر معتبر نیست. لطفاً دوباره وارد شوید.",
   "auth.error.accountUnavailable":
     "این حساب فعلاً در دسترس نیست. اگر کمک نیاز دارید با پشتیبانی تماس بگیرید.",
+  "auth.error.forbidden":
+    "حساب شما اجازه دسترسی به این بخش را ندارد.",
   "auth.error.rateLimited":
     "تلاش‌های بیش از حد انجام شده است. چند دقیقه بعد دوباره کوشش کنید.",
   "auth.error.serviceUnavailable":

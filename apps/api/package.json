@@ -8,8 +8,8 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run",
-    "test:auth-integration": "vitest run src/auth/auth.integration.test.ts"
+    "test": "pnpm --filter @bazaarlink/database build && vitest run",
+    "test:auth-integration": "pnpm --filter @bazaarlink/database build && vitest run src/auth/auth.integration.test.ts"
   },
   "dependencies": {
     "@bazaarlink/contracts": "workspace:*",

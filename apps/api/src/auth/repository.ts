@@ -1,8 +1,13 @@
-import type { AuthUser } from "@bazaarlink/contracts";
+import {
+  appRoles,
+  type AppRole,
+  type AuthUser
+} from "@bazaarlink/contracts";
 import {
   authAccounts,
   authSessions,
   type Database,
+  userRoles,
   users
 } from "@bazaarlink/database";
 import { and, eq } from "drizzle-orm";
@@ -58,22 +63,43 @@ function isUniqueViolation(error: unknown): boolean {
   return candidate.cause ? isUniqueViolation(candidate.cause) : false;
 }
 
-function toAuthUser(row: {
-  id: string;
-  displayName: string | null;
-  preferredLocale: string;
-  status: "active" | "suspended" | "disabled";
-}): AuthUser {
+function sortRoles(roles: AppRole[]): AppRole[] {
+  return [...roles].sort(
+    (left, right) => appRoles.indexOf(left) - appRoles.indexOf(right)
+  );
+}
+
+function toAuthUser(
+  row: {
+    id: string;
+    displayName: string | null;
+    preferredLocale: string;
+    status: "active" | "suspended" | "disabled";
+  },
+  roles: AppRole[]
+): AuthUser {
   return {
     id: row.id,
     displayName: row.displayName,
     preferredLocale: row.preferredLocale as AuthUser["preferredLocale"],
-    status: row.status
+    status: row.status,
+    roles: sortRoles(roles)
   };
 }
 
 export class DatabaseAuthRepository implements AuthRepository {
   constructor(private readonly db: Database) {}
+
+  private async findRoles(userId: string): Promise<AppRole[]> {
+    const rows = await this.db
+      .select({
+        role: userRoles.role
+      })
+      .from(userRoles)
+      .where(eq(userRoles.userId, userId));
+
+    return sortRoles(rows.map((row) => row.role));
+  }
 
   async findEmailIdentity(email: string): Promise<EmailIdentity | null> {
     const [row] = await this.db
@@ -102,7 +128,7 @@ export class DatabaseAuthRepository implements AuthRepository {
     return {
       accountId: row.accountId,
       passwordHash: row.passwordHash,
-      user: toAuthUser(row)
+      user: toAuthUser(row, await this.findRoles(row.id))
     };
   }
 
@@ -138,7 +164,12 @@ export class DatabaseAuthRepository implements AuthRepository {
           passwordHash: input.passwordHash
         });
 
-        return toAuthUser(user);
+        await tx.insert(userRoles).values({
+          userId: user.id,
+          role: "customer"
+        });
+
+        return toAuthUser(user, ["customer"]);
       });
     } catch (error) {
       if (isUniqueViolation(error)) {
@@ -187,7 +218,7 @@ export class DatabaseAuthRepository implements AuthRepository {
       expiresAt: row.expiresAt,
       lastSeenAt: row.lastSeenAt,
       revokedAt: row.revokedAt,
-      user: toAuthUser(row)
+      user: toAuthUser(row, await this.findRoles(row.id))
     };
   }
 

@@ -15,7 +15,7 @@ apps/
 
 packages/
 ├── contracts         Shared cross-app contracts
-├── database          Database package boundary
+├── database          PostgreSQL / Drizzle database package
 ├── design-tokens     Shared visual tokens
 └── localization      Shared locale definitions
 ```
@@ -24,12 +24,44 @@ packages/
 
 - Node.js 22.13 or newer
 - pnpm 12.6
+- Docker Desktop / Docker Compose for the provided local PostgreSQL workflow, or a hosted PostgreSQL connection string
 
 ## Install
 
 ```powershell
 pnpm install
 ```
+
+## Local PostgreSQL
+
+The example environment points to PostgreSQL at `localhost:5432`. Start the provided PostgreSQL 17 development service before running migrations:
+
+```powershell
+Copy-Item .env.example .env
+pnpm db:setup
+```
+
+`db:setup` starts PostgreSQL, waits until it is healthy, applies committed migrations, and verifies connectivity.
+
+Useful commands:
+
+```powershell
+pnpm db:up
+pnpm db:health
+pnpm db:logs
+pnpm db:down
+```
+
+The Docker volume keeps local development data when `db:down` is used.
+
+If you use Neon or another hosted PostgreSQL provider, replace `DATABASE_URL` in the root `.env` with the provider connection string and run:
+
+```powershell
+pnpm db:migrate
+pnpm db:health
+```
+
+Never commit `.env` or real credentials.
 
 ## Verify
 
@@ -39,15 +71,26 @@ pnpm verify
 
 ## Development
 
+API:
+
 ```powershell
 pnpm dev:api
-pnpm dev:mobile
-pnpm dev:admin
-pnpm dev:storefront
 ```
 
-## Environment
+Mobile:
 
-Copy `.env.example` to `.env` when a task begins requiring environment-backed services.
+```powershell
+pnpm dev:mobile
+```
 
-Never commit real credentials.
+Admin:
+
+```powershell
+pnpm dev:admin
+```
+
+Public storefront:
+
+```powershell
+pnpm dev:storefront
+```

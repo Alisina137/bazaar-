@@ -35,7 +35,7 @@ The application boots reliably and users can authenticate in all supported langu
 
 ### Task plan
 
-- [ ] 1.1 Repository and monorepo foundation
+- [x] 1.1 Repository and monorepo foundation
 - [ ] 1.2 Shared design system and mobile application shell
 - [ ] 1.3 Localization, RTL/LTR, and AFN formatting foundation
 - [ ] 1.4 Core PostgreSQL data layer and database tooling
@@ -44,10 +44,14 @@ The application boots reliably and users can authenticate in all supported langu
 
 ## Task 1.1 — Repository and monorepo foundation
 
-### Scope
+### Status
+
+Complete and verified.
+
+### Delivered
 
 - pnpm workspace and shared TypeScript baseline
-- Expo mobile app foundation
+- Expo SDK 57 mobile app foundation
 - Fastify API foundation with a health route
 - Next.js administration foundation
 - Next.js public storefront companion foundation
@@ -56,14 +60,35 @@ The application boots reliably and users can authenticate in all supported langu
 - repository verification scripts
 - GitHub Actions verification workflow
 - project README and run commands
+- pnpm 12 build-script allowlist for required native/tooling dependencies
+- explicit Expo SDK 57 application entry compatible with the monorepo layout
 
 ### Verification
 
-Implementation committed. Automated verification is pending the first CI run and/or local dependency installation.
+GitHub Actions run 37195033151 passed on Task 1.1.
+
+Verified gates:
+
+- dependency installation
+- ESLint
+- repository TypeScript checks
+- API focused test
+- Expo web export
+- Fastify API build
+- Next.js admin production build
+- Next.js storefront production build
+- shared package builds
+
+### Git
+
+- Task implementation baseline commit: d598ab396e155a96be46b02a2b7f2da6cd1fbb58
+- Dependency-build policy fix: d61bd99b133cfcd735a7bdda950fc605e5098e20
+- Expo entry fix: 4ec69130f7ac3fff14bbbb080fdd080c5cbf117b
+- Draft PR: #1 — Task 1.1 — Bootstrap BazaarLink monorepo
 
 ## Current task
 
-Task 1.1 — Repository and monorepo foundation.
+Task 1.1 is complete. Awaiting `Start Task 1.2`.
 
 ## Known external requirements
 

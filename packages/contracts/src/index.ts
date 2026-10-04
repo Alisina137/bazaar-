@@ -1,4 +1,6 @@
-export const APP_NAME = "BazaarLink";
-export const PRIMARY_CURRENCY = "AFN";
+export {
+  APP_NAME,
+  PRIMARY_CURRENCY
+} from "./constants.js";
 
 export * from "./auth.js";

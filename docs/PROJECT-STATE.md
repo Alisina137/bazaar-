@@ -39,7 +39,7 @@ The application boots reliably and users can authenticate in all supported langu
 - [x] 1.2 Shared design system and mobile application shell
 - [x] 1.3 Localization, RTL/LTR, and AFN formatting foundation
 - [x] 1.4 Core PostgreSQL data layer and database tooling
-- [ ] 1.5 Authentication and secure session foundation
+- [x] 1.5 Authentication and secure session foundation
 - [ ] 1.6 Account roles, authorization boundaries, and Phase 1 integration/regression
 
 ## Task 1.1 — Repository and monorepo foundation
@@ -223,12 +223,73 @@ Correction:
 
 Verification: GitHub Actions run 37201345518 passed migration history, schema drift, fresh migrations, database connectivity, and full repository verification after the correction.
 
+## Task 1.5 — Authentication and secure session foundation
+
+### Status
+
+Complete and verified.
+
+### Delivered
+
+- shared authentication contracts for API/mobile
+- email/password account registration and login
+- email normalization and generic invalid-credential responses
+- Argon2id password hashing
+- opaque cryptographically random 256-bit session tokens
+- SHA-256 session-token hashes stored in PostgreSQL instead of raw session tokens
+- configurable session expiry and last-seen touch intervals
+- server-side session restoration, expiry validation, revocation, and account-status checks
+- authenticated `GET /auth/session` route and `POST /auth/logout` revocation
+- rate-limited registration and login endpoints with safe rate-limit responses
+- Zod request validation with non-leaking error responses
+- database-backed auth repository with transaction-safe account creation
+- mobile SecureStore session-token persistence on supported native platforms
+- mobile startup session restoration and invalid-session cleanup
+- localized register/login/logout/session-loading UI in Dari, Pashto, and English
+- localized authentication error states
+- authentication environment configuration in `.env.example`
+- Argon2 native build allowlist for pnpm 12
+- focused service and API route tests
+- PostgreSQL-backed end-to-end authentication integration test
+- contracts package source resolution for mobile/API workspace consumers
+
+### Verification
+
+GitHub Actions run 37203474657 passed on Task 1.5.
+
+Verified gates:
+
+- PostgreSQL 17 initialization
+- migration history and schema-drift checks
+- committed migration application
+- database connectivity
+- ESLint
+- all workspace TypeScript checks
+- 4 AuthService tests
+- 5 authentication-route tests
+- 1 real PostgreSQL authentication lifecycle integration test
+- all 13 API tests
+- database/design-token/localization regression tests
+- mobile localization raw-string verification
+- Fastify API production build
+- Expo mobile web export
+- Next.js admin/storefront production builds
+
+The PostgreSQL auth integration verified registration, session restoration, login, logout/revocation, and rejection of the revoked session.
+
+### Git
+
+- Task 1.5 verified branch head before state update: c8fdf1238925c1af37ee6a9f74c4f4e26486f113
+- Verification run: 37203474657
+
 ## Current task
 
-Task 1.4 is complete. Awaiting `Start Task 1.5`.
+Task 1.5 is complete. Awaiting `Start Task 1.6`.
 
 ## Known external requirements
 
-No external credentials are required for Task 1.3.
+No third-party authentication secret is required for Task 1.5 because BazaarLink currently uses database-backed opaque sessions.
 
-Task 1.4 is verified in CI against fresh PostgreSQL. Local API/database execution requires a valid DATABASE_URL in the root .env file.
+Task 1.4/1.5 are verified in CI against fresh PostgreSQL. Local API/auth execution requires a valid DATABASE_URL in the root .env file.
+
+Physical-device authentication testing also requires EXPO_PUBLIC_API_URL to point to an API URL reachable from the phone (for example a local-network URL or approved tunnel).

@@ -134,6 +134,33 @@ describe("authentication routes", () => {
     });
   });
 
+  it("rate-limits repeated login attempts", async () => {
+    const app = buildApp({
+      authService: new FakeAuthService()
+    });
+    apps.push(app);
+
+    let response;
+
+    for (let attempt = 0; attempt < 11; attempt += 1) {
+      response = await app.inject({
+        method: "POST",
+        url: "/auth/login",
+        payload: {
+          email: "person@example.com",
+          password: "password123"
+        }
+      });
+    }
+
+    expect(response?.statusCode).toBe(429);
+    expect(response?.json()).toEqual({
+      error: {
+        code: "rate_limited"
+      }
+    });
+  });
+
   it("requires a bearer token for session access", async () => {
     const app = buildApp({
       authService: new FakeAuthService()

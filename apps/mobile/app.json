@@ -2,8 +2,16 @@
   "expo": {
     "name": "BazaarLink",
     "slug": "bazaarlink",
+    "scheme": "bazaarlink",
     "version": "0.1.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "automatic"
+    "userInterfaceStyle": "automatic",
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "web": {
+      "bundler": "metro"
+    }
   }
 }

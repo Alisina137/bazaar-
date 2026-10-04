@@ -1,0 +1,79 @@
+import { useState } from "react";
+import {
+  StyleSheet,
+  TextInput,
+  View,
+  type TextInputProps
+} from "react-native";
+
+import { useAppTheme } from "@/design/theme";
+
+import { AppText } from "./AppText";
+
+export interface TextFieldProps extends Omit<TextInputProps, "style"> {
+  label: string;
+  error?: string;
+  helperText?: string;
+}
+
+export function TextField({
+  label,
+  error,
+  helperText,
+  accessibilityLabel,
+  onBlur,
+  onFocus,
+  ...props
+}: TextFieldProps) {
+  const theme = useAppTheme();
+  const [focused, setFocused] = useState(false);
+
+  const supportingText = error ?? helperText;
+
+  return (
+    <View style={{ gap: theme.spacing.sm }}>
+      <AppText variant="label">{label}</AppText>
+      <TextInput
+        {...props}
+        accessibilityLabel={accessibilityLabel ?? label}
+        onFocus={(event) => {
+          setFocused(true);
+          onFocus?.(event);
+        }}
+        onBlur={(event) => {
+          setFocused(false);
+          onBlur?.(event);
+        }}
+        placeholderTextColor={theme.colors.textMuted}
+        style={[
+          styles.input,
+          {
+            minHeight: theme.sizes.controlHeight,
+            borderRadius: theme.radii.md,
+            borderColor: error
+              ? theme.colors.danger
+              : focused
+                ? theme.colors.focus
+                : theme.colors.borderStrong,
+            backgroundColor: theme.colors.surface,
+            color: theme.colors.text,
+            paddingHorizontal: theme.spacing.lg,
+            fontSize: theme.fontSizes.body,
+            lineHeight: theme.lineHeights.body
+          }
+        ]}
+      />
+      {supportingText ? (
+        <AppText variant="caption" tone={error ? "danger" : "muted"}>
+          {supportingText}
+        </AppText>
+      ) : null}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  input: {
+    borderWidth: 1
+  }
+});

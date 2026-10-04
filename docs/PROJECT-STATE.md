@@ -247,6 +247,8 @@ Complete and verified.
 - mobile startup session restoration and invalid-session cleanup
 - localized register/login/logout/session-loading UI in Dari, Pashto, and English
 - localized authentication error states
+- mobile-specific Expo API environment template for physical-device testing
+- verified safe HTTP 429 rate-limit response shape
 - authentication environment configuration in `.env.example`
 - Argon2 native build allowlist for pnpm 12
 - focused service and API route tests
@@ -255,7 +257,7 @@ Complete and verified.
 
 ### Verification
 
-GitHub Actions run 37203474657 passed on Task 1.5.
+GitHub Actions run 37204050715 passed on Task 1.5 after the final rate-limit regression fix.
 
 Verified gates:
 
@@ -266,9 +268,9 @@ Verified gates:
 - ESLint
 - all workspace TypeScript checks
 - 4 AuthService tests
-- 5 authentication-route tests
+- 6 authentication-route tests, including verified HTTP 429 rate limiting
 - 1 real PostgreSQL authentication lifecycle integration test
-- all 13 API tests
+- all 14 API tests
 - database/design-token/localization regression tests
 - mobile localization raw-string verification
 - Fastify API production build
@@ -279,8 +281,9 @@ The PostgreSQL auth integration verified registration, session restoration, logi
 
 ### Git
 
-- Task 1.5 verified branch head before state update: c8fdf1238925c1af37ee6a9f74c4f4e26486f113
-- Verification run: 37203474657
+- Core auth verification baseline: c8fdf1238925c1af37ee6a9f74c4f4e26486f113
+- Final rate-limit status fix: 9d7e90b090630a93cf20de0c46411607b4a0bf23
+- Verification run: 37204050715
 
 ## Current task
 

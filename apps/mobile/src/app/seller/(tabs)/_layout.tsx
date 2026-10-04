@@ -1,9 +1,35 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Redirect, Tabs } from "expo-router";
+import type { ComponentProps } from "react";
+import type { ColorValue } from "react-native";
 
 import { Screen, StateView } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 import { useStores } from "@/store/provider";
+
+type IoniconName = ComponentProps<typeof Ionicons>["name"];
+
+function tabIcon(
+  filled: IoniconName,
+  outline: IoniconName
+) {
+  return ({
+    color,
+    size,
+    focused
+  }: {
+    color: ColorValue;
+    size: number;
+    focused: boolean;
+  }) => (
+    <Ionicons
+      name={focused ? filled : outline}
+      color={color}
+      size={size}
+    />
+  );
+}
 
 export default function SellerTabsLayout() {
   const theme = useAppTheme();
@@ -32,7 +58,8 @@ export default function SellerTabsLayout() {
       name="index"
       options={{
         title: t("seller.nav.dashboard"),
-        tabBarAccessibilityLabel: t("seller.nav.dashboard")
+        tabBarAccessibilityLabel: t("seller.nav.dashboard"),
+        tabBarIcon: tabIcon("grid", "grid-outline")
       }}
     />,
     <Tabs.Screen
@@ -40,7 +67,8 @@ export default function SellerTabsLayout() {
       name="products"
       options={{
         title: t("seller.nav.products"),
-        tabBarAccessibilityLabel: t("seller.nav.products")
+        tabBarAccessibilityLabel: t("seller.nav.products"),
+        tabBarIcon: tabIcon("cube", "cube-outline")
       }}
     />,
     <Tabs.Screen
@@ -48,7 +76,8 @@ export default function SellerTabsLayout() {
       name="orders"
       options={{
         title: t("seller.nav.orders"),
-        tabBarAccessibilityLabel: t("seller.nav.orders")
+        tabBarAccessibilityLabel: t("seller.nav.orders"),
+        tabBarIcon: tabIcon("receipt", "receipt-outline")
       }}
     />,
     <Tabs.Screen
@@ -56,7 +85,8 @@ export default function SellerTabsLayout() {
       name="store"
       options={{
         title: t("seller.nav.store"),
-        tabBarAccessibilityLabel: t("seller.nav.store")
+        tabBarAccessibilityLabel: t("seller.nav.store"),
+        tabBarIcon: tabIcon("storefront", "storefront-outline")
       }}
     />,
     <Tabs.Screen
@@ -64,7 +94,11 @@ export default function SellerTabsLayout() {
       name="more"
       options={{
         title: t("seller.nav.more"),
-        tabBarAccessibilityLabel: t("seller.nav.more")
+        tabBarAccessibilityLabel: t("seller.nav.more"),
+        tabBarIcon: tabIcon(
+          "ellipsis-horizontal-circle",
+          "ellipsis-horizontal-circle-outline"
+        )
       }}
     />
   ];
@@ -79,9 +113,12 @@ export default function SellerTabsLayout() {
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
           borderTopColor: theme.colors.border,
-          minHeight: 64,
+          minHeight: 68,
           paddingTop: theme.spacing.xs,
           paddingBottom: theme.spacing.sm
+        },
+        tabBarIconStyle: {
+          marginTop: 2
         },
         tabBarLabelStyle: {
           fontSize: theme.fontSizes.caption,

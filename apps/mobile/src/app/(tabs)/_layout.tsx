@@ -1,7 +1,33 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs } from "expo-router";
+import type { ComponentProps } from "react";
+import type { ColorValue } from "react-native";
 
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
+
+type IoniconName = ComponentProps<typeof Ionicons>["name"];
+
+function tabIcon(
+  filled: IoniconName,
+  outline: IoniconName
+) {
+  return ({
+    color,
+    size,
+    focused
+  }: {
+    color: ColorValue;
+    size: number;
+    focused: boolean;
+  }) => (
+    <Ionicons
+      name={focused ? filled : outline}
+      color={color}
+      size={size}
+    />
+  );
+}
 
 export default function CustomerTabsLayout() {
   const theme = useAppTheme();
@@ -13,7 +39,8 @@ export default function CustomerTabsLayout() {
       name="index"
       options={{
         title: t("nav.home"),
-        tabBarAccessibilityLabel: t("nav.home")
+        tabBarAccessibilityLabel: t("nav.home"),
+        tabBarIcon: tabIcon("home", "home-outline")
       }}
     />,
     <Tabs.Screen
@@ -21,7 +48,8 @@ export default function CustomerTabsLayout() {
       name="marketplace"
       options={{
         title: t("nav.marketplace"),
-        tabBarAccessibilityLabel: t("nav.marketplace")
+        tabBarAccessibilityLabel: t("nav.marketplace"),
+        tabBarIcon: tabIcon("storefront", "storefront-outline")
       }}
     />,
     <Tabs.Screen
@@ -29,7 +57,8 @@ export default function CustomerTabsLayout() {
       name="cart"
       options={{
         title: t("nav.cart"),
-        tabBarAccessibilityLabel: t("nav.cart")
+        tabBarAccessibilityLabel: t("nav.cart"),
+        tabBarIcon: tabIcon("cart", "cart-outline")
       }}
     />,
     <Tabs.Screen
@@ -37,7 +66,8 @@ export default function CustomerTabsLayout() {
       name="orders"
       options={{
         title: t("nav.orders"),
-        tabBarAccessibilityLabel: t("nav.orders")
+        tabBarAccessibilityLabel: t("nav.orders"),
+        tabBarIcon: tabIcon("receipt", "receipt-outline")
       }}
     />,
     <Tabs.Screen
@@ -45,7 +75,8 @@ export default function CustomerTabsLayout() {
       name="account"
       options={{
         title: t("nav.account"),
-        tabBarAccessibilityLabel: t("nav.account")
+        tabBarAccessibilityLabel: t("nav.account"),
+        tabBarIcon: tabIcon("person", "person-outline")
       }}
     />
   ];
@@ -60,9 +91,12 @@ export default function CustomerTabsLayout() {
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
           borderTopColor: theme.colors.border,
-          minHeight: 64,
+          minHeight: 68,
           paddingTop: theme.spacing.xs,
           paddingBottom: theme.spacing.sm
+        },
+        tabBarIconStyle: {
+          marginTop: 2
         },
         tabBarLabelStyle: {
           fontSize: theme.fontSizes.caption,

@@ -102,23 +102,37 @@ export interface CreateStoreInput {
   cityDistrict: string;
   phone: string;
   preferredLocale: "fa-AF" | "ps-AF" | "en";
-  logoUrl?: string | null;
-  coverImageUrl?: string | null;
-  description?: string | null;
-  whatsappNumber?: string | null;
-  physicalAddress?: string | null;
-  mapLatitude?: number | null;
-  mapLongitude?: number | null;
-  businessHours?: string | null;
-  theme?: StoreTheme;
-  accentColor?: string;
+  logoUrl?: string | null | undefined;
+  coverImageUrl?: string | null | undefined;
+  description?: string | null | undefined;
+  whatsappNumber?: string | null | undefined;
+  physicalAddress?: string | null | undefined;
+  mapLatitude?: number | null | undefined;
+  mapLongitude?: number | null | undefined;
+  businessHours?: string | null | undefined;
+  theme?: StoreTheme | undefined;
+  accentColor?: string | undefined;
 }
 
-export type UpdateStoreInput = Partial<
-  Omit<CreateStoreInput, "handle">
-> & {
-  handle?: string;
-};
+export interface UpdateStoreInput {
+  name?: string | undefined;
+  handle?: string | undefined;
+  category?: string | undefined;
+  province?: string | undefined;
+  cityDistrict?: string | undefined;
+  phone?: string | undefined;
+  preferredLocale?: "fa-AF" | "ps-AF" | "en" | undefined;
+  logoUrl?: string | null | undefined;
+  coverImageUrl?: string | null | undefined;
+  description?: string | null | undefined;
+  whatsappNumber?: string | null | undefined;
+  physicalAddress?: string | null | undefined;
+  mapLatitude?: number | null | undefined;
+  mapLongitude?: number | null | undefined;
+  businessHours?: string | null | undefined;
+  theme?: StoreTheme | undefined;
+  accentColor?: string | undefined;
+}
 
 export const storeErrorCodes = [
   "invalid_request",

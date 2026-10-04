@@ -352,16 +352,106 @@ Verified gates:
 
 ## Phase 1 status
 
-Complete and verified. Pull request #1 is ready for review and must not be merged without explicit approval.
+Complete and verified. Phase 1 is the recovery baseline for Phase 2.
 
-## Current task
+## Phase 2 — Merchant & Store
 
-Phase 1 is complete. Awaiting review/merge approval before Phase 2 begins.
+### Status
+
+Complete and verified on `phase-02-merchant-store`.
+
+### Product outcomes
+
+- seller onboarding
+- store creation
+- store settings
+- subscription entitlements
+- storefront basics
+- seller navigation
+
+### Delivered
+
+- signed-in customers can enter the seller onboarding flow without a separate account
+- required store identity and location fields are validated server-side
+- optional store profile fields, theme, accent color, contact details, and business hours can be edited later
+- unique normalized public store handles
+- transactional store creation with an active Starter subscription
+- automatic trusted `merchant_owner` role assignment after store creation
+- Starter, Pro, and Business entitlement definitions using documented limits
+- current paid upgrade activation remains deferred to the documented Merchant Growth phase; Phase 2 exposes the plan capabilities without inventing pricing
+- seller navigation: Dashboard, Products, Orders, Store, More
+- seller can switch back to Shopping mode without a second account
+- store preview and publish workflow
+- suspended stores and unavailable subscriptions cannot publish
+- repeated publish is idempotent
+- unpublished stores are not publicly readable
+- published empty stores are available through the public store API and `/store/[handle]` storefront page
+- public storefront respects the store language direction and exposes only public store information
+- owner-scoped store reads and updates prevent one user from managing another user's store
+- Dari, Pashto, and English seller/store localization
+- Phase 3/8 functionality remains visibly deferred rather than partially implemented
+
+### Database migration
+
+- `0002_windy_nehzno.sql`
+- adds store status/theme and subscription plan/status enums
+- adds `stores` and `store_subscriptions`
+- enforces unique public handles and one subscription row per store
+- uses additive foreign keys and indexes; no existing Phase 1 data is deleted
+
+### Acceptance
+
+Passed: a signed-in merchant can create a valid empty store, preview it, publish it, receive the `merchant_owner` role, and access the published store publicly.
+
+### Verification
+
+GitHub Actions run 37210407024 passed after recovering the missing migration and removing a dead store error contract.
+
+Verified gates:
+
+- PostgreSQL 17 initialization
+- migration history validation
+- zero schema/migration drift
+- fresh Phase 1 + Phase 2 migrations
+- live database connectivity
+- ESLint
+- all workspace TypeScript checks
+- 11 database tests
+- 3 design-token tests
+- 4 localization tests
+- 33 API/auth/authorization/store tests
+- real PostgreSQL merchant ownership + draft/publish/public lifecycle integration
+- cross-user store ownership protection
+- duplicate handle protection
+- mobile localization raw-string verification
+- Fastify API production build
+- Next.js admin production build
+- Next.js storefront production build
+- Expo mobile web export
+
+### Recovery / corrections
+
+The original Phase 2 PR was merged before its final CI gate was green. The correction branch preserves that implementation and fixes the two verification defects:
+- committed the missing Drizzle Phase 2 migration/snapshot
+- removed an unused `store_already_exists` contract value that broke the exhaustive mobile error mapper
+
+CI has been restored to read-only migration verification after recovery.
+
+## Current phase
+
+Phase 2 is complete and verified on the correction branch. The correction PR must be reviewed/merged into `main` before Phase 3 starts.
+
+## Last known-good baseline
+
+- Branch: `phase-02-merchant-store`
+- Verification run: `37210407024`
 
 ## Known external requirements
 
-CI verifies Phase 1 against fresh PostgreSQL 17.
+CI verifies Phase 2 against fresh PostgreSQL 17.
 
-Local API/auth execution requires a valid DATABASE_URL in the root .env file. Docker is optional if a hosted PostgreSQL connection such as Neon is used.
+Local API/store execution requires a valid `DATABASE_URL` in the root `.env` file. Docker is optional when a hosted PostgreSQL database such as Neon is used.
 
-Physical-device authentication testing requires EXPO_PUBLIC_API_URL to point to an API URL reachable from the phone, such as a local-network URL or an approved tunnel.
+Physical-device seller testing requires `EXPO_PUBLIC_API_URL` to point to an API URL reachable from the phone.
+
+The public storefront runtime requires `API_URL` or `NEXT_PUBLIC_API_URL` to point to the BazaarLink API.

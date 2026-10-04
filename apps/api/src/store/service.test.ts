@@ -97,6 +97,10 @@ class FakeStoreRepository implements StoreRepository {
     _storeId: string,
     input: UpdateStoreInput
   ): Promise<StoreRecord | null> {
+    void _ownerUserId;
+    void _storeId;
+    void input;
+
     if (this.conflict) {
       throw new StoreRepositoryConflictError();
     }
@@ -105,7 +109,6 @@ class FakeStoreRepository implements StoreRepository {
 
     this.store = {
       ...this.store,
-      ...input,
       updatedAt: new Date().toISOString()
     };
 
@@ -210,6 +213,23 @@ describe("StoreService", () => {
       code: "store_suspended",
       statusCode: 403
     });
+  });
+
+  it("keeps repeated publish idempotent", async () => {
+    const repository = new FakeStoreRepository();
+    const publishedAt = new Date(Date.now() - 60_000).toISOString();
+    repository.store = sampleStore({
+      status: "published",
+      publishedAt
+    });
+
+    const service = new StoreService(repository);
+    const published = await service.publishStore(
+      repository.store.ownerUserId,
+      repository.store.id
+    );
+
+    expect(published.publishedAt).toBe(publishedAt);
   });
 
   it("returns only published stores publicly", async () => {

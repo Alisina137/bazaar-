@@ -4,9 +4,7 @@ import type {
   PublicStoreRecord,
   StoreListResponse,
   StorePlansResponse,
-  StoreRecord,
-  UpdateStoreInput,
-  CreateStoreInput
+  StoreRecord
 } from "@bazaarlink/contracts";
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -111,19 +109,12 @@ class FakeStoreService implements StoreServiceContract {
     return this.ownedStore;
   }
 
-  async createStore(
-    _ownerUserId: string,
-    _input: CreateStoreInput
-  ): Promise<StoreRecord> {
+  async createStore(): Promise<StoreRecord> {
     this.createCalls += 1;
     return store;
   }
 
-  async updateStore(
-    _ownerUserId: string,
-    _storeId: string,
-    _input: UpdateStoreInput
-  ): Promise<StoreRecord> {
+  async updateStore(): Promise<StoreRecord> {
     return store;
   }
 
@@ -137,14 +128,17 @@ class FakeStoreService implements StoreServiceContract {
 
   async getPublicStore(): Promise<PublicStoreRecord> {
     const {
-      ownerUserId: _ownerUserId,
-      subscription: _subscription,
+      ownerUserId,
+      subscription,
       ...publicStore
     } = {
       ...store,
       status: "published" as const,
       publishedAt: now
     };
+
+    void ownerUserId;
+    void subscription;
 
     return publicStore;
   }

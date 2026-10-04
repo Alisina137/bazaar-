@@ -97,10 +97,13 @@ function normalizeUpdateInput(input: UpdateStoreInput): UpdateStoreInput {
 
 function toPublicStore(store: StoreRecord): PublicStoreRecord {
   const {
-    ownerUserId: _ownerUserId,
-    subscription: _subscription,
+    ownerUserId,
+    subscription,
     ...publicStore
   } = store;
+
+  void ownerUserId;
+  void subscription;
 
   return publicStore;
 }
@@ -183,6 +186,10 @@ export class StoreService implements StoreServiceContract {
 
     if (current.status === "suspended") {
       throw new StoreError("store_suspended", 403);
+    }
+
+    if (current.status === "published") {
+      return current;
     }
 
     if (

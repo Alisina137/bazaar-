@@ -69,6 +69,19 @@ export const psAfMessages = {
   "auth.activeSession": "خوندي ناسته فعاله ده",
   "auth.signedInTitle": "ننوتلي یاست",
   "auth.signedInMessage": "ستاسو حساب په خوندي ډول له دې وسیلې سره نښلول شوی.",
+  "auth.rolesLabel": "د حساب رولونه",
+  "auth.authorizedModesLabel": "اجازه لرونکي حالتونه",
+  "auth.rolesManagedByServer":
+    "رولونه د بازارلینک له خوا په سرور کې ټاکل کېږي او له دې وسیلې څخه نه شي بدلېدای.",
+  "auth.mode.shopping": "پېرود",
+  "auth.mode.seller": "د پلورونکي لاسرسی",
+  "auth.mode.platform": "د پلاتفورم لاسرسی",
+  "role.customer": "پېرودونکی",
+  "role.merchantOwner": "د پلورنځي مالک",
+  "role.merchantStaff": "د پلورنځي کارکوونکی",
+  "role.platformSupport": "د پلاتفورم ملاتړ",
+  "role.platformAdmin": "د پلاتفورم مدیر",
+  "role.superAdmin": "لوړ مدیر",
   "auth.sessionProtected":
     "ستاسو د ناستې ټوکن د وسیلې په خوندي ذخیره کې ساتل کېږي او د وتلو له لارې باطلېدای شي.",
   "auth.signOut": "وتل",
@@ -79,6 +92,8 @@ export const psAfMessages = {
   "auth.error.sessionExpired": "ستاسو ناسته نوره معتبره نه ده. بیا ننوځئ.",
   "auth.error.accountUnavailable":
     "دا حساب اوس د لاسرسي وړ نه دی. د مرستې لپاره له ملاتړ سره اړیکه ونیسئ.",
+  "auth.error.forbidden":
+    "ستاسو حساب دې برخې ته د لاسرسي اجازه نه لري.",
   "auth.error.rateLimited":
     "ډېرې هڅې وشوې. څو دقیقې وروسته بیا هڅه وکړئ.",
   "auth.error.serviceUnavailable":

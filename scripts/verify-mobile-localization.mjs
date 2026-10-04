@@ -8,7 +8,7 @@ const roots = [
   "apps/mobile/src/components/localization"
 ];
 
-const rawTextPattern = />\s*([A-Za-z][^<{]*?)\s*</g;
+const rawTextPattern = /(?<!=)>\s*([A-Za-z][^<{\n]*?)\s*</g;
 const rawPropPattern =
   /\b(?:title|description|message|label|accessibilityLabel|placeholder)\s*=\s*"[^"]*[A-Za-z][^"]*"/g;
 

@@ -99,6 +99,155 @@ export const psAfMessages = {
   "auth.error.serviceUnavailable":
     "بازارلینک د ننوتلو خدمت ته ونه رسېد. خپله اړیکه وګورئ او بیا هڅه وکړئ.",
 
+  "account.sellOnBazaarLink": "په بازارلینک کې وپلورئ",
+  "account.openSellerDashboard": "د پلورونکي ډشبورډ پرانیزئ",
+
+  "seller.nav.dashboard": "ډشبورډ",
+  "seller.nav.products": "محصولات",
+  "seller.nav.orders": "فرمایشونه",
+  "seller.nav.store": "پلورنځی",
+  "seller.nav.more": "نور",
+  "seller.backToShopping": "پېرود ته ستنېدل",
+
+  "seller.onboarding.title": "خپل پلورنځی جوړ کړئ",
+  "seller.onboarding.description":
+    "اوس یوازې اړین معلومات تنظیم کړئ. پرمختللې تحویلي، تادیات او کټالوګ په خپلو اړوندو پړاوونو کې راځي.",
+  "seller.onboarding.planStep": "پلان",
+  "seller.onboarding.storeStep": "پلورنځی",
+  "seller.onboarding.detailsStep": "جزئیات",
+  "seller.onboarding.starterTitle": "سټارټر",
+  "seller.onboarding.starterDescription":
+    "وړیا بنسټیز پلان د عامه پلورنځي، بازار لید، ۱۵ محصولاتو او ۵ فعالو کټګوریو سره.",
+  "seller.onboarding.proTitle": "پرو",
+  "seller.onboarding.proDescription":
+    "لوړ حدونه او پرمختللي د پلورونکي وسایل. تادیه‌لرونکي اپګرېډونه د پلورونکي د ودې په پړاو کې فعالېږي.",
+  "seller.onboarding.businessTitle": "بزنس",
+  "seller.onboarding.businessDescription":
+    "د سوداګرۍ کچې حدونه او پرمختللې وړتیاوې. تادیه‌لرونکي اپګرېډونه د پلورونکي د ودې په پړاو کې فعالېږي.",
+  "seller.onboarding.futureUpgrade": "وروسته لوړ کړئ",
+  "seller.onboarding.continue": "دوام",
+  "seller.onboarding.back": "شاته",
+  "seller.onboarding.createStore": "پلورنځی جوړ کړئ",
+  "seller.onboarding.creating": "پلورنځی جوړېږي",
+  "seller.onboarding.storeName": "د پلورنځي نوم",
+  "seller.onboarding.handle": "د پلورنځي پېژند",
+  "seller.onboarding.handleHint":
+    "د عامه پلورنځي لینک لپاره لنډ او ځانګړی نوم وکاروئ.",
+  "seller.onboarding.category": "د پلورنځي کټګوري",
+  "seller.onboarding.province": "ولایت",
+  "seller.onboarding.cityDistrict": "ولسوالۍ / ښار",
+  "seller.onboarding.phone": "د پلورنځي ټیلیفون",
+  "seller.onboarding.preferredLanguage": "د پلورنځي ژبه",
+  "seller.onboarding.descriptionField": "د پلورنځي تشریح",
+  "seller.onboarding.whatsapp": "د واټس‌اپ شمېره",
+  "seller.onboarding.address": "فزیکي پته",
+  "seller.onboarding.businessHours": "کاري ساعتونه",
+  "seller.onboarding.theme": "د پلورنځي بڼه",
+  "seller.onboarding.accent": "اصلي رنګ",
+  "seller.onboarding.optionalDetails": "اختیاري جزئیات",
+  "seller.onboarding.optionalDetailsHint":
+    "دا تنظیمات وروسته هم بدلولی شئ.",
+  "seller.onboarding.defaultTheme": "مینیمال",
+
+  "seller.theme.minimal": "مینیمال",
+  "seller.theme.modern": "مډرن",
+  "seller.theme.fashion": "فېشن",
+  "seller.theme.electronics": "برېښنایي",
+  "seller.theme.food": "خواړه",
+
+  "seller.dashboard.title": "د پلورونکي ډشبورډ",
+  "seller.dashboard.description":
+    "د سینګاري چارتونو پر ځای په راتلونکي ګټور اقدام تمرکز وکړئ.",
+  "seller.dashboard.storeStatus": "د پلورنځي حالت",
+  "seller.dashboard.plan": "پلان",
+  "seller.dashboard.planUsage": "د پلان ظرفیت",
+  "seller.dashboard.productsUsage": "محصولات",
+  "seller.dashboard.categoriesUsage": "کټګورۍ",
+  "seller.dashboard.needsAttention": "پاملرنې ته اړتیا",
+  "seller.dashboard.publishPrompt":
+    "ستاسو پلورنځی لا هم شخصي دی. وګورئ او چې چمتو شو خپور یې کړئ.",
+  "seller.dashboard.ready": "ستاسو تش پلورنځی خپور شوی او د کټالوګ جوړولو لپاره چمتو دی.",
+  "seller.dashboard.openStore": "پلورنځی پرانیزئ",
+  "seller.dashboard.noStore": "لا د پلورونکي پلورنځی نشته",
+  "seller.dashboard.noStoreMessage":
+    "د پلورونکي ډشبورډ له پرانستلو مخکې پلورنځی جوړ کړئ.",
+
+  "seller.status.draft": "مسوده",
+  "seller.status.published": "خپور شوی",
+  "seller.status.suspended": "ځنډول شوی",
+
+  "seller.store.title": "پلورنځی",
+  "seller.store.preview": "د پلورنځي مخکتنه",
+  "seller.store.publicLink": "عامه لینک",
+  "seller.store.publish": "پلورنځی خپور کړئ",
+  "seller.store.publishing": "خپرېږي",
+  "seller.store.published": "پلورنځی خپور شو",
+  "seller.store.editSettings": "تنظیمات سمول",
+  "seller.store.emptyTitle": "ستاسو پلورنځی چمتو دی",
+  "seller.store.emptyMessage":
+    "پلورنځی د محصولاتو له زیاتولو مخکې عامه کېدای شي. د کټالوګ جوړول په ۳ پړاو کې پیلېږي.",
+  "seller.store.location": "ځای",
+  "seller.store.contact": "اړیکه",
+  "seller.store.category": "کټګوري",
+
+  "seller.settings.title": "د پلورنځي تنظیمات",
+  "seller.settings.description":
+    "د پلورنځي هویت، اړیکه، بڼه او عامه معلومات تازه کړئ.",
+  "seller.settings.save": "بدلونونه خوندي کړئ",
+  "seller.settings.saving": "خوندي کېږي",
+  "seller.settings.saved": "د پلورنځي تنظیمات خوندي شول",
+
+  "seller.subscription.title": "ګډون",
+  "seller.subscription.currentPlan": "اوسنی پلان",
+  "seller.subscription.productLimit": "د محصول حد",
+  "seller.subscription.categoryLimit": "د کټګورۍ حد",
+  "seller.subscription.staffLimit": "د کارکوونکو حد",
+  "seller.subscription.unlimited": "نامحدود",
+  "seller.subscription.ownerOnly": "یوازې مالک",
+  "seller.subscription.upgradeLater":
+    "پرو او بزنس اپګرېډونه د پلورونکي د ودې په پړاو کې فعالېږي. د سټارټر اوسني امتیازات له اوسه عملي دي.",
+
+  "seller.more.title": "نور",
+  "seller.more.settings": "تنظیمات",
+  "seller.more.subscription": "ګډون",
+  "seller.more.inventory": "موجودي",
+  "seller.more.customers": "پېرودونکي",
+  "seller.more.delivery": "تحویلي",
+  "seller.more.payments": "تادیات",
+  "seller.more.discounts": "تخفیفونه",
+  "seller.more.analytics": "تحلیل",
+  "seller.more.staff": "کارکوونکي",
+  "seller.more.futureFeature": "په راتلونکي محصول پړاو کې فعالېږي",
+
+  "seller.products.title": "محصولات",
+  "seller.products.message":
+    "کټالوګ او موجودي په ۳ پړاو کې پلي کېږي.",
+  "seller.orders.title": "فرمایشونه",
+  "seller.orders.message":
+    "د فرمایش بشپړول په ۸ پړاو کې پلي کېږي.",
+
+  "store.error.invalidRequest": "د پلورنځي معلومات وګورئ او بیا هڅه وکړئ.",
+  "store.error.invalidSession": "ستاسو ناسته نوره معتبره نه ده. بیا ننوځئ.",
+  "store.error.accountUnavailable": "دا حساب اوس د لاسرسي وړ نه دی.",
+  "store.error.forbidden": "تاسو د دې کار اجازه نه لرئ.",
+  "store.error.rateLimited": "ډېرې هڅې شوې دي. لږ وروسته بیا هڅه وکړئ.",
+  "store.error.storeNotFound": "دا پلورنځی ونه موندل شو.",
+  "store.error.handleInUse": "د پلورنځي دا پېژند مخکې کارول شوی.",
+  "store.error.storeSuspended": "دا پلورنځی ځنډول شوی او نه شي خپرېدای.",
+  "store.error.storeNotReady": "پلورنځی لا د خپرېدو لپاره چمتو نه دی.",
+  "store.error.subscriptionUnavailable":
+    "اوسنی ګډون د پلورنځي د خپرولو اجازه نه ورکوي.",
+  "store.error.serviceUnavailable":
+    "بازارلینک د پلورنځي خدمت ته لاسرسی نه لري. خپل اتصال وګورئ او بیا هڅه وکړئ.",
+
+  "storefront.emptyTitle": "دا پلورنځی پرانیستی دی",
+  "storefront.emptyMessage":
+    "تر اوسه محصولات نه دي اضافه شوي. مهرباني وکړئ وروسته بیا وګورئ.",
+  "storefront.categoryLabel": "کټګوري",
+  "storefront.locationLabel": "ځای",
+  "storefront.contactLabel": "اړیکه",
+  "storefront.hoursLabel": "کاري ساعتونه",
+
   "notFound.title": "پاڼه ونه موندل شوه",
   "notFound.message": "غوښتل شوې پاڼه د اپ په اوسنۍ نسخه کې نشته.",
   "notFound.returnHome": "کور ته ستنېدل"

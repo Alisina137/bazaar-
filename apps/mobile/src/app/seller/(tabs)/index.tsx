@@ -26,7 +26,11 @@ export default function SellerDashboardScreen() {
         <StateView
           kind="error"
           title={t("store.error.serviceUnavailable")}
-          message={error ? t("store.error.serviceUnavailable") : undefined}
+          message={
+            error
+              ? t(storeErrorKey(error.code))
+              : t("store.error.serviceUnavailable")
+          }
           actionLabel={t("seller.onboarding.continue")}
           onAction={() => {
             void refresh();

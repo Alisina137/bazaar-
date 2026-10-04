@@ -12,8 +12,8 @@ import { AppText } from "./AppText";
 
 export interface TextFieldProps extends Omit<TextInputProps, "style"> {
   label: string;
-  error?: string;
-  helperText?: string;
+  error?: string | undefined;
+  helperText?: string | undefined;
 }
 
 export function TextField({

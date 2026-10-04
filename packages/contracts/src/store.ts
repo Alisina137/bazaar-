@@ -141,7 +141,6 @@ export const storeErrorCodes = [
   "forbidden",
   "rate_limited",
   "store_not_found",
-  "store_already_exists",
   "handle_in_use",
   "store_suspended",
   "store_not_ready",

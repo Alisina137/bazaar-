@@ -38,7 +38,7 @@ The application boots reliably and users can authenticate in all supported langu
 - [x] 1.1 Repository and monorepo foundation
 - [x] 1.2 Shared design system and mobile application shell
 - [x] 1.3 Localization, RTL/LTR, and AFN formatting foundation
-- [ ] 1.4 Core PostgreSQL data layer and database tooling
+- [x] 1.4 Core PostgreSQL data layer and database tooling
 - [ ] 1.5 Authentication and secure session foundation
 - [ ] 1.6 Account roles, authorization boundaries, and Phase 1 integration/regression
 
@@ -165,12 +165,56 @@ Verified gates:
 - Main Task 1.3 implementation: a09d412f96ac8c0a7f12a4f77830e0766361ebb9
 - Lint verification correction: a2952f20ea17a032be78cd280f43792d198ce54f
 
+## Task 1.4 — Core PostgreSQL data layer and database tooling
+
+### Status
+
+Complete and verified.
+
+### Delivered
+
+- PostgreSQL database package using Drizzle ORM 0.45.3 and Postgres.js 3.4.9
+- Drizzle Kit 0.31.11 schema/migration tooling
+- validated database environment configuration using Zod
+- configurable connection-pool size, connect timeout, idle timeout, and prepared-statement behavior
+- pooled-connection-safe default with prepared statements disabled unless explicitly enabled
+- core `users`, `auth_accounts`, `auth_sessions`, and `auth_verification_tokens` tables
+- authentication-provider, user-status, and verification-purpose PostgreSQL enums
+- UUID primary keys, cascade relationships, expiry indexes, and unique token/account constraints
+- committed initial Drizzle SQL migration and metadata snapshot
+- migration history validation and schema-drift protection in CI
+- PostgreSQL 17 integration service in CI
+- migration runner, connectivity health script, and database package scripts
+- API `/health/database` endpoint with safe unavailable responses
+- API runtime database initialization and graceful connection shutdown
+- root database commands for generate, check, migrate, health, and studio
+- expanded `.env.example` for PostgreSQL configuration
+
+### Verification
+
+GitHub Actions run 37198830936 passed on Task 1.4.
+
+Verified database gates:
+
+- Drizzle migration history check
+- schema generation produced no uncommitted migration drift
+- initial migration applied to fresh PostgreSQL 17
+- live database connectivity check
+- 5 database package tests
+- 3 API health tests
+- full repository lint/typecheck/test/build verification
+
+### Git
+
+- Main Task 1.4 implementation: af2a6546e5bde34fd66ffc92a673d12ff3baaf9d
+- Initial migration + migration drift guard: 07a9548b3fd1c572998664343eef732abf4f40b5
+
 ## Current task
 
-Task 1.3 is complete. Awaiting `Start Task 1.4`.
+Task 1.4 is complete. Awaiting `Start Task 1.5`.
 
 ## Known external requirements
 
 No external credentials are required for Task 1.3.
 
-A PostgreSQL connection string will be required when Task 1.4 reaches live database migration/connectivity verification.
+Task 1.4 is verified in CI against fresh PostgreSQL. Local API/database execution requires a valid DATABASE_URL in the root .env file.

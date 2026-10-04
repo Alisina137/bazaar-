@@ -5,7 +5,8 @@ import type {
 import {
   localeMetadata,
   supportedLocales,
-  type SupportedLocale
+  type SupportedLocale,
+  type TranslationKey
 } from "@bazaarlink/localization";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
@@ -42,20 +43,24 @@ const themes: StoreTheme[] = [
   "food"
 ];
 
-function planTitleKey(plan: SubscriptionPlanCode) {
-  return {
+function planTitleKey(plan: SubscriptionPlanCode): TranslationKey {
+  const keys = {
     starter: "seller.onboarding.starterTitle",
     pro: "seller.onboarding.proTitle",
     business: "seller.onboarding.businessTitle"
-  } as const satisfies Record<SubscriptionPlanCode, string>;
+  } as const satisfies Record<SubscriptionPlanCode, TranslationKey>;
+
+  return keys[plan];
 }
 
-function planDescriptionKey(plan: SubscriptionPlanCode) {
-  return {
+function planDescriptionKey(plan: SubscriptionPlanCode): TranslationKey {
+  const keys = {
     starter: "seller.onboarding.starterDescription",
     pro: "seller.onboarding.proDescription",
     business: "seller.onboarding.businessDescription"
-  } as const satisfies Record<SubscriptionPlanCode, string>;
+  } as const satisfies Record<SubscriptionPlanCode, TranslationKey>;
+
+  return keys[plan];
 }
 
 export default function SellerOnboardingScreen() {
@@ -86,7 +91,7 @@ export default function SellerOnboardingScreen() {
   const [businessHours, setBusinessHours] = useState("");
   const [storeTheme, setStoreTheme] = useState<StoreTheme>("minimal");
   const [busy, setBusy] = useState(false);
-  const [errorKey, setErrorKey] = useState<string | null>(null);
+  const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
 
   const starterPlan = useMemo(
     () => plans.find((plan) => plan.code === "starter"),
@@ -342,7 +347,7 @@ export default function SellerOnboardingScreen() {
             </View>
 
             {errorKey ? (
-              <AppText tone="danger">{t(errorKey as never)}</AppText>
+              <AppText tone="danger">{t(errorKey)}</AppText>
             ) : null}
 
             <View
@@ -457,7 +462,7 @@ export default function SellerOnboardingScreen() {
             </View>
 
             {errorKey ? (
-              <AppText tone="danger">{t(errorKey as never)}</AppText>
+              <AppText tone="danger">{t(errorKey)}</AppText>
             ) : null}
 
             <View

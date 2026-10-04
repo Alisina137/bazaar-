@@ -28,11 +28,11 @@ const success: AuthSuccessResponse = {
 class FakeAuthService implements AuthServiceContract {
   loginError: Error | null = null;
 
-  async register(_input: RegisterInput): Promise<AuthSuccessResponse> {
+  async register(): Promise<AuthSuccessResponse> {
     return success;
   }
 
-  async login(_input: LoginInput): Promise<AuthSuccessResponse> {
+  async login(): Promise<AuthSuccessResponse> {
     if (this.loginError) {
       throw this.loginError;
     }

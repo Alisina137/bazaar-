@@ -8,6 +8,9 @@ import { config as loadEnv } from "dotenv";
 import { resolve } from "node:path";
 
 import { buildApp } from "./app.js";
+import { parseAuthConfig } from "./auth/config.js";
+import { DatabaseAuthRepository } from "./auth/repository.js";
+import { AuthService } from "./auth/service.js";
 
 loadEnv({
   path: resolve(process.cwd(), "../../.env"),
@@ -18,9 +21,15 @@ const port = Number(process.env.API_PORT ?? 4000);
 const host = process.env.API_HOST ?? "0.0.0.0";
 
 const databaseClient = createDatabaseClient(parseDatabaseConfig());
+const authRepository = new DatabaseAuthRepository(databaseClient.db);
+const authService = new AuthService(
+  authRepository,
+  parseAuthConfig()
+);
 
 const app = buildApp({
-  databaseHealthCheck: () => checkDatabaseConnection(databaseClient)
+  databaseHealthCheck: () => checkDatabaseConnection(databaseClient),
+  authService
 });
 
 app.addHook("onClose", async () => {

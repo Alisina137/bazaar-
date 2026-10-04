@@ -21,15 +21,25 @@ import { useLocalization } from "@/localization/provider";
 
 type AuthMode = "login" | "register";
 
-const errorKeys: Record<AuthErrorCode, TranslationKey> = {
-  invalid_request: "auth.error.invalidRequest",
-  email_in_use: "auth.error.emailInUse",
-  invalid_credentials: "auth.error.invalidCredentials",
-  invalid_session: "auth.error.sessionExpired",
-  account_unavailable: "auth.error.accountUnavailable",
-  rate_limited: "auth.error.rateLimited",
-  service_unavailable: "auth.error.serviceUnavailable"
-};
+function authErrorKey(code: AuthErrorCode): TranslationKey {
+  switch (code) {
+    case "invalid_request":
+      return "auth.error.invalidRequest";
+    case "email_in_use":
+      return "auth.error.emailInUse";
+    case "invalid_credentials":
+      return "auth.error.invalidCredentials";
+    case "invalid_session":
+      return "auth.error.sessionExpired";
+    case "account_unavailable":
+      return "auth.error.accountUnavailable";
+    case "rate_limited":
+      return "auth.error.rateLimited";
+    case "service_unavailable":
+    default:
+      return "auth.error.serviceUnavailable";
+  }
+}
 
 export default function AccountScreen() {
   const theme = useAppTheme();
@@ -109,7 +119,7 @@ export default function AccountScreen() {
 
       setPassword("");
     } catch (error) {
-      setErrorKey(errorKeys[getAuthErrorCode(error)]);
+      setErrorKey(authErrorKey(getAuthErrorCode(error)));
     } finally {
       setBusy(false);
     }

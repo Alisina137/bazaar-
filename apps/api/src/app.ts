@@ -7,10 +7,13 @@ import {
 import type {
   AuthServiceContract
 } from "./auth/service.js";
+import { registerStoreRoutes } from "./store/routes.js";
+import type { StoreServiceContract } from "./store/service.js";
 
 export interface AppDependencies {
   databaseHealthCheck?: () => Promise<void>;
   authService?: AuthServiceContract;
+  storeService?: StoreServiceContract;
 }
 
 export function buildApp(
@@ -49,12 +52,12 @@ export function buildApp(
   });
 
   if (dependencies.authService) {
-    app.register(async (authApp) => {
-      await authApp.register(rateLimit, {
+    app.register(async (securedApp) => {
+      await securedApp.register(rateLimit, {
         global: false
       });
 
-      authApp.setErrorHandler((error, request, reply) => {
+      securedApp.setErrorHandler((error, request, reply) => {
         const statusCode =
           typeof error === "object" &&
           error !== null &&
@@ -80,7 +83,15 @@ export function buildApp(
         });
       });
 
-      registerAuthRoutes(authApp, dependencies.authService!);
+      registerAuthRoutes(securedApp, dependencies.authService!);
+
+      if (dependencies.storeService) {
+        registerStoreRoutes(
+          securedApp,
+          dependencies.authService!,
+          dependencies.storeService
+        );
+      }
     });
   }
 

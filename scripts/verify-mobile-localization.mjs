@@ -45,11 +45,13 @@ for (const root of roots) {
 }
 
 if (failures.length > 0) {
-  console.error("Mobile localization verification failed:");
+  process.stderr.write("Mobile localization verification failed:\n");
   for (const failure of failures) {
-    console.error(`- ${failure}`);
+    process.stderr.write(`- ${failure}\n`);
   }
   process.exit(1);
 }
 
-console.log("Mobile localization verification passed: no raw route/foundation user-facing English strings detected.");
+process.stdout.write(
+  "Mobile localization verification passed: no raw route/foundation user-facing English strings detected.\n"
+);

@@ -97,6 +97,10 @@ class FakeStoreRepository implements StoreRepository {
     _storeId: string,
     input: UpdateStoreInput
   ): Promise<StoreRecord | null> {
+    void _ownerUserId;
+    void _storeId;
+    void input;
+
     if (this.conflict) {
       throw new StoreRepositoryConflictError();
     }
@@ -105,7 +109,6 @@ class FakeStoreRepository implements StoreRepository {
 
     this.store = {
       ...this.store,
-      ...input,
       updatedAt: new Date().toISOString()
     };
 

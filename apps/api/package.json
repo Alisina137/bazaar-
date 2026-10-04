@@ -4,16 +4,21 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm --filter @bazaarlink/database build && tsx watch src/server.ts",
+    "dev": "pnpm --filter @bazaarlink/database build && pnpm --filter @bazaarlink/contracts build && tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:auth-integration": "vitest run src/auth/auth.integration.test.ts"
   },
   "dependencies": {
+    "@bazaarlink/contracts": "workspace:*",
     "@bazaarlink/database": "workspace:*",
+    "@fastify/rate-limit": "11.2.0",
+    "argon2": "0.45.1",
     "dotenv": "18.0.4",
-    "fastify": "^5.12.5"
+    "fastify": "^5.12.5",
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@types/node": "^24.10.0",

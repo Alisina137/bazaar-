@@ -109,7 +109,7 @@ describe("AuthService", () => {
         email: "person@example.com",
         password: "wrong-password"
       })
-    ).rejects.toMatchObject<AuthError>({
+    ).rejects.toMatchObject({
       code: "invalid_credentials",
       statusCode: 401
     });
@@ -129,7 +129,7 @@ describe("AuthService", () => {
 
     await expect(
       service.authenticateToken("revoked-token")
-    ).rejects.toMatchObject<AuthError>({
+    ).rejects.toMatchObject({
       code: "invalid_session",
       statusCode: 401
     });

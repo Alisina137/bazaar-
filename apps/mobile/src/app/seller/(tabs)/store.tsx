@@ -62,7 +62,7 @@ export default function SellerStoreScreen() {
           tone={currentStore.status === "published" ? "success" : "warning"}
         />
         <AppText variant="title">{t("seller.store.title")}</AppText>
-        <AppText tone="muted">store/{currentStore.handle}</AppText>
+        <AppText tone="muted">{"/store/" + currentStore.handle}</AppText>
       </View>
 
       <Card>

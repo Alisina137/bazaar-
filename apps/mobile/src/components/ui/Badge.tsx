@@ -5,6 +5,7 @@ import {
 } from "react-native";
 
 import { useAppTheme } from "@/design/theme";
+import { useLocalization } from "@/localization/provider";
 
 type BadgeTone = "neutral" | "primary" | "success" | "warning" | "danger";
 
@@ -15,6 +16,7 @@ export interface BadgeProps {
 
 export function Badge({ label, tone = "neutral" }: BadgeProps) {
   const theme = useAppTheme();
+  const { direction } = useLocalization();
 
   const toneStyle = {
     neutral: {
@@ -57,7 +59,8 @@ export function Badge({ label, tone = "neutral" }: BadgeProps) {
           color: toneStyle.color,
           fontSize: theme.fontSizes.caption,
           lineHeight: theme.lineHeights.caption,
-          fontWeight: theme.fontWeights.semibold
+          fontWeight: theme.fontWeights.semibold,
+          writingDirection: direction
         }}
       >
         {label}

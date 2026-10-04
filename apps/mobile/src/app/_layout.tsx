@@ -9,9 +9,14 @@ import {
   AppThemeProvider,
   useAppTheme
 } from "@/design/theme";
+import {
+  LocalizationProvider,
+  useLocalization
+} from "@/localization/provider";
 
 function RootNavigator() {
   const theme = useAppTheme();
+  const { direction } = useLocalization();
 
   return (
     <>
@@ -20,7 +25,8 @@ function RootNavigator() {
         screenOptions={{
           headerShown: false,
           contentStyle: {
-            backgroundColor: theme.colors.background
+            backgroundColor: theme.colors.background,
+            direction
           }
         }}
       >
@@ -34,7 +40,9 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <AppThemeProvider>
-        <RootNavigator />
+        <LocalizationProvider>
+          <RootNavigator />
+        </LocalizationProvider>
       </AppThemeProvider>
     </SafeAreaProvider>
   );

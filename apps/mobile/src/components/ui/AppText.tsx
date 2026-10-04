@@ -6,6 +6,7 @@ import {
 } from "react-native";
 
 import { useAppTheme } from "@/design/theme";
+import { useLocalization } from "@/localization/provider";
 
 type TextVariant =
   | "display"
@@ -35,6 +36,7 @@ export function AppText({
   ...props
 }: AppTextProps) {
   const theme = useAppTheme();
+  const { direction, isRTL } = useLocalization();
 
   const variantStyle: TextStyle = (() => {
     switch (variant) {
@@ -105,7 +107,8 @@ export function AppText({
         variantStyle,
         {
           color,
-          textAlign: align
+          textAlign: align ?? (isRTL ? "right" : "left"),
+          writingDirection: direction
         },
         style
       ]}

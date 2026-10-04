@@ -7,6 +7,7 @@ import {
 } from "react-native";
 
 import { useAppTheme } from "@/design/theme";
+import { useLocalization } from "@/localization/provider";
 
 import { AppText } from "./AppText";
 
@@ -26,6 +27,7 @@ export function TextField({
   ...props
 }: TextFieldProps) {
   const theme = useAppTheme();
+  const { direction, isRTL } = useLocalization();
   const [focused, setFocused] = useState(false);
 
   const supportingText = error ?? helperText;
@@ -59,7 +61,9 @@ export function TextField({
             color: theme.colors.text,
             paddingHorizontal: theme.spacing.lg,
             fontSize: theme.fontSizes.body,
-            lineHeight: theme.lineHeights.body
+            lineHeight: theme.lineHeights.body,
+            textAlign: isRTL ? "right" : "left",
+            writingDirection: direction
           }
         ]}
       />
@@ -71,9 +75,3 @@ export function TextField({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  input: {
-    borderWidth: 1
-  }
-});

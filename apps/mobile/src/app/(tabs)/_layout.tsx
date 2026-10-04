@@ -1,9 +1,54 @@
 import { Tabs } from "expo-router";
 
 import { useAppTheme } from "@/design/theme";
+import { useLocalization } from "@/localization/provider";
 
 export default function CustomerTabsLayout() {
   const theme = useAppTheme();
+  const { isRTL, t } = useLocalization();
+
+  const screens = [
+    <Tabs.Screen
+      key="home"
+      name="index"
+      options={{
+        title: t("nav.home"),
+        tabBarAccessibilityLabel: t("nav.home")
+      }}
+    />,
+    <Tabs.Screen
+      key="marketplace"
+      name="marketplace"
+      options={{
+        title: t("nav.marketplace"),
+        tabBarAccessibilityLabel: t("nav.marketplace")
+      }}
+    />,
+    <Tabs.Screen
+      key="cart"
+      name="cart"
+      options={{
+        title: t("nav.cart"),
+        tabBarAccessibilityLabel: t("nav.cart")
+      }}
+    />,
+    <Tabs.Screen
+      key="orders"
+      name="orders"
+      options={{
+        title: t("nav.orders"),
+        tabBarAccessibilityLabel: t("nav.orders")
+      }}
+    />,
+    <Tabs.Screen
+      key="account"
+      name="account"
+      options={{
+        title: t("nav.account"),
+        tabBarAccessibilityLabel: t("nav.account")
+      }}
+    />
+  ];
 
   return (
     <Tabs
@@ -29,41 +74,7 @@ export default function CustomerTabsLayout() {
         }
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarAccessibilityLabel: "Home"
-        }}
-      />
-      <Tabs.Screen
-        name="marketplace"
-        options={{
-          title: "Marketplace",
-          tabBarAccessibilityLabel: "Marketplace"
-        }}
-      />
-      <Tabs.Screen
-        name="cart"
-        options={{
-          title: "Cart",
-          tabBarAccessibilityLabel: "Cart"
-        }}
-      />
-      <Tabs.Screen
-        name="orders"
-        options={{
-          title: "Orders",
-          tabBarAccessibilityLabel: "Orders"
-        }}
-      />
-      <Tabs.Screen
-        name="account"
-        options={{
-          title: "Account",
-          tabBarAccessibilityLabel: "Account"
-        }}
-      />
+      {isRTL ? [...screens].reverse() : screens}
     </Tabs>
   );
 }

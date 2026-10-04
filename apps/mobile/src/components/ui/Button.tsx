@@ -9,6 +9,7 @@ import {
 } from "react-native";
 
 import { useAppTheme } from "@/design/theme";
+import { useLocalization } from "@/localization/provider";
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
@@ -28,6 +29,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const theme = useAppTheme();
+  const { direction } = useLocalization();
   const isDisabled = disabled || loading;
 
   const containerStyle: ViewStyle = (() => {
@@ -101,7 +103,8 @@ export function Button({
               color: textColor,
               fontSize: theme.fontSizes.body,
               lineHeight: theme.lineHeights.body,
-              fontWeight: theme.fontWeights.semibold
+              fontWeight: theme.fontWeights.semibold,
+              writingDirection: direction
             }
           ]}
         >

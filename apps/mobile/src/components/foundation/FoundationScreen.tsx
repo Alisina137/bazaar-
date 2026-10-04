@@ -1,3 +1,4 @@
+import type { TranslationKey } from "@bazaarlink/localization";
 import { View } from "react-native";
 
 import {
@@ -8,35 +9,37 @@ import {
   StateView
 } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
+import { useLocalization } from "@/localization/provider";
 
 interface FoundationScreenProps {
-  title: string;
-  description: string;
-  statusTitle: string;
-  statusMessage: string;
+  titleKey: TranslationKey;
+  descriptionKey: TranslationKey;
+  statusTitleKey: TranslationKey;
+  statusMessageKey: TranslationKey;
 }
 
 export function FoundationScreen({
-  title,
-  description,
-  statusTitle,
-  statusMessage
+  titleKey,
+  descriptionKey,
+  statusTitleKey,
+  statusMessageKey
 }: FoundationScreenProps) {
   const theme = useAppTheme();
+  const { t } = useLocalization();
 
   return (
     <Screen>
       <View style={{ gap: theme.spacing.sm }}>
-        <Badge label="Foundation" tone="primary" />
-        <AppText variant="title">{title}</AppText>
-        <AppText tone="muted">{description}</AppText>
+        <Badge label={t("common.foundation")} tone="primary" />
+        <AppText variant="title">{t(titleKey)}</AppText>
+        <AppText tone="muted">{t(descriptionKey)}</AppText>
       </View>
 
       <Card>
         <StateView
           kind="empty"
-          title={statusTitle}
-          message={statusMessage}
+          title={t(statusTitleKey)}
+          message={t(statusMessageKey)}
         />
       </Card>
     </Screen>

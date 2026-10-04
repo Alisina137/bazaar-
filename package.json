@@ -16,7 +16,8 @@
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
     "build": "pnpm -r --if-present build",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    "verify:localization": "node scripts/verify-mobile-localization.mjs",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm verify:localization && pnpm build"
   },
   "devDependencies": {
     "@eslint/js": "^9.38.0",

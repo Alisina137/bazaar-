@@ -47,21 +47,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Generate database migration
-        run: pnpm db:generate
+      - name: Verify migration history
+        run: pnpm db:check
+
+      - name: Verify schema has committed migrations
+        run: |
+          pnpm db:generate
+          git diff --exit-code -- packages/database/drizzle
 
       - name: Apply database migrations
         run: pnpm db:migrate
 
       - name: Verify database connectivity
         run: pnpm db:health
-
-      - name: Upload generated migration
-        uses: actions/upload-artifact@v4
-        with:
-          name: database-drizzle
-          path: packages/database/drizzle
-          if-no-files-found: error
 
       - name: Verify repository
         run: pnpm verify

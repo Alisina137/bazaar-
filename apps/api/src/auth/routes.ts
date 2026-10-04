@@ -4,27 +4,31 @@ import type {
 } from "@bazaarlink/contracts";
 import type {
   FastifyInstance,
-  FastifyReply,
-  FastifyRequest
+  FastifyReply
 } from "fastify";
 import { z } from "zod";
 
+import { getBearerToken } from "./authorization.js";
 import { AuthError } from "./errors.js";
 import type { AuthServiceContract } from "./service.js";
 
 const localeSchema = z.enum(["fa-AF", "ps-AF", "en"]);
 
-const registerSchema = z.object({
-  email: z.string().trim().email().max(320),
-  password: z.string().min(8).max(128),
-  displayName: z.string().trim().min(1).max(160).nullable().optional(),
-  preferredLocale: localeSchema
-});
+const registerSchema = z
+  .object({
+    email: z.string().trim().email().max(320),
+    password: z.string().min(8).max(128),
+    displayName: z.string().trim().min(1).max(160).nullable().optional(),
+    preferredLocale: localeSchema
+  })
+  .strict();
 
-const loginSchema = z.object({
-  email: z.string().trim().email().max(320),
-  password: z.string().min(1).max(128)
-});
+const loginSchema = z
+  .object({
+    email: z.string().trim().email().max(320),
+    password: z.string().min(1).max(128)
+  })
+  .strict();
 
 function errorBody(code: AuthErrorResponse["error"]["code"]): AuthErrorResponse {
   return {
@@ -40,26 +44,6 @@ function sendAuthError(reply: FastifyReply, error: unknown) {
   }
 
   return reply.code(503).send(errorBody("service_unavailable"));
-}
-
-function getBearerToken(request: FastifyRequest): string | null {
-  const authorization = request.headers.authorization;
-
-  if (!authorization) {
-    return null;
-  }
-
-  const [scheme, token, ...rest] = authorization.trim().split(/\s+/);
-
-  if (
-    scheme?.toLowerCase() !== "bearer" ||
-    !token ||
-    rest.length > 0
-  ) {
-    return null;
-  }
-
-  return token;
 }
 
 export function registerAuthRoutes(

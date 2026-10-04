@@ -55,7 +55,15 @@ export function buildApp(
       });
 
       authApp.setErrorHandler((error, request, reply) => {
-        if (error.statusCode === 429) {
+        const statusCode =
+          typeof error === "object" &&
+          error !== null &&
+          "statusCode" in error &&
+          typeof error.statusCode === "number"
+            ? error.statusCode
+            : undefined;
+
+        if (statusCode === 429) {
           return reply.code(429).send({
             error: {
               code: "rate_limited"

@@ -11,6 +11,8 @@ import { buildApp } from "./app.js";
 import { parseAuthConfig } from "./auth/config.js";
 import { DatabaseAuthRepository } from "./auth/repository.js";
 import { AuthService } from "./auth/service.js";
+import { DatabaseStoreRepository } from "./store/repository.js";
+import { StoreService } from "./store/service.js";
 
 loadEnv({
   path: resolve(process.cwd(), "../../.env"),
@@ -26,10 +28,13 @@ const authService = new AuthService(
   authRepository,
   parseAuthConfig()
 );
+const storeRepository = new DatabaseStoreRepository(databaseClient.db);
+const storeService = new StoreService(storeRepository);
 
 const app = buildApp({
   databaseHealthCheck: () => checkDatabaseConnection(databaseClient),
-  authService
+  authService,
+  storeService
 });
 
 app.addHook("onClose", async () => {

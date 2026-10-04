@@ -49,10 +49,40 @@ export const faAfMessages = {
 
   "account.title": "حساب",
   "account.description":
-    "ورود، نشست‌ها و رفتار مبتنی بر نقش عمداً به وظایف بعدی فاز اول سپرده شده‌اند.",
-  "account.statusTitle": "زیربنای حساب آماده است",
-  "account.statusMessage":
-    "ثبت‌نام، نشست‌ها، حالت فروشنده و مرزهای نقش‌ها بعد از زیربنای دیتابیس و احراز هویت وصل می‌شوند.",
+    "برای اتصال امن فعالیت‌های بازارلینک وارد شوید یا یک حساب بسازید.",
+
+  "auth.restoringTitle": "بازیابی نشست شما",
+  "auth.restoringMessage": "نشست امن ذخیره‌شده شما بررسی می‌شود.",
+  "auth.signInTitle": "خوش آمدید",
+  "auth.signInDescription": "با ایمیل و رمز عبور خود وارد شوید.",
+  "auth.registerTitle": "حساب خود را بسازید",
+  "auth.registerDescription":
+    "یک حساب امن بازارلینک بسازید تا خرید را آغاز کنید و بعداً به ابزارهای فروشنده دسترسی داشته باشید.",
+  "auth.displayName": "نام (اختیاری)",
+  "auth.email": "ایمیل",
+  "auth.password": "رمز عبور",
+  "auth.passwordHint": "حداقل ۸ کاراکتر استفاده کنید.",
+  "auth.signInAction": "ورود",
+  "auth.registerAction": "ساخت حساب",
+  "auth.needAccount": "حساب ندارید؟ یک حساب بسازید",
+  "auth.haveAccount": "از قبل حساب دارید؟ وارد شوید",
+  "auth.activeSession": "نشست امن فعال است",
+  "auth.signedInTitle": "وارد شده‌اید",
+  "auth.signedInMessage": "حساب شما به‌صورت امن به این دستگاه متصل است.",
+  "auth.sessionProtected":
+    "توکن نشست شما در ذخیره‌سازی امن دستگاه نگهداری می‌شود و با خروج می‌توانید آن را باطل کنید.",
+  "auth.signOut": "خروج",
+  "auth.error.invalidRequest":
+    "لطفاً معلومات واردشده را بررسی کرده و دوباره تلاش کنید.",
+  "auth.error.emailInUse": "این ایمیل قبلاً برای یک حساب استفاده شده است.",
+  "auth.error.invalidCredentials": "ایمیل یا رمز عبور نادرست است.",
+  "auth.error.sessionExpired": "نشست شما دیگر معتبر نیست. لطفاً دوباره وارد شوید.",
+  "auth.error.accountUnavailable":
+    "این حساب فعلاً در دسترس نیست. اگر کمک نیاز دارید با پشتیبانی تماس بگیرید.",
+  "auth.error.rateLimited":
+    "تلاش‌های بیش از حد انجام شده است. چند دقیقه بعد دوباره کوشش کنید.",
+  "auth.error.serviceUnavailable":
+    "بازارلینک نتوانست به سرویس ورود وصل شود. اتصال خود را بررسی کرده و دوباره تلاش کنید.",
 
   "notFound.title": "صفحه پیدا نشد",
   "notFound.message": "صفحه درخواستی در نسخه فعلی برنامه وجود ندارد.",

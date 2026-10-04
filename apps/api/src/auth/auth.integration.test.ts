@@ -70,7 +70,7 @@ describe.skipIf(!hasDatabase)("database-backed authentication", () => {
 
     await expect(
       service.authenticateToken(loggedIn.session.token)
-    ).rejects.toMatchObject<AuthError>({
+    ).rejects.toMatchObject({
       code: "invalid_session",
       statusCode: 401
     });

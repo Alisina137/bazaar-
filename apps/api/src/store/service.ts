@@ -185,6 +185,10 @@ export class StoreService implements StoreServiceContract {
       throw new StoreError("store_suspended", 403);
     }
 
+    if (current.status === "published") {
+      return current;
+    }
+
     if (
       current.subscription.status !== "active" &&
       current.subscription.status !== "grace_period"

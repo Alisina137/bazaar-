@@ -31,7 +31,9 @@
 
 ### Phase acceptance
 
-The application boots reliably and users can authenticate in all supported languages.
+Passed.
+
+The application boots reliably, users can authenticate in Dari, Pashto, and English, PostgreSQL migrations are reproducible, secure sessions restore/revoke correctly, and server-side role boundaries reject unauthorized access.
 
 ### Task plan
 
@@ -40,7 +42,7 @@ The application boots reliably and users can authenticate in all supported langu
 - [x] 1.3 Localization, RTL/LTR, and AFN formatting foundation
 - [x] 1.4 Core PostgreSQL data layer and database tooling
 - [x] 1.5 Authentication and secure session foundation
-- [ ] 1.6 Account roles, authorization boundaries, and Phase 1 integration/regression
+- [x] 1.6 Account roles, authorization boundaries, and Phase 1 integration/regression
 
 ## Task 1.1 — Repository and monorepo foundation
 
@@ -285,14 +287,81 @@ The PostgreSQL auth integration verified registration, session restoration, logi
 - Final rate-limit status fix: 9d7e90b090630a93cf20de0c46411607b4a0bf23
 - Verification run: 37204050715
 
+## Task 1.6 — Account roles, authorization boundaries, and Phase 1 integration/regression
+
+### Status
+
+Complete and verified.
+
+### Delivered
+
+- persisted multi-role account model using a `user_roles` membership table
+- roles: customer, merchant owner, merchant staff, platform support, platform admin, and super admin
+- unauthenticated visitors remain an application state rather than a persisted role
+- new registrations receive the customer role only
+- migration backfills all existing users with the customer role
+- registration schemas reject unknown privilege fields, including attempted client self-promotion
+- sessions hydrate current roles from PostgreSQL rather than trusting client claims
+- reusable server-side role guards return safe 401/403 responses
+- merchant and platform authorization boundaries are explicitly separated
+- account status remains independent from authorization roles
+- mobile signed-in state displays server-trusted roles and authorized application modes without exposing a role editor
+- role/mode/forbidden states localized in Dari, Pashto, and English
+- shared contracts package now has separate Metro-safe source and Node-safe compiled entries
+- CI returned to read-only migration verification after the committed role migration was generated
+- complete Phase 1 regression across database, authentication, sessions, localization, authorization, mobile, API, admin, and storefront
+
+### Database migration
+
+- `0001_violet_archangel.sql`
+- creates the `app_role` enum
+- creates indexed `user_roles` memberships with a composite primary key
+- backfills existing users to `customer`
+- migration snapshot and journal committed
+- schema generation reports no uncommitted drift
+
+### Verification
+
+GitHub Actions run 37205570313 passed the final Task 1.6 / Phase 1 verification.
+
+Verified gates:
+
+- PostgreSQL 17 initialization
+- migration history validation
+- zero schema/migration drift
+- fresh database migrations
+- live database connectivity
+- ESLint
+- all workspace TypeScript checks
+- 8 database tests
+- 3 design-token tests
+- 4 localization tests
+- 19 API tests across health, authentication, PostgreSQL integration, and role authorization
+- client self-promotion regression coverage
+- customer vs merchant vs platform authorization coverage
+- mobile raw-string localization verification
+- Fastify API production build
+- Next.js admin production build
+- Next.js storefront production build
+- Expo mobile web export
+
+### Git
+
+- Final contracts/API regression fix before Phase state update: 0dde17a962c9bca9800f8c2c1f186fd79118e17f
+- Final Phase 1 verification run: 37205570313
+
+## Phase 1 status
+
+Complete and verified. Pull request #1 is ready for review and must not be merged without explicit approval.
+
 ## Current task
 
-Task 1.5 is complete. Awaiting `Start Task 1.6`.
+Phase 1 is complete. Awaiting review/merge approval before Phase 2 begins.
 
 ## Known external requirements
 
-No third-party authentication secret is required for Task 1.5 because BazaarLink currently uses database-backed opaque sessions.
+CI verifies Phase 1 against fresh PostgreSQL 17.
 
-Task 1.4/1.5 are verified in CI against fresh PostgreSQL. Local API/auth execution requires a valid DATABASE_URL in the root .env file.
+Local API/auth execution requires a valid DATABASE_URL in the root .env file. Docker is optional if a hosted PostgreSQL connection such as Neon is used.
 
-Physical-device authentication testing also requires EXPO_PUBLIC_API_URL to point to an API URL reachable from the phone (for example a local-network URL or approved tunnel).
+Physical-device authentication testing requires EXPO_PUBLIC_API_URL to point to an API URL reachable from the phone, such as a local-network URL or an approved tunnel.

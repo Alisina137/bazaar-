@@ -63,6 +63,18 @@ pnpm db:health
 
 Never commit `.env` or real credentials.
 
+## Mobile API environment
+
+Expo reads the mobile app environment from `apps/mobile`. For local mobile development:
+
+```powershell
+Copy-Item apps/mobile/.env.example apps/mobile/.env.local
+```
+
+Set `EXPO_PUBLIC_API_URL` in `apps/mobile/.env.local` to an API URL the device can actually reach.
+
+For a physical phone, `http://localhost:4000` points to the phone itself, not the development computer. Use a LAN-accessible address or an approved tunnel URL, then restart Expo after changing the value.
+
 ## Verify
 
 ```powershell

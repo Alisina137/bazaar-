@@ -91,7 +91,7 @@ export const enMessages = {
     "Delivery availability, price, and arrival estimate will be calculated from your address in the delivery phase.",
   "marketplace.product.payment": "Payment",
   "marketplace.product.paymentPending":
-    "Available payment methods will be shown from the merchant's verified payment settings in the payment phase.",
+    "Available payment methods are confirmed during checkout from the seller's current payment settings.",
   "marketplace.product.description": "Description",
   "marketplace.product.purchase": "Purchase",
   "marketplace.product.cartPhaseReady":

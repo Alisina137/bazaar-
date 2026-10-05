@@ -14,6 +14,7 @@ jobs:
       DATABASE_CONNECT_TIMEOUT_SECONDS: "10"
       DATABASE_IDLE_TIMEOUT_SECONDS: "20"
       DATABASE_PREPARE_STATEMENTS: "false"
+      RUN_DATABASE_INTEGRATION_TESTS: "true"
 
     services:
       postgres:

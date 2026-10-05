@@ -51,10 +51,21 @@ jobs:
       - name: Verify migration history
         run: pnpm db:check
 
+      - name: Generate database migrations
+        run: pnpm db:generate
+
+      - name: Upload generated migration artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: drizzle-generated
+          path: |
+            packages/database/drizzle/0007_slippery_blonde_phantom.sql
+            packages/database/drizzle/meta/0007_snapshot.json
+            packages/database/drizzle/meta/_journal.json
+          if-no-files-found: error
+
       - name: Verify schema has committed migrations
-        run: |
-          pnpm db:generate
-          git diff --exit-code -- packages/database/drizzle
+        run: git diff --exit-code -- packages/database/drizzle
 
       - name: Apply database migrations
         run: pnpm db:migrate

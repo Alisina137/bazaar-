@@ -184,7 +184,8 @@ export const faAfMessages = {
   "seller.store.published": "فروشگاه منتشر شد",
   "seller.store.editSettings": "ویرایش تنظیمات",
   "seller.store.emptyTitle": "ویترین شما آماده است",
-  "seller.store.emptyMessage":\n    "ویترین شما آماده است. برای ساخت کاتالوگ عمومی از بخش محصولات، محصول اضافه کنید.",
+  "seller.store.emptyMessage":
+    "ویترین شما آماده است. برای ساخت کاتالوگ عمومی از بخش محصولات، محصول اضافه کنید.",
   "seller.store.location": "موقعیت",
   "seller.store.contact": "تماس",
   "seller.store.category": "دسته",
@@ -219,7 +220,8 @@ export const faAfMessages = {
   "seller.more.futureFeature": "در یکی از فازهای بعدی محصول فعال می‌شود",
 
   "seller.products.title": "محصولات",
-  "seller.products.message":\n    "کاتالوگ واقعی فروشگاه، انواع، تصاویر و موجودی را بسازید و مدیریت کنید.",
+  "seller.products.message":
+    "کاتالوگ واقعی فروشگاه، انواع، تصاویر و موجودی را بسازید و مدیریت کنید.",
   "seller.orders.title": "سفارش‌ها",
   "seller.orders.message":
     "مدیریت و تکمیل سفارش در فاز ۸ پیاده‌سازی می‌شود.",

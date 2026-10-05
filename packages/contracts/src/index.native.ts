@@ -12,3 +12,5 @@ export * from "./marketplace";
 export * from "./cart-pricing";
 
 export * from "./delivery";
+
+export * from "./payment";

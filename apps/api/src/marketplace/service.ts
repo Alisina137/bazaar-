@@ -1,5 +1,6 @@
 import type {
   MarketplaceBrowseResponse,
+  MarketplaceCategoriesResponse,
   MarketplaceFilterCapabilities,
   MarketplaceHomeResponse,
   MarketplaceProductDetailResponse,
@@ -28,6 +29,7 @@ export const marketplaceFilterCapabilities: MarketplaceFilterCapabilities = {
 };
 
 export interface MarketplaceServiceContract {
+  categories(): Promise<MarketplaceCategoriesResponse>;
   home(input: {
     province?: string | undefined;
     recentProductIds: string[];
@@ -45,6 +47,12 @@ export interface MarketplaceServiceContract {
 
 export class MarketplaceService implements MarketplaceServiceContract {
   constructor(private readonly repository: MarketplaceRepository) {}
+
+  async categories(): Promise<MarketplaceCategoriesResponse> {
+    return {
+      categories: await this.repository.listCategories()
+    };
+  }
 
   async home(input: {
     province?: string | undefined;

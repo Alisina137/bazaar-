@@ -47,6 +47,7 @@ export default function SellerInventoryScreen() {
   const {
     status,
     products,
+    lowStockItems,
     hasMore,
     loadingMore,
     refresh,
@@ -76,6 +77,55 @@ export default function SellerInventoryScreen() {
         <AppText variant="title">{t("catalog.inventory.title")}</AppText>
         <AppText tone="muted">{t("catalog.inventory.description")}</AppText>
       </View>
+
+      <Card>
+        <View style={{ gap: theme.spacing.md }}>
+          <AppText variant="heading">
+            {t("catalog.inventory.lowStockList")}
+          </AppText>
+          {lowStockItems.length === 0 ? (
+            <AppText tone="muted">
+              {t("catalog.inventory.noLowStock")}
+            </AppText>
+          ) : (
+            lowStockItems.map((item) => (
+              <View
+                key={item.productId + ":" + (item.variantId ?? "product")}
+                style={{ gap: theme.spacing.xs }}
+              >
+                <Badge
+                  label={t("catalog.inventory.lowStock")}
+                  tone="warning"
+                />
+                <AppText variant="bodyStrong">
+                  {item.productName}
+                  {item.variantTitle ? " · " + item.variantTitle : ""}
+                </AppText>
+                <AppText tone="muted">
+                  {t("catalog.inventory.available")}:{" "}
+                  {formatNumber(
+                    Math.max(
+                      0,
+                      item.availableQuantity - item.reservedQuantity
+                    )
+                  )}
+                </AppText>
+                <Button
+                  variant="secondary"
+                  onPress={() => {
+                    router.push({
+                      pathname: "/seller/product/[productId]",
+                      params: { productId: item.productId }
+                    });
+                  }}
+                >
+                  {t("catalog.inventory.manage")}
+                </Button>
+              </View>
+            ))
+          )}
+        </View>
+      </Card>
 
       {tracked.length === 0 ? (
         <StateView

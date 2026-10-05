@@ -737,3 +737,23 @@ Local API/store execution requires a valid `DATABASE_URL` in the root `.env` fil
 Physical-device seller testing requires `EXPO_PUBLIC_API_URL` to point to an API URL reachable from the phone.
 
 The public storefront runtime requires `API_URL` or `NEXT_PUBLIC_API_URL` to point to the BazaarLink API.
+
+
+## Post-Phase 5 generated type hygiene correction
+
+### Problem
+
+Local verification could fail immediately after pulling a phase even when the same commit passed CI because framework-generated route/type declaration files were stale on the developer machine. Expo Router typed-route declarations under `.expo/types` could still describe the previous route tree, and Next.js regenerates `next-env.d.ts` during type generation/builds.
+
+### Correction
+
+- mobile `typecheck` now runs `expo customize tsconfig.json` before `tsc`, so Expo Router route declarations are refreshed from the current `src/app` tree
+- admin and storefront `typecheck` now run `next typegen` before `tsc`
+- generated `apps/mobile/expo-env.d.ts`, `apps/admin/next-env.d.ts`, and `apps/storefront-web/next-env.d.ts` are no longer tracked
+- `apps/mobile/.gitignore` is tracked with Expo's generated-file rules
+- `pnpm-lock.yaml` remains intentionally untracked and is now ignored so normal `pnpm install` does not dirty the working tree
+- root `pnpm verify` therefore prepares current framework types automatically instead of depending on stale local generated files
+
+### Verification
+
+GitHub Actions run `37302798595` passed the full repository gate with the generated-type preparation changes.

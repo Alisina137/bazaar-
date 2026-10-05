@@ -131,7 +131,7 @@ export interface CartPricingRepository {
   ): Promise<{
     id: string;
     addressId: string | null;
-    status: "draft" | "quoted" | "expired";
+    status: "draft" | "quoted" | "expired" | "ordered";
     pricingSnapshot: Record<string, unknown> | null;
     expiresAt: Date | null;
   } | null>;
@@ -735,7 +735,7 @@ export class DatabaseCartPricingRepository
   ): Promise<{
     id: string;
     addressId: string | null;
-    status: "draft" | "quoted" | "expired";
+    status: "draft" | "quoted" | "expired" | "ordered";
     pricingSnapshot: Record<string, unknown> | null;
     expiresAt: Date | null;
   } | null> {

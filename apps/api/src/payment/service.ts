@@ -351,7 +351,7 @@ export class PaymentService implements PaymentServiceContract {
         delivery: "ready",
         payment: complete ? "ready" : "action_required",
         review: complete ? "payment_ready" : "blocked",
-        placeOrder: "blocked_until_phase_8"
+        placeOrder: complete ? "ready" : "blocked"
       }
     };
   }

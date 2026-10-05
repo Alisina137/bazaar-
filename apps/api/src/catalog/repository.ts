@@ -19,6 +19,7 @@ import type {
 import {
   categories,
   inventoryMovements,
+  platformCategories,
   productImages,
   products,
   productVariants,
@@ -84,6 +85,7 @@ export interface CatalogRepository {
     storeId: string,
     categoryId: string
   ): Promise<CatalogCategoryRecord | null>;
+  marketplaceCategoryExists(categoryId: string): Promise<boolean>;
   createCategory(
     storeId: string,
     input: CreateCategoryInput,
@@ -345,6 +347,21 @@ export class DatabaseCatalogRepository implements CatalogRepository {
       );
 
     return rows.map(toCategoryRecord);
+  }
+
+  async marketplaceCategoryExists(categoryId: string): Promise<boolean> {
+    const [row] = await this.db
+      .select({ id: platformCategories.id })
+      .from(platformCategories)
+      .where(
+        and(
+          eq(platformCategories.id, categoryId),
+          eq(platformCategories.active, true)
+        )
+      )
+      .limit(1);
+
+    return Boolean(row);
   }
 
   async countActiveCategories(storeId: string): Promise<number> {

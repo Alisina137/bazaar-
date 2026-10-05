@@ -157,6 +157,10 @@ export interface OrderRepository {
   placeOrders(
     input: PlaceOrdersRepositoryInput
   ): Promise<{ orders: OrderRecord[]; reused: boolean }>;
+  findByCheckout(
+    userId: string,
+    checkoutSessionId: string
+  ): Promise<OrderRecord[]>;
   listCustomerOrders(userId: string): Promise<OrderRecord[]>;
   getCustomerOrder(
     userId: string,
@@ -303,6 +307,24 @@ export class DatabaseOrderRepository implements OrderRepository {
       .where(eq(orders.customerUserId, userId))
       .orderBy(desc(orders.placedAt));
     return rows.map((row) => row.id);
+  }
+
+  async findByCheckout(
+    userId: string,
+    checkoutSessionId: string
+  ): Promise<OrderRecord[]> {
+    const rows = await this.db
+      .select({ id: orders.id })
+      .from(orders)
+      .where(
+        and(
+          eq(orders.customerUserId, userId),
+          eq(orders.checkoutSessionId, checkoutSessionId)
+        )
+      )
+      .orderBy(asc(orders.createdAt));
+
+    return this.hydrate(rows.map((row) => row.id));
   }
 
   async listCustomerOrders(userId: string): Promise<OrderRecord[]> {

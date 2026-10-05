@@ -1,4 +1,7 @@
-import type { MarketplaceCategoryRecord } from "@bazaarlink/contracts";
+import type {
+  MarketplaceCategoryRecord,
+  ProductDeliveryProfile
+} from "@bazaarlink/contracts";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
@@ -74,6 +77,9 @@ export default function NewProductScreen() {
   const [tags, setTags] = useState("");
   const [shippingClass, setShippingClass] = useState("");
   const [deliveryRestrictions, setDeliveryRestrictions] = useState("");
+  const [deliveryProfile, setDeliveryProfile] =
+    useState<ProductDeliveryProfile>("normal");
+  const [deliverySurcharge, setDeliverySurcharge] = useState("0");
   const [busy, setBusy] = useState<"draft" | "publish" | null>(null);
   const [errorKey, setErrorKey] = useState<ReturnType<typeof catalogErrorKey> | null>(
     null
@@ -101,6 +107,7 @@ export default function NewProductScreen() {
     const parsedThreshold = Number(lowStockThreshold);
     const oldPrice = optionalNumber(compareAtPrice);
     const weight = optionalNumber(weightGrams);
+    const parsedDeliverySurcharge = Number(deliverySurcharge);
 
     if (
       !name.trim() ||
@@ -113,7 +120,9 @@ export default function NewProductScreen() {
       parsedThreshold < 0 ||
       oldPrice === undefined ||
       weight === undefined ||
-      (weight !== null && !Number.isInteger(weight))
+      (weight !== null && !Number.isInteger(weight)) ||
+      !Number.isFinite(parsedDeliverySurcharge) ||
+      parsedDeliverySurcharge < 0
     ) {
       setErrorKey("catalog.error.invalidRequest");
       return;
@@ -143,6 +152,8 @@ export default function NewProductScreen() {
           .filter(Boolean),
         shippingClass: shippingClass.trim() || null,
         deliveryRestrictions: deliveryRestrictions.trim() || null,
+        deliveryProfile,
+        deliverySurcharge: parsedDeliverySurcharge,
         images: imageUrl.trim()
           ? [{ url: imageUrl.trim(), altText: name.trim() }]
           : []
@@ -305,6 +316,39 @@ export default function NewProductScreen() {
                 label={t("catalog.product.shippingClass")}
                 value={shippingClass}
                 onChangeText={setShippingClass}
+              />
+              <View style={{ gap: theme.spacing.sm }}>
+                <AppText variant="label">
+                  {t("delivery.product.profile")}
+                </AppText>
+                {(
+                  [
+                    "normal",
+                    "bulky",
+                    "fragile",
+                    "pickup_only",
+                    "no_express",
+                    "seller_delivery_only",
+                    "digital_no_delivery"
+                  ] as ProductDeliveryProfile[]
+                ).map((profile) => (
+                  <Button
+                    key={profile}
+                    variant={
+                      deliveryProfile === profile ? "primary" : "secondary"
+                    }
+                    onPress={() => setDeliveryProfile(profile)}
+                  >
+                    {t(("delivery.product.profile." + profile) as never)}
+                  </Button>
+                ))}
+              </View>
+              <TextField
+                label={t("delivery.product.surcharge")}
+                helperText={t("delivery.product.surchargeHint")}
+                value={deliverySurcharge}
+                onChangeText={setDeliverySurcharge}
+                keyboardType="decimal-pad"
               />
               <TextField
                 label={t("catalog.product.deliveryRestrictions")}

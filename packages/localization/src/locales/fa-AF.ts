@@ -93,7 +93,7 @@ export const faAfMessages = {
     "موجودیت، قیمت و زمان تحویل بر اساس آدرس شما در مرحله تحویل محاسبه می‌شود.",
   "marketplace.product.payment": "پرداخت",
   "marketplace.product.paymentPending":
-    "روش‌های پرداخت موجود در مرحله پرداخت از تنظیمات معتبر فروشنده نمایش داده می‌شود.",
+    "روش‌های پرداخت موجود هنگام تسویه‌حساب از تنظیمات فعلی و معتبر فروشنده تأیید می‌شوند.",
   "marketplace.product.description": "توضیحات",
   "marketplace.product.purchase": "خرید",
   "marketplace.product.cartPhaseReady":

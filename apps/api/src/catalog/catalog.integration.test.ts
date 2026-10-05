@@ -186,6 +186,75 @@ describe.skipIf(!hasDatabase)("database-backed catalog and inventory lifecycle",
     expect(publishProduct.statusCode).toBe(200);
     expect(publishProduct.json().status).toBe("active");
 
+    const reservation = await app.inject({
+      method: "POST",
+      url:
+        "/seller/stores/" +
+        store.id +
+        "/products/" +
+        product.id +
+        "/inventory/reserve",
+      headers: {
+        authorization: "Bearer " + owner.session.token
+      },
+      payload: {
+        variantId,
+        quantity: 3
+      }
+    });
+    expect(reservation.statusCode).toBe(200);
+    expect(reservation.json().variants[0]).toMatchObject({
+      id: variantId,
+      availableQuantity: 5,
+      reservedQuantity: 3
+    });
+
+    const adjustBelowReserved = await app.inject({
+      method: "POST",
+      url:
+        "/seller/stores/" +
+        store.id +
+        "/products/" +
+        product.id +
+        "/inventory/adjust",
+      headers: {
+        authorization: "Bearer " + owner.session.token
+      },
+      payload: {
+        variantId,
+        delta: -3,
+        reason: "cannot consume reserved stock"
+      }
+    });
+    expect(adjustBelowReserved.statusCode).toBe(409);
+    expect(adjustBelowReserved.json()).toEqual({
+      error: {
+        code: "inventory_would_be_negative"
+      }
+    });
+
+    const releaseReservation = await app.inject({
+      method: "POST",
+      url:
+        "/seller/stores/" +
+        store.id +
+        "/products/" +
+        product.id +
+        "/inventory/release",
+      headers: {
+        authorization: "Bearer " + owner.session.token
+      },
+      payload: {
+        variantId,
+        quantity: 3
+      }
+    });
+    expect(releaseReservation.statusCode).toBe(200);
+    expect(releaseReservation.json().variants[0]).toMatchObject({
+      id: variantId,
+      reservedQuantity: 0
+    });
+
     const negativeInventory = await app.inject({
       method: "POST",
       url:

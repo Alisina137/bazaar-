@@ -74,6 +74,10 @@ export interface CatalogRepository {
     storeId: string,
     categoryId: string
   ): Promise<number>;
+  countActiveChildCategories(
+    storeId: string,
+    categoryId: string
+  ): Promise<number>;
   findCategory(
     storeId: string,
     categoryId: string
@@ -367,6 +371,24 @@ export class DatabaseCatalogRepository implements CatalogRepository {
           eq(products.storeId, storeId),
           eq(products.categoryId, categoryId),
           ne(products.status, "archived")
+        )
+      );
+
+    return row?.value ?? 0;
+  }
+
+  async countActiveChildCategories(
+    storeId: string,
+    categoryId: string
+  ): Promise<number> {
+    const [row] = await this.db
+      .select({ value: count() })
+      .from(categories)
+      .where(
+        and(
+          eq(categories.storeId, storeId),
+          eq(categories.parentId, categoryId),
+          eq(categories.status, "active")
         )
       );
 

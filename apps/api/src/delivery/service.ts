@@ -9,10 +9,8 @@ import type {
   DeliveryOptionQuote,
   DeliveryOptionsResponse,
   DeliveryRuleAudit,
-  DeliverySpeedRecord,
   DeliveryZoneRecord,
   StoreDeliveryConfigurationResponse,
-  StoreDeliverySettingsRecord,
   UpdateDeliveryDistanceRuleInput,
   UpdateDeliverySpeedInput,
   UpdateDeliveryZoneInput,
@@ -20,7 +18,6 @@ import type {
 } from "@bazaarlink/contracts";
 
 import type { CartPricingServiceContract } from "../cart-pricing/service.js";
-import { getStoreEntitlements } from "../store/entitlements.js";
 import { DeliveryError } from "./errors.js";
 import type {
   DeliveryProductState,

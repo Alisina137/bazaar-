@@ -11,8 +11,8 @@
 - Repository: Alisina137/bazaar-
 - Local project root: existing user folder named `bazaar`
 - Default branch: main
-- Active product phase: Phase 5 — Cart & Pricing
-- Phase branch: phase-05-cart-pricing
+- Active product phase: Phase 6 — Delivery
+- Phase branch: main
 - Initial repository state: empty before Phase 1 planning
 - Phase baseline commit: 536d7b575182988cfb31ee9c483fe5f50f19f228
 - Package manager: pnpm 12.6
@@ -712,25 +712,167 @@ Verified Phase 5 gates include:
 - merchant-facing coupon/promotion campaign management and broader promotional tooling remain the Merchant Growth phase
 - no tax percentage is assumed; tax remains configurable and subject to legal review before activation
 
+
+## Phase 6 — Delivery
+
+### Status
+
+Complete and verified on `main`.
+
+### Product outcomes
+
+- merchant delivery availability
+- store pickup
+- store delivery origin
+- location zones
+- distance rules
+- delivery speeds and urgency pricing
+- product delivery restrictions and surcharges
+- deterministic delivery estimates
+- checkout integration
+
+### Delivered
+
+- merchant-controlled delivery and pickup availability
+- every store receives a persisted delivery-settings record initialized from the store's current location/profile
+- store delivery origin supports address, province, district, area, and optional latitude/longitude
+- Afghanistan-friendly location zones using province, district/city, and area/neighborhood matching
+- overlapping zones are deterministic: higher configured priority wins, then more-specific location match, then stable ID tie-break
+- delivery-zone fees are non-negative and every zone must define at least one location matcher
+- advanced distance pricing for entitled plans:
+  - fixed distance tiers
+  - base fee plus per-kilometer pricing
+- straight-line Haversine distance is used as a deterministic fallback when both origin and customer map coordinates exist; the rule audit records that distance source
+- delivery pricing priority follows the product specification:
+  - explicit matching zone
+  - configured distance rule
+  - store default delivery fee
+  - unavailable
+- every calculated option returns the exact rule used for audit/debugging
+- store pickup is a zero-delivery-fee fulfillment option with configurable preparation ETA
+- merchants can configure economy, standard, same-day, express, and custom delivery speeds
+- urgency pricing supports fixed surcharges and multipliers over the base delivery fee
+- speed eligibility can constrain:
+  - minimum order amount
+  - maximum range
+  - cutoff time
+  - supported weekdays
+  - maximum known order weight
+- merchant-wide delivery settings can constrain:
+  - minimum order
+  - operating weekdays
+  - cutoff time
+  - free-delivery threshold
+- free delivery is applied after base delivery, urgency, and product delivery surcharges so the customer sees the full discount explicitly
+- product-level delivery profiles are supported:
+  - normal
+  - bulky
+  - fragile
+  - pickup-only
+  - no-express
+  - seller-delivery-only
+  - digital/no-delivery
+- products can carry an additive delivery surcharge applied per cart quantity
+- digital-only merchant groups automatically receive a zero-fee digital fulfillment option
+- pickup-only products block delivery while preserving pickup when allowed
+- seller-delivery-only products block pickup
+- no-express products remove express options
+- delivery availability revalidates current cart, store status, subscription state, address ownership, stock/pricing state, and current delivery configuration during checkout
+- delivery options are calculated separately for every merchant group in a multi-store cart
+- customer checkout now loads real delivery options after address selection and requires one valid selection per merchant group
+- checkout shows:
+  - item subtotal
+  - product discounts
+  - coupon discounts
+  - delivery base fees
+  - urgency surcharges
+  - product delivery surcharges
+  - free-delivery discounts
+  - final total before payment
+- delivery-ready checkout quotes are persisted for 15 minutes and snapshot the exact delivery options/pricing used
+- changing merchant delivery configuration later does not rewrite a persisted quote snapshot
+- Payment remains explicitly pending Phase 7 and Place Order remains blocked until Phase 8
+- seller More exposes a real Delivery management screen
+- seller Delivery UI covers availability, pickup, origin, zones, distance rules, delivery speeds, free-delivery threshold, minimum order, operating days, cutoff time, and pickup ETA
+- product create/edit screens expose delivery profile and product delivery surcharge
+- Starter plans retain basic zone/default/pickup delivery capability while advanced distance-rule controls follow the existing advanced-delivery entitlement
+- Dari, Pashto, and English delivery/customer/seller localization is included with existing RTL/LTR behavior preserved
+
+### Database migration
+
+- `0006_normal_micromacro.sql`
+- adds:
+  - `delivery_distance_rule_type`
+  - `delivery_surcharge_type`
+  - `delivery_speed_kind`
+  - `delivery_product_profile`
+- adds:
+  - `store_delivery_settings`
+  - `delivery_zones`
+  - `delivery_distance_rules`
+  - `delivery_speeds`
+- extends products with `delivery_profile` and `delivery_surcharge`
+- adds non-negative fee/surcharge checks, distance-range checks, ETA checks, zone matcher requirements, and delivery indexes
+- migration is additive and preserves all Phase 1–5 data
+
+### Acceptance
+
+Passed: delivery availability and pricing are deterministic for every checkout merchant group, with an auditable rule source, eligible fulfillment methods, speed/urgency adjustments, product delivery restrictions, free-delivery behavior, estimates, and a server-authoritative delivery-ready checkout total.
+
+### Verification
+
+GitHub Actions run `37322482284` passed on exact `main` commit `b843f97dff3a9f5c10af301d0d7be323223884ae`.
+
+Verified Phase 6 gates include:
+
+- zero Drizzle migration/schema drift
+- fresh Phase 1–6 migration application on PostgreSQL 17
+- database schema invariant tests for delivery settings/zones/rules/speeds/product profiles
+- deterministic delivery service unit coverage
+- real PostgreSQL Phase 6 integration lifecycle
+- overlapping-zone specificity/priority behavior
+- product delivery surcharge calculation
+- urgency surcharge calculation
+- free-delivery behavior
+- outside-coverage behavior
+- address and merchant ownership boundaries
+- persisted delivery-ready quote
+- product restriction handling
+- seller delivery configuration API and mobile flow
+- customer delivery-option and checkout integration
+- three-language localization verification
+- all workspace lint/typecheck/build gates
+- Expo mobile export
+- Fastify production build
+- Next.js admin/storefront builds
+
+### Deferred by design
+
+- real merchant payment-method configuration and payment selection remain Phase 7
+- order creation, inventory reservation ownership/expiry, merchant suborders, fulfillment state, and final Place Order remain Phase 8
+- external road-routing/map-provider distance is not fabricated; Phase 6 records straight-line fallback when coordinates are available and remains deterministic without an external routing dependency
+- configurable tax remains inactive until a legally reviewed tax configuration exists
+
 ## Current phase
 
-Phase 5 — Cart & Pricing is complete and verified. Phase 6 — Delivery is the next product phase.
+Phase 6 — Delivery is complete and verified. Phase 7 — Payments is the next product phase.
 
 ## Last known-good baseline
 
-- Branch: `phase-05-cart-pricing`
-- Verification run: `37299864188`
+- Branch: `main`
+- Commit: `b843f97dff3a9f5c10af301d0d7be323223884ae`
+- Verification run: `37322482284`
 
 ## Verification workflow
 
 - Local `pnpm verify` runs deterministic lint, typecheck, unit, localization, and build checks without invoking remote database integration suites.
-- `pnpm test:integration` explicitly runs the auth, store, catalog, marketplace, and cart/pricing PostgreSQL integration suites serially against the configured root `.env` database.
+- `pnpm test:integration` explicitly runs the auth, store, catalog, marketplace, cart/pricing, and delivery PostgreSQL integration suites serially against the configured root `.env` database.
 - GitHub Actions sets `RUN_DATABASE_INTEGRATION_TESTS=true` and continues to run the complete PostgreSQL integration suite against fresh PostgreSQL 17 on every push/PR.
 - Unexpected catalog failures are logged server-side before returning the safe public `service_unavailable` response.
 
 ## Known external requirements
 
-CI verifies the current marketplace and cart/pricing baseline against fresh PostgreSQL 17.
+CI verifies the current marketplace, cart/pricing, and delivery baseline against fresh PostgreSQL 17.
 
 Local API/store execution requires a valid `DATABASE_URL` in the root `.env` file. Docker is optional when a hosted PostgreSQL database such as Neon is used.
 

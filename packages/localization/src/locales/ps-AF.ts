@@ -93,7 +93,7 @@ export const psAfMessages = {
     "د تحویل موجودیت، بیه او وخت به د تحویل په پړاو کې ستاسو د پتې له مخې محاسبه شي.",
   "marketplace.product.payment": "تادیه",
   "marketplace.product.paymentPending":
-    "د تادیې موجودې لارې به د تادیې په پړاو کې د پلورونکي له باوري تنظیماتو وښودل شي.",
+    "د تادیې موجودې لارې د پېرود پر مهال د پلورونکي له اوسنیو باوري تنظیماتو تاییدېږي.",
   "marketplace.product.description": "تشریح",
   "marketplace.product.purchase": "پېرود",
   "marketplace.product.cartPhaseReady":

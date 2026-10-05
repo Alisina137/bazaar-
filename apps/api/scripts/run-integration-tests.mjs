@@ -15,6 +15,7 @@ const result = spawnSync(
     "src/marketplace/marketplace.integration.test.ts",
     "src/cart-pricing/cart-pricing.integration.test.ts",
     "src/delivery/delivery.integration.test.ts",
+    "src/payment/payment.integration.test.ts",
     "--no-file-parallelism"
   ],
   {

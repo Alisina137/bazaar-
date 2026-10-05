@@ -68,6 +68,7 @@ const variantUpdateSchema = variantSchema
 const productBaseSchema = z.object({
   name: z.string().trim().min(1).max(180),
   categoryId: uuidSchema,
+  marketplaceCategoryId: uuidSchema.nullable().optional(),
   price: z.number().min(0).max(999999999),
   description: nullableText(5000),
   sku: nullableText(100),

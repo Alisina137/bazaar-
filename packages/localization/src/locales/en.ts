@@ -119,10 +119,143 @@ export const enMessages = {
 
   "cart.title": "Cart",
   "cart.description":
-    "The cart shell is present without implementing checkout ahead of schedule.",
+    "Review products grouped by seller with live server pricing.",
   "cart.statusTitle": "Your cart is empty",
-  "cart.statusMessage":
-    "Cart and merchant grouping logic will be added in the approved cart and pricing phase.",
+  "cart.statusMessage": "Browse the marketplace and add a product to begin.",
+  "cart.phaseBadge": "Cart & Pricing",
+  "cart.groupingHint":
+    "Items stay grouped by seller because each seller will become its own merchant order and fulfillment.",
+  "cart.loadingTitle": "Loading cart",
+  "cart.loadingMessage": "Checking current product prices and stock.",
+  "cart.signInTitle": "Sign in to use your cart",
+  "cart.signInMessage":
+    "Your server-backed cart and saved addresses are connected to your BazaarLink account.",
+  "cart.signInAction": "Open account",
+  "cart.errorTitle": "Cart unavailable",
+  "cart.retry": "Try again",
+  "cart.emptyTitle": "Your cart is empty",
+  "cart.emptyMessage": "Add an active marketplace product to begin checkout.",
+  "cart.browseAction": "Browse marketplace",
+  "cart.priceChangedTitle": "A price changed",
+  "cart.priceChangedMessage":
+    "BazaarLink recalculated your cart using the seller's current price. Review the updated amount before checkout.",
+  "cart.priceChangedBadge": "Price updated",
+  "cart.issue.productUnavailable": "Product unavailable",
+  "cart.issue.variantUnavailable": "Option unavailable",
+  "cart.issue.insufficientStock": "Not enough stock",
+  "cart.remove": "Remove",
+  "cart.summary": "Price summary",
+  "cart.itemsSubtotal": "Items subtotal",
+  "cart.productDiscount": "Product discounts",
+  "cart.couponDiscount": "Coupon discount",
+  "cart.preDeliveryTotal": "Pre-delivery total",
+  "cart.deliveryPendingHint":
+    "Delivery, urgency, product-delivery surcharges, disclosed fees, and any configured tax are not invented here. Delivery pricing is added in Phase 6.",
+  "cart.checkout": "Continue to checkout",
+  "cart.blockingIssues":
+    "Resolve unavailable products, stock, or coupon issues before checkout.",
+  "cart.itemCount": "Items",
+  "cart.storePreDeliveryTotal": "Seller pre-delivery total",
+  "cart.coupon": "Coupon code",
+  "cart.couponPlaceholder": "Enter one seller coupon",
+  "cart.couponApplied": "Applied",
+  "cart.couponInvalid": "Needs attention",
+  "cart.removeCoupon": "Remove coupon",
+  "cart.applyCoupon": "Apply coupon",
+  "cart.couponRuleHint":
+    "Only one manual coupon can apply to each seller group. Coupon stacking is intentionally disabled.",
+  "cart.selectVariant": "Choose an available product option first.",
+  "cart.added": "Added to cart",
+  "cart.error.invalidRequest": "Check the cart information and try again.",
+  "cart.error.invalidSession": "Your session expired. Sign in again.",
+  "cart.error.accountUnavailable": "This account is currently unavailable.",
+  "cart.error.forbidden": "Your account cannot perform this cart action.",
+  "cart.error.empty": "Your cart is empty.",
+  "cart.error.itemNotFound": "This cart item no longer exists.",
+  "cart.error.productUnavailable":
+    "This product is no longer available for checkout.",
+  "cart.error.variantUnavailable":
+    "The selected product option is no longer available.",
+  "cart.error.insufficientStock":
+    "There is not enough stock for the requested quantity.",
+  "cart.error.addressNotFound": "Select a valid saved address.",
+  "cart.error.couponInvalid": "This coupon is invalid or expired.",
+  "cart.error.couponNotEligible":
+    "This coupon does not currently qualify for this seller order.",
+  "cart.error.checkoutUnavailable":
+    "Checkout pricing cannot be created until cart issues are resolved.",
+  "cart.error.rateLimited":
+    "Too many checkout attempts. Please wait and try again.",
+  "cart.error.serviceUnavailable":
+    "BazaarLink could not reach the cart and pricing service. Check your connection and try again.",
+
+  "address.phaseBadge": "Customer address",
+  "address.title": "Saved addresses",
+  "address.description":
+    "Use local address details, landmarks, phone, and an optional map pin. A Western street format is not required.",
+  "address.loadingTitle": "Loading addresses",
+  "address.loadingMessage": "Getting your saved delivery locations.",
+  "address.signInTitle": "Sign in to manage addresses",
+  "address.signInMessage": "Saved addresses are private to your account.",
+  "address.add": "Add address",
+  "address.edit": "Edit address",
+  "address.manage": "Manage addresses",
+  "address.label": "Label (optional)",
+  "address.recipient": "Recipient name",
+  "address.country": "Country",
+  "address.province": "Province",
+  "address.districtCity": "District / city",
+  "address.area": "Area / neighborhood (optional)",
+  "address.descriptionField": "Street / address description",
+  "address.landmark": "Nearest landmark (optional)",
+  "address.phone": "Phone number",
+  "address.latitude": "Map latitude (optional)",
+  "address.longitude": "Map longitude (optional)",
+  "address.mapHint": "If you add a map pin, provide both latitude and longitude.",
+  "address.instructions": "Delivery instructions (optional)",
+  "address.default": "Use as default address",
+  "address.defaultBadge": "Default",
+  "address.makeDefault": "Make default",
+  "address.save": "Save address",
+  "address.delete": "Delete",
+  "address.emptyTitle": "No saved addresses",
+  "address.emptyMessage":
+    "Add an address using the location details people commonly use in Afghanistan.",
+
+  "checkout.phaseBadge": "Checkout foundation",
+  "checkout.title": "Checkout",
+  "checkout.description":
+    "Confirm your address and receive a server-authoritative cart price before delivery and payment are added.",
+  "checkout.loadingTitle": "Loading checkout",
+  "checkout.loadingMessage": "Refreshing your cart and saved addresses.",
+  "checkout.signInTitle": "Sign in to checkout",
+  "checkout.signInMessage": "Checkout requires your secure BazaarLink account.",
+  "checkout.errorTitle": "Checkout unavailable",
+  "checkout.step.address": "Address",
+  "checkout.step.delivery": "Delivery",
+  "checkout.step.payment": "Payment",
+  "checkout.step.review": "Review",
+  "checkout.step.placeOrder": "Place order",
+  "checkout.noAddress": "Add a delivery address before creating a pricing quote.",
+  "checkout.cartReview": "Cart review",
+  "checkout.preDeliveryDisclaimer":
+    "This is authoritative for current items, product discounts, and eligible coupons. Delivery and later charges are not included yet.",
+  "checkout.createQuote": "Create authoritative price quote",
+  "checkout.quoteReady": "Pricing verified",
+  "checkout.authoritativeTotal": "Authoritative pre-delivery total",
+  "checkout.quoteExpiryHint":
+    "This server quote is time-limited. Prices and stock are revalidated when a new quote is created.",
+  "checkout.pendingPhase6": "Pending delivery setup",
+  "checkout.pendingPhase7": "Pending payment setup",
+  "checkout.deliveryBoundary":
+    "Phase 6 will determine coverage, delivery option, delivery fee, urgency surcharge, and estimate from this address.",
+  "checkout.paymentBoundary":
+    "Phase 7 will show only payment methods actually accepted by each seller.",
+  "checkout.reviewReady":
+    "Address and item pricing are ready. Delivery and payment data must be added before final order review.",
+  "checkout.placeOrderBlocked": "Place order",
+  "checkout.orderBoundary":
+    "Order creation is intentionally blocked until delivery and payment are authoritative and the order phase is implemented.",
 
   "orders.title": "Orders",
   "orders.description":

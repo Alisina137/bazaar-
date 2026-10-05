@@ -102,6 +102,8 @@ function repository(
     adjustInventory: async () => {
       throw new Error("not_used");
     },
+    reserveInventory: async () => undefined,
+    releaseInventory: async () => undefined,
     inventoryHistory: async () => [],
     listLowStock: async () => [],
     getPublicCatalog: async () => ({
@@ -177,6 +179,32 @@ describe("CatalogService", () => {
     );
 
     expect(published.status).toBe("out_of_stock");
+  });
+
+  it("maps reservation capacity protection to a safe catalog error", async () => {
+    const service = new CatalogService(
+      repository({
+        reserveInventory: async () => {
+          throw new CatalogRepositoryInventoryError(
+            "inventory_would_be_negative"
+          );
+        }
+      })
+    );
+
+    await expect(
+      service.reserveInventory(
+        "00000000-0000-4000-8000-000000000001",
+        storeAccess.storeId,
+        product().id,
+        {
+          quantity: 10
+        }
+      )
+    ).rejects.toMatchObject({
+      code: "inventory_would_be_negative",
+      statusCode: 409
+    });
   });
 
   it("maps negative inventory protection to a safe catalog error", async () => {

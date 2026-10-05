@@ -545,9 +545,62 @@ Verified gates include:
 - checkout/order creation, reservation expiry, and order-to-reservation ownership remain in the checkout/order phases; Phase 3 provides the atomic inventory reservation primitives they will consume
 - central marketplace discovery/search/filter/product-detail behavior remains Phase 4
 
+
+## Phase 4 — Marketplace
+
+### Status
+
+In progress on `phase-04-marketplace`.
+
+### Product outcomes
+
+- marketplace home
+- platform categories
+- search
+- filtering and sorting
+- customer product pages
+- customer store pages
+
+### Acceptance
+
+Customer can reliably discover active products from published stores.
+
+### Task plan
+
+- [x] 4.1 Marketplace data model and public contracts
+- [ ] 4.2 Marketplace browse/search/filter/sort API
+- [ ] 4.3 Mobile marketplace home, categories, and discovery UX
+- [ ] 4.4 Customer product detail experience
+- [ ] 4.5 Customer store pages and public product sharing
+- [ ] 4.6 Low-connectivity, recently viewed, localization, and Phase 4 regression
+
+### Task 4.1 — Marketplace data model and public contracts
+
+Delivered:
+
+- platform-wide localized category taxonomy separate from merchant-private categories
+- nullable product-to-marketplace-category mapping so existing Phase 3 data remains valid
+- seeded Afghanistan-first root marketplace categories plus common subcategories
+- privacy-preserving aggregate product-view metrics for future Popular ranking without storing viewer identity
+- marketplace browse indexes for category, product price/publication time, store status, and province
+- public marketplace contracts for home sections, category records, product/store summaries, product details, search suggestions, browse pagination, and store pages
+- Catalog product create/update contracts now support optional marketplace-category mapping
+- additive migration `0004_marketplace_discovery.sql`
+- Drizzle snapshot/journal updated with zero schema drift
+- database schema regression coverage extended for marketplace tables and product mappings
+
+Deferred to later Phase 4 tasks:
+
+- public discovery endpoints and ranking queries
+- seller UI for selecting a marketplace category
+- mobile marketplace/search/filter screens
+- product and store detail screens
+- recently viewed/offline caching
+
+
 ## Current phase
 
-Phase 3 — Catalog & Inventory is complete and verified. Phase 4 — Marketplace is the next product phase after Phase 3 delivery.
+Phase 4 — Marketplace is in progress. Task 4.1 establishes the marketplace data model and public contracts; Task 4.2 is next after Task 4.1 verification.
 
 ## Last known-good baseline
 

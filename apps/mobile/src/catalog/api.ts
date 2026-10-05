@@ -10,6 +10,7 @@ import type {
   CreateProductVariantInput,
   InventoryAdjustmentInput,
   InventoryHistoryResponse,
+  InventoryLowStockResponse,
   ProductListResponse,
   UpdateCategoryInput,
   UpdateProductInput,
@@ -370,6 +371,17 @@ export function inventoryHistory(
         encodeURIComponent(productId) +
         "/inventory/history"
     ),
+    token,
+    { method: "GET" }
+  );
+}
+
+export function lowStockInventory(
+  token: string,
+  storeId: string
+): Promise<InventoryLowStockResponse> {
+  return requestJson<InventoryLowStockResponse>(
+    sellerPath(storeId, "/inventory/low-stock"),
     token,
     { method: "GET" }
   );

@@ -170,14 +170,27 @@ function normalizeCategoryUpdate(
   return result;
 }
 
+function normalizeOptionValues(
+  values: Record<string, string>
+): Record<string, string> {
+  const result: Record<string, string> = {};
+
+  for (const [rawKey, rawValue] of Object.entries(values)) {
+    const key = rawKey.trim();
+    const value = rawValue.trim();
+
+    if (key.length > 0 && value.length > 0) {
+      result[key] = value;
+    }
+  }
+
+  return result;
+}
+
 function normalizeVariant(
   input: CreateProductVariantInput
 ): CreateProductVariantInput {
-  const optionValues = Object.fromEntries(
-    Object.entries(input.optionValues)
-      .map(([key, value]) => [key.trim(), value.trim()])
-      .filter(([key, value]) => key.length > 0 && value.length > 0)
-  );
+  const optionValues = normalizeOptionValues(input.optionValues);
 
   return {
     ...input,
@@ -197,11 +210,7 @@ function normalizeVariantUpdate(
   if (input.sku !== undefined) result.sku = trimNullable(input.sku);
   if (input.imageUrl !== undefined) result.imageUrl = trimNullable(input.imageUrl);
   if (input.optionValues !== undefined) {
-    result.optionValues = Object.fromEntries(
-      Object.entries(input.optionValues)
-        .map(([key, value]) => [key.trim(), value.trim()])
-        .filter(([key, value]) => key.length > 0 && value.length > 0)
-    );
+    result.optionValues = normalizeOptionValues(input.optionValues);
   }
 
   return result;

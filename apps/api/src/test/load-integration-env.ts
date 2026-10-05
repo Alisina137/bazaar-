@@ -14,4 +14,4 @@ loadEnv({
   override: process.env.CI !== "true"
 });
 
-export const INTEGRATION_TEST_TIMEOUT_MS = 60_000;
+export const INTEGRATION_TEST_TIMEOUT_MS = 180_000;

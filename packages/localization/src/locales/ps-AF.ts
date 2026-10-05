@@ -401,6 +401,90 @@ export const psAfMessages = {
   "delivery.error.rateLimited": "د تحویل د بیې ډېرې غوښتنې شوې؛ لږ وروسته بیا هڅه وکړئ.",
   "delivery.error.serviceUnavailable": "بازارلینک د تحویل خدمت ته ونه رسېد. خپله اړیکه وګورئ او بیا هڅه وکړئ.",
 
+
+  "payment.phaseBadge": "تادیات",
+  "payment.method.cod": "د سپارلو پر مهال تادیه",
+  "payment.method.hesabpay": "حساب‌پی",
+  "payment.method.card": "کارت",
+  "payment.method.payAtStore": "په پلورنځي کې تادیه",
+  "payment.seller.loadingTitle": "د تادیاتو تنظیمات پورته کېږي",
+  "payment.seller.loadingMessage": "د دې پلورنځي موجودې تادیې لارې کتل کېږي.",
+  "payment.seller.errorTitle": "د تادیاتو تنظیمات لاسرسی نه لري",
+  "payment.seller.title": "تادیات",
+  "payment.seller.description":
+    "هغه تادیې لارې وټاکئ چې پیرودونکي یې د دې پلورنځي لپاره کارولی شي.",
+  "payment.seller.providerStatus": "د ډیجیټل تادیې برابرونکی",
+  "payment.seller.providerReady": "د حساب‌پی ازمایښتي چاپېریال چمتو دی",
+  "payment.seller.providerNotReady": "حساب‌پی نه دی تنظیم شوی",
+  "payment.seller.providerHint":
+    "د حساب‌پی والټ، AfPay کارتونه او ملاتړ شوي نړیوال کارتونه د کوربه تادیې پاڼه کاروي. د ډیجیټل لارو تر فعالولو مخکې د سرور API کیلي تنظیم کړئ.",
+  "payment.seller.codHint":
+    "پیرودونکی د سپارل شوي فرمایش د رسېدو پر مهال پیسې ورکوي.",
+  "payment.seller.hesabpayHint":
+    "پیرودونکی تادیه د حساب‌پی په خوندي کوربه پاڼه کې بشپړوي.",
+  "payment.seller.cardHint":
+    "د کارت تادیه د حساب‌پی کوربه پاڼه کاروي، نو بازارلینک د کارت شمېره یا CVV نه ساتي.",
+  "payment.seller.payAtStoreHint":
+    "پیرودونکی د فرمایش د حضوري اخیستو پر مهال په پلورنځي کې پیسې ورکوي.",
+  "payment.seller.securityHint":
+    "د ډیجیټل تادیې اسناد یوازې په سرور کې پاتې کېږي. د دروازې د بېرته ستنېدو نتیجه تادیه نه تاییدوي؛ یوازې تایید شوی وېب‌هوک تادیه قطعي کوي.",
+  "payment.seller.enabled": "فعال",
+  "payment.seller.disabled": "غیرفعال",
+  "payment.seller.enable": "فعالول",
+  "payment.seller.disable": "غیرفعالول",
+  "payment.customer.loadingTitle": "د تادیې لارې پورته کېږي",
+  "payment.customer.loadingMessage": "د هر پلورونکي د تادیې موجودې لارې کتل کېږي.",
+  "payment.customer.description":
+    "په دې پېرود کې د هر پلورونکي لپاره یوه موجوده تادیې لاره وټاکئ.",
+  "payment.customer.confirm": "د تادیې لارې تایید کړئ",
+  "payment.customer.statusTitle": "د تادیې حالت",
+  "payment.customer.openHostedCheckout": "خوندي تادیه پرانیزئ",
+  "payment.customer.cancelAttempt": "د تادیې هڅه لغوه کړئ",
+  "payment.customer.webhookPending":
+    "خوندي تادیه بشپړه کړئ او بیا دلته راشئ. بازارلینک تر تایید شوي د برابرونکي پیغام پورې تادیه قطعي نه ګڼي.",
+  "payment.customer.refreshStatus": "د تادیې حالت تازه کړئ",
+  "payment.customer.readyForReview": "د تادیې پړاو چمتو دی",
+  "payment.customer.securityHint":
+    "بازارلینک د کارت شمېره یا CVV نه اخلي. ډیجیټل تادیات د سرورونو ترمنځ تاییدېږي.",
+  "payment.customer.reviewReady":
+    "پته، سپارنه او تادیه چمتو دي. د فرمایش جوړول په ۸ پړاو کې پیلېږي.",
+  "payment.customer.reviewBlocked":
+    "د وروستۍ کتنې تر دوام مخکې د ټولو پلورونکو د تادیې پړاو بشپړ کړئ.",
+  "payment.unavailable.merchantDisabled":
+    "دې پلورونکي دا تادیې لاره غیرفعاله کړې ده.",
+  "payment.unavailable.providerUnavailable":
+    "د ډیجیټل تادیې برابرونکی اوس نه دی تنظیم شوی.",
+  "payment.unavailable.pickupRequired":
+    "په پلورنځي کې تادیه یوازې د حضوري اخیستو لپاره ده.",
+  "payment.unavailable.deliveryRequired":
+    "د سپارلو پر مهال تادیه یوازې د سپارل کېدونکو فرمایشونو لپاره ده.",
+  "payment.state.created": "جوړه شوه",
+  "payment.state.pending": "په تمه",
+  "payment.state.paid": "تادیه شوه",
+  "payment.state.failed": "ناکامه",
+  "payment.state.cancelled": "لغوه شوه",
+  "payment.state.expired": "مهلت تېر",
+  "payment.state.refundPending": "بېرته تادیه په تمه",
+  "payment.state.partiallyRefunded": "یوه برخه بېرته تادیه شوه",
+  "payment.state.refunded": "بېرته تادیه شوه",
+  "payment.error.invalidRequest": "د تادیې معلومات وګورئ او بیا هڅه وکړئ.",
+  "payment.error.invalidSession": "ستاسو ناسته پای ته رسېدلې. بیا ننوځئ.",
+  "payment.error.accountUnavailable": "دا حساب اوس د لاسرسي وړ نه دی.",
+  "payment.error.forbidden": "تاسو د دې تادیې عمل اجازه نه لرئ.",
+  "payment.error.storeNotFound": "دا پلورنځی ونه موندل شو.",
+  "payment.error.subscriptionUnavailable": "د دې پلورنځي ګډون اوس تادیات نه شي کارولی.",
+  "payment.error.configurationNotFound": "د تادیې تنظیمات پورته نه شول.",
+  "payment.error.methodUnavailable": "د هر پلورونکي لپاره یوه موجوده تادیې لاره وټاکئ.",
+  "payment.error.attemptNotFound": "د تادیې دا هڅه ونه موندل شوه.",
+  "payment.error.stateConflict": "د تادیې حالت بدل شوی. تازه یې کړئ او بیا هڅه وکړئ.",
+  "payment.error.checkoutUnavailable": "د پېرود نرخ پای ته رسېدلی یا نور موجود نه دی.",
+  "payment.error.providerUnavailable": "د ډیجیټل تادیې برابرونکی اوس لاسرسی نه لري.",
+  "payment.error.providerRejected": "برابرونکي دا تادیه پیل یا بشپړه نه کړه.",
+  "payment.error.webhookUnverified": "د تادیې پیغام تایید نه شو.",
+  "payment.error.refundUnavailable": "دا تادیه د بېرته تادیې غوښتنې لپاره مناسبه نه ده.",
+  "payment.error.rateLimited": "د تادیې هڅې ډېرې دي. لږ وروسته بیا هڅه وکړئ.",
+  "payment.error.serviceUnavailable": "بازارلینک د تادیې خدمت ته لاسرسی نه لري. خپله اړیکه وګورئ او بیا هڅه وکړئ.",
+
   "orders.title": "فرمایشونه",
   "orders.description":
     "د فرمایشونو بنسټ ناوبري برابروي، پرته له دې چې د فرمایش منطق له وخته مخکې اضافه شي.",

@@ -95,6 +95,7 @@ export interface CatalogProductRecord {
   id: string;
   storeId: string;
   categoryId: string;
+  marketplaceCategoryId: string | null;
   name: string;
   description: string | null;
   price: number;
@@ -121,6 +122,7 @@ export interface CatalogProductRecord {
 export interface CreateProductInput {
   name: string;
   categoryId: string;
+  marketplaceCategoryId?: string | null | undefined;
   price: number;
   availableQuantity: number;
   lowStockThreshold?: number | undefined;
@@ -141,6 +143,7 @@ export interface CreateProductInput {
 export interface UpdateProductInput {
   name?: string | undefined;
   categoryId?: string | undefined;
+  marketplaceCategoryId?: string | null | undefined;
   price?: number | undefined;
   lowStockThreshold?: number | undefined;
   description?: string | null | undefined;

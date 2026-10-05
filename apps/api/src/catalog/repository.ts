@@ -259,6 +259,8 @@ function toProductRecord(
     tags: row.tags,
     shippingClass: row.shippingClass,
     deliveryRestrictions: row.deliveryRestrictions,
+    deliveryProfile: row.deliveryProfile,
+    deliverySurcharge: Number(row.deliverySurcharge),
     status: row.status,
     availableQuantity: row.availableQuantity,
     reservedQuantity: row.reservedQuantity,
@@ -692,6 +694,8 @@ export class DatabaseCatalogRepository implements CatalogRepository {
         tags: input.tags ?? [],
         shippingClass: input.shippingClass ?? null,
         deliveryRestrictions: input.deliveryRestrictions ?? null,
+        deliveryProfile: input.deliveryProfile ?? "normal",
+        deliverySurcharge: numberToDecimal(input.deliverySurcharge ?? 0),
         availableQuantity: hasVariants ? 0 : input.availableQuantity,
         lowStockThreshold: input.lowStockThreshold ?? 0
       };
@@ -807,6 +811,12 @@ export class DatabaseCatalogRepository implements CatalogRepository {
     if (input.shippingClass !== undefined) changes.shippingClass = input.shippingClass;
     if (input.deliveryRestrictions !== undefined) {
       changes.deliveryRestrictions = input.deliveryRestrictions;
+    }
+    if (input.deliveryProfile !== undefined) {
+      changes.deliveryProfile = input.deliveryProfile;
+    }
+    if (input.deliverySurcharge !== undefined) {
+      changes.deliverySurcharge = numberToDecimal(input.deliverySurcharge);
     }
     if (input.lowStockThreshold !== undefined) {
       changes.lowStockThreshold = input.lowStockThreshold;

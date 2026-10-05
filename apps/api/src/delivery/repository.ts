@@ -154,7 +154,7 @@ export interface DeliveryRepository {
     sessionId: string
   ): Promise<{
     id: string;
-    status: "draft" | "quoted" | "expired";
+    status: "draft" | "quoted" | "expired" | "ordered";
     pricingSnapshot: Record<string, unknown> | null;
     expiresAt: Date | null;
   } | null>;
@@ -972,7 +972,7 @@ export class DatabaseDeliveryRepository implements DeliveryRepository {
     sessionId: string
   ): Promise<{
     id: string;
-    status: "draft" | "quoted" | "expired";
+    status: "draft" | "quoted" | "expired" | "ordered";
     pricingSnapshot: Record<string, unknown> | null;
     expiresAt: Date | null;
   } | null> {

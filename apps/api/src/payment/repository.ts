@@ -113,6 +113,7 @@ function toAttempt(row: PaymentAttempt): PaymentAttemptRecord {
     userId: row.userId,
     checkoutSessionId: row.checkoutSessionId,
     storeId: row.storeId,
+    orderId: row.orderId,
     method: row.method,
     provider: row.provider,
     state: row.state,

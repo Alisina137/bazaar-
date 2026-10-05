@@ -1,7 +1,9 @@
 import { rmSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const expoDir = fileURLToPath(new URL("../.expo", import.meta.url));
+const scriptDir = dirname(fileURLToPath(import.meta.url));
+const expoDir = resolve(scriptDir, "..", ".expo");
 
 rmSync(expoDir, {
   recursive: true,

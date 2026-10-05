@@ -31,6 +31,16 @@ export const productStatus = pgEnum("product_status", [
   "plan_restricted"
 ]);
 
+export const deliveryProductProfile = pgEnum("delivery_product_profile", [
+  "normal",
+  "bulky",
+  "fragile",
+  "pickup_only",
+  "no_express",
+  "seller_delivery_only",
+  "digital_no_delivery"
+]);
+
 export const platformCategories = pgTable(
   "platform_categories",
   {
@@ -131,6 +141,15 @@ export const products = pgTable(
     tags: jsonb("tags").$type<string[]>().default([]).notNull(),
     shippingClass: varchar("shipping_class", { length: 120 }),
     deliveryRestrictions: text("delivery_restrictions"),
+    deliveryProfile: deliveryProductProfile("delivery_profile")
+      .default("normal")
+      .notNull(),
+    deliverySurcharge: numeric("delivery_surcharge", {
+      precision: 14,
+      scale: 2
+    })
+      .default("0")
+      .notNull(),
     status: productStatus("status").default("draft").notNull(),
     availableQuantity: integer("available_quantity").default(0).notNull(),
     reservedQuantity: integer("reserved_quantity").default(0).notNull(),
@@ -161,6 +180,10 @@ export const products = pgTable(
     index("products_published_at_idx").on(table.publishedAt),
     index("products_store_created_idx").on(table.storeId, table.createdAt),
     check("products_price_nonnegative", sql`${table.price} >= 0`),
+    check(
+      "products_delivery_surcharge_nonnegative",
+      sql`${table.deliverySurcharge} >= 0`
+    ),
     check(
       "products_available_quantity_nonnegative",
       sql`${table.availableQuantity} >= 0`

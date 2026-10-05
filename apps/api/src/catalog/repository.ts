@@ -132,6 +132,7 @@ export interface CatalogRepository {
   ): Promise<CatalogProductRecord["images"][number]>;
   deleteImage(productId: string, imageId: string): Promise<boolean>;
   addVariant(
+    storeId: string,
     productId: string,
     input: CreateProductVariantInput
   ): Promise<ProductVariantRecord>;
@@ -877,31 +878,48 @@ export class DatabaseCatalogRepository implements CatalogRepository {
   }
 
   async addVariant(
+    storeId: string,
     productId: string,
     input: CreateProductVariantInput
   ): Promise<ProductVariantRecord> {
-    const [row] = await this.db
-      .insert(productVariants)
-      .values({
-        productId,
-        title: input.title,
-        optionValues: input.optionValues,
-        sku: input.sku ?? null,
-        priceOverride:
-          input.priceOverride === null ||
-          input.priceOverride === undefined
-            ? null
-            : numberToDecimal(input.priceOverride),
-        imageUrl: input.imageUrl ?? null,
-        available: input.available ?? true,
-        availableQuantity: input.availableQuantity,
-        lowStockThreshold: input.lowStockThreshold ?? 0
-      })
-      .returning();
+    const row = await this.db.transaction(async (tx) => {
+      const [created] = await tx
+        .insert(productVariants)
+        .values({
+          productId,
+          title: input.title,
+          optionValues: input.optionValues,
+          sku: input.sku ?? null,
+          priceOverride:
+            input.priceOverride === null ||
+            input.priceOverride === undefined
+              ? null
+              : numberToDecimal(input.priceOverride),
+          imageUrl: input.imageUrl ?? null,
+          available: input.available ?? true,
+          availableQuantity: input.availableQuantity,
+          lowStockThreshold: input.lowStockThreshold ?? 0
+        })
+        .returning();
 
-    if (!row) {
-      throw new Error("product_variant_insert_failed");
-    }
+      if (!created) {
+        throw new Error("product_variant_insert_failed");
+      }
+
+      if (created.availableQuantity > 0) {
+        await tx.insert(inventoryMovements).values({
+          storeId,
+          productId,
+          variantId: created.id,
+          delta: created.availableQuantity,
+          previousQuantity: 0,
+          newQuantity: created.availableQuantity,
+          reason: "initial_stock"
+        });
+      }
+
+      return created;
+    });
 
     return toVariantRecord(row);
   }

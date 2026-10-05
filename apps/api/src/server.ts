@@ -19,6 +19,8 @@ import { DatabaseMarketplaceRepository } from "./marketplace/repository.js";
 import { MarketplaceService } from "./marketplace/service.js";
 import { DatabaseCartPricingRepository } from "./cart-pricing/repository.js";
 import { CartPricingService } from "./cart-pricing/service.js";
+import { DatabaseDeliveryRepository } from "./delivery/repository.js";
+import { DeliveryService } from "./delivery/service.js";
 
 loadEnv({
   path: resolve(process.cwd(), "../../.env"),
@@ -46,6 +48,11 @@ const cartPricingRepository = new DatabaseCartPricingRepository(
   databaseClient.db
 );
 const cartPricingService = new CartPricingService(cartPricingRepository);
+const deliveryRepository = new DatabaseDeliveryRepository(databaseClient.db);
+const deliveryService = new DeliveryService(
+  deliveryRepository,
+  cartPricingService
+);
 
 const app = buildApp({
   databaseHealthCheck: () => checkDatabaseConnection(databaseClient),
@@ -53,7 +60,8 @@ const app = buildApp({
   storeService,
   catalogService,
   marketplaceService,
-  cartPricingService
+  cartPricingService,
+  deliveryService
 });
 
 app.addHook("onClose", async () => {

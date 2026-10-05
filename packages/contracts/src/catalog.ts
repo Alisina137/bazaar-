@@ -1,3 +1,5 @@
+import type { ProductDeliveryProfile } from "./delivery.js";
+
 export const categoryStatuses = ["active", "archived"] as const;
 export type CategoryStatus = (typeof categoryStatuses)[number];
 
@@ -108,6 +110,8 @@ export interface CatalogProductRecord {
   tags: string[];
   shippingClass: string | null;
   deliveryRestrictions: string | null;
+  deliveryProfile: ProductDeliveryProfile;
+  deliverySurcharge: number;
   status: ProductStatus;
   availableQuantity: number;
   reservedQuantity: number;
@@ -136,6 +140,8 @@ export interface CreateProductInput {
   tags?: string[] | undefined;
   shippingClass?: string | null | undefined;
   deliveryRestrictions?: string | null | undefined;
+  deliveryProfile?: ProductDeliveryProfile | undefined;
+  deliverySurcharge?: number | undefined;
   images?: CreateProductImageInput[] | undefined;
   variants?: CreateProductVariantInput[] | undefined;
 }
@@ -156,6 +162,8 @@ export interface UpdateProductInput {
   tags?: string[] | undefined;
   shippingClass?: string | null | undefined;
   deliveryRestrictions?: string | null | undefined;
+  deliveryProfile?: ProductDeliveryProfile | undefined;
+  deliverySurcharge?: number | undefined;
 }
 
 export interface InventoryAdjustmentInput {

@@ -21,6 +21,10 @@ import { DatabaseCartPricingRepository } from "./cart-pricing/repository.js";
 import { CartPricingService } from "./cart-pricing/service.js";
 import { DatabaseDeliveryRepository } from "./delivery/repository.js";
 import { DeliveryService } from "./delivery/service.js";
+import { parsePaymentProviderConfig } from "./payment/config.js";
+import { HesabPayGateway } from "./payment/provider.js";
+import { DatabasePaymentRepository } from "./payment/repository.js";
+import { PaymentService } from "./payment/service.js";
 
 loadEnv({
   path: resolve(process.cwd(), "../../.env"),
@@ -53,6 +57,13 @@ const deliveryService = new DeliveryService(
   deliveryRepository,
   cartPricingService
 );
+const paymentRepository = new DatabasePaymentRepository(databaseClient.db);
+const paymentGateway = new HesabPayGateway(parsePaymentProviderConfig());
+const paymentService = new PaymentService(
+  paymentRepository,
+  deliveryService,
+  paymentGateway
+);
 
 const app = buildApp({
   databaseHealthCheck: () => checkDatabaseConnection(databaseClient),
@@ -61,7 +72,8 @@ const app = buildApp({
   catalogService,
   marketplaceService,
   cartPricingService,
-  deliveryService
+  deliveryService,
+  paymentService
 });
 
 app.addHook("onClose", async () => {

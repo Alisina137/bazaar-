@@ -320,6 +320,8 @@ export const faAfMessages = {
   "catalog.inventory.stock": "موجودی قابل فروش",
   "catalog.inventory.available": "موجود",
   "catalog.inventory.lowStock": "موجودی کم",
+  "catalog.inventory.lowStockList": "فهرست موجودی کم",
+  "catalog.inventory.noLowStock": "فعلاً مورد کم‌موجودی وجود ندارد.",
   "catalog.inventory.lowStockThreshold": "حد هشدار موجودی کم",
   "catalog.inventory.variantCount": "انواع",
   "catalog.inventory.manage": "مدیریت موجودی",

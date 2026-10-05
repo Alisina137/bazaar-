@@ -6,6 +6,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 
+import { CatalogApiError } from "@/catalog/api";
 import {
   catalogErrorKey,
   productStatusKey
@@ -197,9 +198,7 @@ export default function ProductManagementScreen() {
         threshold < 0 ||
         oldPrice === undefined
       ) {
-        throw getCatalogError({
-          code: "invalid_request"
-        });
+        throw new CatalogApiError("invalid_request");
       }
 
       await catalog.updateProduct(current.id, {
@@ -217,7 +216,7 @@ export default function ProductManagementScreen() {
   const addImage = () =>
     run(async () => {
       if (!imageUrl.trim()) {
-        throw getCatalogError({ code: "invalid_request" });
+        throw new CatalogApiError("invalid_request");
       }
 
       await catalog.addImage(current.id, {
@@ -242,7 +241,7 @@ export default function ProductManagementScreen() {
         stock < 0 ||
         override === undefined
       ) {
-        throw getCatalogError({ code: "invalid_request" });
+        throw new CatalogApiError("invalid_request");
       }
 
       await catalog.addVariant(current.id, {
@@ -272,7 +271,7 @@ export default function ProductManagementScreen() {
       const delta = Number(inventoryDelta);
 
       if (!Number.isInteger(delta) || delta === 0) {
-        throw getCatalogError({ code: "invalid_request" });
+        throw new CatalogApiError("invalid_request");
       }
 
       await catalog.adjustInventory(current.id, {

@@ -209,6 +209,11 @@ function sendCatalogError(reply: FastifyReply, error: unknown) {
     return reply.code(error.statusCode).send(catalogErrorBody(error.code));
   }
 
+  reply.log.error(
+    { err: error },
+    "Unexpected catalog request failure"
+  );
+
   return reply.code(503).send(catalogErrorBody("service_unavailable"));
 }
 

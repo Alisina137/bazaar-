@@ -182,7 +182,8 @@ export const enMessages = {
   "seller.store.published": "Store published",
   "seller.store.editSettings": "Edit settings",
   "seller.store.emptyTitle": "Your storefront is ready",
-  "seller.store.emptyMessage":\n    "Your storefront is ready. Add products from the Products tab to build the public catalog.",
+  "seller.store.emptyMessage":
+    "Your storefront is ready. Add products from the Products tab to build the public catalog.",
   "seller.store.location": "Location",
   "seller.store.contact": "Contact",
   "seller.store.category": "Category",
@@ -217,7 +218,8 @@ export const enMessages = {
   "seller.more.futureFeature": "Available in a later product phase",
 
   "seller.products.title": "Products",
-  "seller.products.message":\n    "Build and manage your real store catalog, variants, images, and inventory.",
+  "seller.products.message":
+    "Build and manage your real store catalog, variants, images, and inventory.",
   "seller.orders.title": "Orders",
   "seller.orders.message":
     "Order fulfillment is implemented in Phase 8.",

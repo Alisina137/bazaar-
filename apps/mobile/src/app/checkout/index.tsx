@@ -1,7 +1,10 @@
 import type {
   CartResponse,
-  CheckoutQuoteResponse,
-  CustomerAddressRecord
+  CustomerAddressRecord,
+  DeliveryCheckoutQuoteResponse,
+  DeliveryMerchantQuote,
+  DeliveryOptionQuote,
+  DeliveryOptionsResponse
 } from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
 import {
@@ -19,8 +22,7 @@ import { useAuth } from "@/auth/provider";
 import {
   CartPricingApiError,
   getCart,
-  listCustomerAddresses,
-  quoteCheckout
+  listCustomerAddresses
 } from "@/cart-pricing/api";
 import { cartPricingErrorKey } from "@/cart-pricing/messages";
 import {
@@ -31,22 +33,93 @@ import {
   Screen,
   StateView
 } from "@/components/ui";
+import {
+  createDeliveryCheckoutQuote,
+  DeliveryApiError,
+  getDeliveryOptions
+} from "@/delivery/api";
+import { deliveryErrorKey } from "@/delivery/messages";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
+
+function unavailableKey(
+  reason: DeliveryMerchantQuote["unavailableReason"]
+): TranslationKey {
+  switch (reason) {
+    case "delivery_disabled":
+      return "delivery.customer.unavailable.deliveryDisabled";
+    case "outside_coverage":
+      return "delivery.customer.unavailable.outsideCoverage";
+    case "minimum_order":
+      return "delivery.customer.unavailable.minimumOrder";
+    case "operating_day":
+      return "delivery.customer.unavailable.operatingDay";
+    case "cutoff_missed":
+      return "delivery.customer.unavailable.cutoffMissed";
+    case "product_restriction":
+      return "delivery.customer.unavailable.productRestriction";
+    case "address_location_required":
+      return "delivery.customer.unavailable.locationRequired";
+    case null:
+    default:
+      return "delivery.error.unavailable";
+  }
+}
+
+function fulfillmentKey(
+  option: DeliveryOptionQuote
+): TranslationKey {
+  switch (option.fulfillmentType) {
+    case "pickup":
+      return "delivery.customer.fulfillment.pickup";
+    case "digital":
+      return "delivery.customer.fulfillment.digital";
+    case "delivery":
+    default:
+      return "delivery.customer.fulfillment.delivery";
+  }
+}
+
+function ruleKey(option: DeliveryOptionQuote): TranslationKey {
+  switch (option.ruleUsed.type) {
+    case "zone":
+      return "delivery.rule.zone";
+    case "distance_tier":
+      return "delivery.rule.distanceTier";
+    case "base_per_km":
+      return "delivery.rule.basePerKm";
+    case "store_default":
+      return "delivery.rule.storeDefault";
+    case "pickup":
+      return "delivery.rule.pickup";
+    case "digital":
+      return "delivery.rule.digital";
+    case "free_delivery":
+      return "delivery.rule.freeDelivery";
+  }
+}
 
 export default function CheckoutScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { status, sessionToken } = useAuth();
-  const { formatAfn, t } = useLocalization();
+  const { formatAfn, locale, t } = useLocalization();
 
   const [cart, setCart] = useState<CartResponse | null>(null);
   const [addresses, setAddresses] = useState<CustomerAddressRecord[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
     null
   );
-  const [quote, setQuote] = useState<CheckoutQuoteResponse | null>(null);
+  const [delivery, setDelivery] = useState<DeliveryOptionsResponse | null>(
+    null
+  );
+  const [selectedOptions, setSelectedOptions] = useState<
+    Record<string, string>
+  >({});
+  const [quote, setQuote] =
+    useState<DeliveryCheckoutQuoteResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [deliveryLoading, setDeliveryLoading] = useState(false);
   const [quoting, setQuoting] = useState(false);
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
 
@@ -78,6 +151,8 @@ export default function CheckoutScreen() {
           null
         );
       });
+      setDelivery(null);
+      setSelectedOptions({});
       setQuote(null);
     } catch (error) {
       const safe =
@@ -101,6 +176,109 @@ export default function CheckoutScreen() {
       addresses.find((address) => address.id === selectedAddressId) ?? null,
     [addresses, selectedAddressId]
   );
+
+  const allDeliverySelectionsReady = useMemo(() => {
+    if (!delivery || !delivery.canContinue) return false;
+
+    return delivery.merchantGroups.every((group) => {
+      const selected = selectedOptions[group.storeId];
+      return (
+        selected !== undefined &&
+        group.options.some((option) => option.optionId === selected)
+      );
+    });
+  }, [delivery, selectedOptions]);
+
+  const calculateDelivery = async () => {
+    if (!selectedAddressId || !sessionToken) {
+      setErrorKey("delivery.error.addressNotFound");
+      return;
+    }
+
+    setDeliveryLoading(true);
+    setErrorKey(null);
+    setQuote(null);
+    setSelectedOptions({});
+
+    try {
+      const response = await getDeliveryOptions(
+        sessionToken,
+        selectedAddressId
+      );
+      setDelivery(response);
+      setCart(response.cart);
+
+      const defaults: Record<string, string> = {};
+      for (const group of response.merchantGroups) {
+        if (group.options.length === 1 && group.options[0]) {
+          defaults[group.storeId] = group.options[0].optionId;
+        }
+      }
+      setSelectedOptions(defaults);
+    } catch (error) {
+      const safe =
+        error instanceof DeliveryApiError
+          ? error
+          : new DeliveryApiError("service_unavailable");
+      setErrorKey(deliveryErrorKey(safe.code));
+      setDelivery(null);
+    } finally {
+      setDeliveryLoading(false);
+    }
+  };
+
+  const createQuote = async () => {
+    if (
+      !sessionToken ||
+      !selectedAddressId ||
+      !delivery ||
+      !allDeliverySelectionsReady
+    ) {
+      setErrorKey("delivery.error.optionInvalid");
+      return;
+    }
+
+    setQuoting(true);
+    setErrorKey(null);
+
+    try {
+      const response = await createDeliveryCheckoutQuote(sessionToken, {
+        addressId: selectedAddressId,
+        selections: delivery.merchantGroups.map((group) => ({
+          storeId: group.storeId,
+          optionId: selectedOptions[group.storeId] ?? ""
+        }))
+      });
+
+      setQuote(response);
+      setCart(response.cart);
+    } catch (error) {
+      const safe =
+        error instanceof DeliveryApiError
+          ? error
+          : new DeliveryApiError("service_unavailable");
+      setErrorKey(deliveryErrorKey(safe.code));
+      setQuote(null);
+
+      if (
+        safe.code === "delivery_unavailable" ||
+        safe.code === "delivery_option_invalid" ||
+        safe.code === "checkout_unavailable"
+      ) {
+        await calculateDelivery();
+      }
+    } finally {
+      setQuoting(false);
+    }
+  };
+
+  const selectAddress = (addressId: string) => {
+    setSelectedAddressId(addressId);
+    setDelivery(null);
+    setSelectedOptions({});
+    setQuote(null);
+    setErrorKey(null);
+  };
 
   if (status === "loading") {
     return (
@@ -170,40 +348,6 @@ export default function CheckoutScreen() {
     );
   }
 
-  const createQuote = async () => {
-    if (!selectedAddressId) {
-      setErrorKey("cart.error.addressNotFound");
-      return;
-    }
-
-    setQuoting(true);
-    setErrorKey(null);
-
-    try {
-      setQuote(
-        await quoteCheckout(sessionToken, {
-          addressId: selectedAddressId
-        })
-      );
-    } catch (error) {
-      const safe =
-        error instanceof CartPricingApiError
-          ? error
-          : new CartPricingApiError("service_unavailable");
-      setErrorKey(cartPricingErrorKey(safe.code));
-      setQuote(null);
-      if (
-        safe.code === "checkout_unavailable" ||
-        safe.code === "insufficient_stock" ||
-        safe.code === "product_unavailable"
-      ) {
-        setCart(await getCart(sessionToken).catch(() => cart));
-      }
-    } finally {
-      setQuoting(false);
-    }
-  };
-
   return (
     <Screen>
       <View
@@ -216,7 +360,7 @@ export default function CheckoutScreen() {
         <Button variant="ghost" onPress={() => router.back()}>
           {t("marketplace.back")}
         </Button>
-        <Badge label={t("checkout.phaseBadge")} tone="primary" />
+        <Badge label={t("delivery.phaseBadge")} tone="primary" />
       </View>
 
       <View style={{ gap: theme.spacing.sm }}>
@@ -224,7 +368,7 @@ export default function CheckoutScreen() {
         <AppText tone="muted">{t("checkout.description")}</AppText>
       </View>
 
-      <CheckoutSteps />
+      <CheckoutSteps deliveryReady={Boolean(quote)} />
 
       {errorKey ? (
         <Card>
@@ -260,10 +404,7 @@ export default function CheckoutScreen() {
                       ? "primary"
                       : "secondary"
                   }
-                  onPress={() => {
-                    setSelectedAddressId(address.id);
-                    setQuote(null);
-                  }}
+                  onPress={() => selectAddress(address.id)}
                 >
                   {(address.label ?? address.recipientName) +
                     " · " +
@@ -307,56 +448,32 @@ export default function CheckoutScreen() {
                   <AppText>{formatAfn(item.lineTotal)}</AppText>
                 </View>
               ))}
-              <View
-                style={{
-                  borderBottomWidth: 1,
-                  borderBottomColor: theme.colors.border,
-                  paddingBottom: theme.spacing.md
-                }}
-              />
             </View>
           ))}
 
-          <SummaryRow
-            label={t("cart.itemsSubtotal")}
-            value={formatAfn(cart.totals.itemsSubtotal)}
-          />
-          {cart.totals.productDiscount > 0 ? (
-            <SummaryRow
-              label={t("cart.productDiscount")}
-              value={"-" + formatAfn(cart.totals.productDiscount)}
-            />
-          ) : null}
-          {cart.totals.couponDiscount > 0 ? (
-            <SummaryRow
-              label={t("cart.couponDiscount")}
-              value={"-" + formatAfn(cart.totals.couponDiscount)}
-            />
-          ) : null}
           <SummaryRow
             label={t("cart.preDeliveryTotal")}
             value={formatAfn(cart.totals.preDeliveryTotal)}
             emphasized
           />
-          <AppText variant="caption" tone="muted">
-            {t("checkout.preDeliveryDisclaimer")}
-          </AppText>
         </View>
       </Card>
 
       <Button
         fullWidth
-        loading={quoting}
+        loading={deliveryLoading}
         disabled={
           !selectedAddressId ||
           cart.hasBlockingIssues ||
-          quoting
+          deliveryLoading
         }
         onPress={() => {
-          void createQuote();
+          void calculateDelivery();
         }}
       >
-        {t("checkout.createQuote")}
+        {delivery
+          ? t("delivery.customer.recalculate")
+          : t("delivery.customer.calculate")}
       </Button>
 
       {cart.hasBlockingIssues ? (
@@ -365,19 +482,12 @@ export default function CheckoutScreen() {
         </AppText>
       ) : null}
 
-      {quote ? (
+      {delivery ? (
         <View style={{ gap: theme.spacing.lg }}>
           <Card>
-            <View style={{ gap: theme.spacing.md }}>
-              <Badge label={t("checkout.quoteReady")} tone="success" />
+            <View style={{ gap: theme.spacing.sm }}>
               <AppText variant="title">
-                {t("checkout.authoritativeTotal")}
-              </AppText>
-              <AppText variant="display">
-                {formatAfn(quote.cart.totals.preDeliveryTotal)}
-              </AppText>
-              <AppText variant="caption" tone="muted">
-                {t("checkout.quoteExpiryHint")}
+                {t("checkout.step.delivery")}
               </AppText>
               {selectedAddress ? (
                 <AppText tone="muted">
@@ -388,17 +498,110 @@ export default function CheckoutScreen() {
             </View>
           </Card>
 
+          {delivery.merchantGroups.map((group) => (
+            <DeliveryGroupCard
+              key={group.storeId}
+              group={group}
+              selectedOptionId={selectedOptions[group.storeId] ?? null}
+              onSelect={(optionId) => {
+                setSelectedOptions((current) => ({
+                  ...current,
+                  [group.storeId]: optionId
+                }));
+                setQuote(null);
+              }}
+            />
+          ))}
+
+          {!delivery.canContinue ? (
+            <Card>
+              <AppText tone="danger">
+                {t("delivery.customer.resolveUnavailable")}
+              </AppText>
+            </Card>
+          ) : null}
+
+          <Button
+            fullWidth
+            loading={quoting}
+            disabled={!allDeliverySelectionsReady || quoting}
+            onPress={() => {
+              void createQuote();
+            }}
+          >
+            {t("delivery.customer.confirmAndPrice")}
+          </Button>
+        </View>
+      ) : null}
+
+      {quote ? (
+        <View style={{ gap: theme.spacing.lg }}>
           <Card>
             <View style={{ gap: theme.spacing.md }}>
-              <AppText variant="title">
-                {t("checkout.step.delivery")}
-              </AppText>
               <Badge
-                label={t("checkout.pendingPhase6")}
-                tone="warning"
+                label={t("delivery.customer.pricingVerified")}
+                tone="success"
               />
-              <AppText tone="muted">
-                {t("checkout.deliveryBoundary")}
+              <AppText variant="title">
+                {t("delivery.customer.finalBeforePayment")}
+              </AppText>
+              <AppText variant="display">
+                {formatAfn(quote.totals.finalBeforePaymentTotal)}
+              </AppText>
+
+              <SummaryRow
+                label={t("cart.itemsSubtotal")}
+                value={formatAfn(quote.totals.itemsSubtotal)}
+              />
+              {quote.totals.productDiscount > 0 ? (
+                <SummaryRow
+                  label={t("cart.productDiscount")}
+                  value={"-" + formatAfn(quote.totals.productDiscount)}
+                />
+              ) : null}
+              {quote.totals.couponDiscount > 0 ? (
+                <SummaryRow
+                  label={t("cart.couponDiscount")}
+                  value={"-" + formatAfn(quote.totals.couponDiscount)}
+                />
+              ) : null}
+              <SummaryRow
+                label={t("delivery.customer.deliveryBase")}
+                value={formatAfn(quote.totals.deliveryBase)}
+              />
+              {quote.totals.urgencySurcharge > 0 ? (
+                <SummaryRow
+                  label={t("delivery.customer.urgencySurcharge")}
+                  value={formatAfn(quote.totals.urgencySurcharge)}
+                />
+              ) : null}
+              {quote.totals.productDeliverySurcharge > 0 ? (
+                <SummaryRow
+                  label={t("delivery.customer.productSurcharge")}
+                  value={formatAfn(quote.totals.productDeliverySurcharge)}
+                />
+              ) : null}
+              {quote.totals.freeDeliveryDiscount > 0 ? (
+                <SummaryRow
+                  label={t("delivery.customer.freeDelivery")}
+                  value={
+                    "-" + formatAfn(quote.totals.freeDeliveryDiscount)
+                  }
+                />
+              ) : null}
+              <SummaryRow
+                label={t("delivery.customer.deliveryTotal")}
+                value={formatAfn(quote.totals.deliveryTotal)}
+                emphasized
+              />
+              <SummaryRow
+                label={t("delivery.customer.finalBeforePayment")}
+                value={formatAfn(quote.totals.finalBeforePaymentTotal)}
+                emphasized
+              />
+
+              <AppText variant="caption" tone="muted">
+                {t("delivery.customer.noTaxAssumed")}
               </AppText>
             </View>
           </Card>
@@ -424,7 +627,7 @@ export default function CheckoutScreen() {
                 {t("checkout.step.review")}
               </AppText>
               <AppText tone="muted">
-                {t("checkout.reviewReady")}
+                {t("delivery.customer.reviewReady")}
               </AppText>
               <Button fullWidth disabled>
                 {t("checkout.placeOrderBlocked")}
@@ -440,7 +643,134 @@ export default function CheckoutScreen() {
   );
 }
 
-function CheckoutSteps() {
+function DeliveryGroupCard({
+  group,
+  selectedOptionId,
+  onSelect
+}: {
+  group: DeliveryMerchantQuote;
+  selectedOptionId: string | null;
+  onSelect: (optionId: string) => void;
+}) {
+  const theme = useAppTheme();
+  const { formatAfn, formatNumber, locale, t } = useLocalization();
+
+  return (
+    <Card>
+      <View style={{ gap: theme.spacing.lg }}>
+        <View style={{ gap: theme.spacing.xs }}>
+          <AppText variant="title">{group.storeName}</AppText>
+          <Badge
+            label={
+              group.available
+                ? t("delivery.customer.available")
+                : t("delivery.customer.unavailable")
+            }
+            tone={group.available ? "success" : "danger"}
+          />
+        </View>
+
+        {!group.available ? (
+          <AppText tone="danger">
+            {t(unavailableKey(group.unavailableReason))}
+          </AppText>
+        ) : (
+          group.options.map((option) => (
+            <Button
+              key={option.optionId}
+              variant={
+                selectedOptionId === option.optionId
+                  ? "primary"
+                  : "secondary"
+              }
+              onPress={() => onSelect(option.optionId)}
+            >
+              {option.label} · {formatAfn(option.price.finalDeliveryPrice)}
+            </Button>
+          ))
+        )}
+
+        {group.options.map((option) =>
+          selectedOptionId === option.optionId ? (
+            <View key={"detail:" + option.optionId} style={{ gap: theme.spacing.sm }}>
+              <AppText variant="heading">
+                {t(fulfillmentKey(option))}: {option.label}
+              </AppText>
+              <SummaryRow
+                label={t("delivery.customer.deliveryBase")}
+                value={formatAfn(option.price.baseDelivery)}
+              />
+              {option.price.urgencySurcharge > 0 ? (
+                <SummaryRow
+                  label={t("delivery.customer.urgencySurcharge")}
+                  value={formatAfn(option.price.urgencySurcharge)}
+                />
+              ) : null}
+              {option.price.productDeliverySurcharge > 0 ? (
+                <SummaryRow
+                  label={t("delivery.customer.productSurcharge")}
+                  value={formatAfn(option.price.productDeliverySurcharge)}
+                />
+              ) : null}
+              {option.price.freeDeliveryDiscount > 0 ? (
+                <SummaryRow
+                  label={t("delivery.customer.freeDelivery")}
+                  value={"-" + formatAfn(option.price.freeDeliveryDiscount)}
+                />
+              ) : null}
+              <SummaryRow
+                label={t("delivery.customer.deliveryTotal")}
+                value={formatAfn(option.price.finalDeliveryPrice)}
+                emphasized
+              />
+
+              <AppText variant="caption" tone="muted">
+                {t("delivery.customer.ruleUsed")}: {t(ruleKey(option))} ·{" "}
+                {option.ruleUsed.label}
+              </AppText>
+
+              {option.ruleUsed.distanceKm !== null ? (
+                <AppText variant="caption" tone="muted">
+                  {t("delivery.customer.distance")}:{" "}
+                  {formatNumber(option.ruleUsed.distanceKm)} km ·{" "}
+                  {t(
+                    option.ruleUsed.distanceSource ===
+                      "straight_line_fallback"
+                      ? "delivery.customer.distanceFallback"
+                      : "delivery.customer.distanceNotRequired"
+                  )}
+                </AppText>
+              ) : null}
+
+              {option.estimatedMinAt && option.estimatedMaxAt ? (
+                <AppText variant="caption" tone="muted">
+                  {t("delivery.customer.estimate")}:{" "}
+                  {new Date(option.estimatedMinAt).toLocaleString(
+                    locale === "fa-AF"
+                      ? "fa-AF"
+                      : locale === "ps-AF"
+                        ? "ps-AF"
+                        : "en"
+                  )}
+                  {" – "}
+                  {new Date(option.estimatedMaxAt).toLocaleString(
+                    locale === "fa-AF"
+                      ? "fa-AF"
+                      : locale === "ps-AF"
+                        ? "ps-AF"
+                        : "en"
+                  )}
+                </AppText>
+              ) : null}
+            </View>
+          ) : null
+        )}
+      </View>
+    </Card>
+  );
+}
+
+function CheckoutSteps({ deliveryReady }: { deliveryReady: boolean }) {
   const theme = useAppTheme();
   const { t } = useLocalization();
 
@@ -448,21 +778,24 @@ function CheckoutSteps() {
     <Card muted>
       <View style={{ gap: theme.spacing.sm }}>
         {[
-          ["1", "checkout.step.address"],
-          ["2", "checkout.step.delivery"],
-          ["3", "checkout.step.payment"],
-          ["4", "checkout.step.review"],
-          ["5", "checkout.step.placeOrder"]
-        ].map(([number, key]) => (
+          ["1", "checkout.step.address", true],
+          ["2", "checkout.step.delivery", deliveryReady],
+          ["3", "checkout.step.payment", false],
+          ["4", "checkout.step.review", false],
+          ["5", "checkout.step.placeOrder", false]
+        ].map(([number, key, ready]) => (
           <View
-            key={key}
+            key={String(key)}
             style={{
               flexDirection: "row",
               gap: theme.spacing.sm,
               alignItems: "center"
             }}
           >
-            <Badge label={number ?? ""} tone="neutral" />
+            <Badge
+              label={String(number)}
+              tone={ready ? "success" : "neutral"}
+            />
             <AppText>{t(key as TranslationKey)}</AppText>
           </View>
         ))}

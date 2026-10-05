@@ -103,7 +103,7 @@ export default function CheckoutScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { status, sessionToken } = useAuth();
-  const { formatAfn, locale, t } = useLocalization();
+  const { formatAfn, t } = useLocalization();
 
   const [cart, setCart] = useState<CartResponse | null>(null);
   const [addresses, setAddresses] = useState<CustomerAddressRecord[]>([]);

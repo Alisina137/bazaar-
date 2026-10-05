@@ -404,6 +404,90 @@ export const enMessages = {
   "delivery.error.rateLimited": "Too many delivery quote attempts. Please wait and try again.",
   "delivery.error.serviceUnavailable": "BazaarLink could not reach the delivery service. Check your connection and try again.",
 
+
+  "payment.phaseBadge": "Payments",
+  "payment.method.cod": "Cash on Delivery",
+  "payment.method.hesabpay": "HesabPay",
+  "payment.method.card": "Card",
+  "payment.method.payAtStore": "Pay at Store",
+  "payment.seller.loadingTitle": "Loading payment settings",
+  "payment.seller.loadingMessage": "Checking this store's available payment methods.",
+  "payment.seller.errorTitle": "Payment settings unavailable",
+  "payment.seller.title": "Payments",
+  "payment.seller.description":
+    "Choose the payment methods customers may use for this store.",
+  "payment.seller.providerStatus": "Digital payment provider",
+  "payment.seller.providerReady": "HesabPay sandbox ready",
+  "payment.seller.providerNotReady": "HesabPay not configured",
+  "payment.seller.providerHint":
+    "HesabPay wallet, AfPay cards, and supported international cards use hosted checkout. Configure the server API key before enabling digital methods.",
+  "payment.seller.codHint":
+    "Customers pay when a delivery order arrives.",
+  "payment.seller.hesabpayHint":
+    "Customers complete payment on HesabPay hosted checkout.",
+  "payment.seller.cardHint":
+    "Card payments use HesabPay hosted checkout so BazaarLink never stores card numbers or CVV.",
+  "payment.seller.payAtStoreHint":
+    "Customers pay in person when collecting a pickup order.",
+  "payment.seller.securityHint":
+    "Digital payment credentials stay on the server. Redirect results never mark an order paid; only a verified provider webhook can confirm payment.",
+  "payment.seller.enabled": "Enabled",
+  "payment.seller.disabled": "Disabled",
+  "payment.seller.enable": "Enable",
+  "payment.seller.disable": "Disable",
+  "payment.customer.loadingTitle": "Loading payment methods",
+  "payment.customer.loadingMessage": "Checking payment availability for each seller.",
+  "payment.customer.description":
+    "Choose one available payment method for every seller in this checkout.",
+  "payment.customer.confirm": "Confirm payment methods",
+  "payment.customer.statusTitle": "Payment status",
+  "payment.customer.openHostedCheckout": "Open secure checkout",
+  "payment.customer.cancelAttempt": "Cancel payment attempt",
+  "payment.customer.webhookPending":
+    "Complete secure checkout, then return here. BazaarLink waits for the verified provider notification before confirming payment.",
+  "payment.customer.refreshStatus": "Refresh payment status",
+  "payment.customer.readyForReview": "Payment step ready",
+  "payment.customer.securityHint":
+    "BazaarLink does not collect card numbers or CVV. Hosted digital payments are confirmed server-to-server.",
+  "payment.customer.reviewReady":
+    "Address, delivery, and payment are ready. Order creation begins in Phase 8.",
+  "payment.customer.reviewBlocked":
+    "Complete the payment step for every seller before review can continue.",
+  "payment.unavailable.merchantDisabled":
+    "This seller has disabled this payment method.",
+  "payment.unavailable.providerUnavailable":
+    "The digital payment provider is not configured right now.",
+  "payment.unavailable.pickupRequired":
+    "Pay at Store is available only for store pickup.",
+  "payment.unavailable.deliveryRequired":
+    "Cash on Delivery is available only for delivered orders.",
+  "payment.state.created": "Created",
+  "payment.state.pending": "Pending",
+  "payment.state.paid": "Paid",
+  "payment.state.failed": "Failed",
+  "payment.state.cancelled": "Cancelled",
+  "payment.state.expired": "Expired",
+  "payment.state.refundPending": "Refund pending",
+  "payment.state.partiallyRefunded": "Partially refunded",
+  "payment.state.refunded": "Refunded",
+  "payment.error.invalidRequest": "Check the payment information and try again.",
+  "payment.error.invalidSession": "Your session expired. Sign in again.",
+  "payment.error.accountUnavailable": "This account is currently unavailable.",
+  "payment.error.forbidden": "You do not have permission to perform this payment action.",
+  "payment.error.storeNotFound": "This store could not be found.",
+  "payment.error.subscriptionUnavailable": "This store subscription cannot use payments right now.",
+  "payment.error.configurationNotFound": "Payment settings could not be loaded.",
+  "payment.error.methodUnavailable": "Choose an available payment method for every seller.",
+  "payment.error.attemptNotFound": "This payment attempt could not be found.",
+  "payment.error.stateConflict": "Payment status changed. Refresh and try again.",
+  "payment.error.checkoutUnavailable": "The checkout quote expired or is no longer available.",
+  "payment.error.providerUnavailable": "The digital payment provider is not available right now.",
+  "payment.error.providerRejected": "The payment provider could not start or complete this payment.",
+  "payment.error.webhookUnverified": "The payment notification could not be verified.",
+  "payment.error.refundUnavailable": "This payment is not eligible for a refund request.",
+  "payment.error.rateLimited": "Too many payment attempts. Please wait and try again.",
+  "payment.error.serviceUnavailable": "BazaarLink could not reach the payment service. Check your connection and try again.",
+
   "orders.title": "Orders",
   "orders.description":
     "The orders shell establishes navigation without introducing order behavior early.",

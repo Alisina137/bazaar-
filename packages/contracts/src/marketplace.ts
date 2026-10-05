@@ -99,6 +99,10 @@ export interface MarketplaceFeaturedStore {
   activeProductCount: number;
 }
 
+export interface MarketplaceCategoriesResponse {
+  categories: MarketplaceCategoryRecord[];
+}
+
 export interface MarketplaceHomeResponse {
   categories: MarketplaceCategoryRecord[];
   recommended: MarketplaceProductSummary[];

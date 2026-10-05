@@ -25,6 +25,8 @@ import { parsePaymentProviderConfig } from "./payment/config.js";
 import { HesabPayGateway } from "./payment/provider.js";
 import { DatabasePaymentRepository } from "./payment/repository.js";
 import { PaymentService } from "./payment/service.js";
+import { DatabaseOrderRepository } from "./order/repository.js";
+import { OrderService } from "./order/service.js";
 
 loadEnv({
   path: resolve(process.cwd(), "../../.env"),
@@ -64,6 +66,12 @@ const paymentService = new PaymentService(
   deliveryService,
   paymentGateway
 );
+const orderRepository = new DatabaseOrderRepository(databaseClient.db);
+const orderService = new OrderService(
+  orderRepository,
+  deliveryService,
+  paymentService
+);
 
 const app = buildApp({
   databaseHealthCheck: () => checkDatabaseConnection(databaseClient),
@@ -73,7 +81,8 @@ const app = buildApp({
   marketplaceService,
   cartPricingService,
   deliveryService,
-  paymentService
+  paymentService,
+  orderService
 });
 
 app.addHook("onClose", async () => {

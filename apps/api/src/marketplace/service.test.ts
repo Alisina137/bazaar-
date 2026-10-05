@@ -8,7 +8,6 @@ import { describe, expect, it } from "vitest";
 
 import { MarketplaceError } from "./errors.js";
 import type {
-  MarketplaceBrowseQuery,
   MarketplaceRepository
 } from "./repository.js";
 import {
@@ -66,7 +65,7 @@ function repository(
 ): MarketplaceRepository {
   return {
     listCategories: async () => [category],
-    browse: async (_query: MarketplaceBrowseQuery) => ({
+    browse: async () => ({
       products: [summary],
       total: 1
     }),

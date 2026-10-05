@@ -17,6 +17,8 @@ import { registerStoreRoutes } from "./store/routes.js";
 import type { StoreServiceContract } from "./store/service.js";
 import { registerDeliveryRoutes } from "./delivery/routes.js";
 import type { DeliveryServiceContract } from "./delivery/service.js";
+import { registerPaymentRoutes } from "./payment/routes.js";
+import type { PaymentServiceContract } from "./payment/service.js";
 
 export interface AppDependencies {
   databaseHealthCheck?: () => Promise<void>;
@@ -26,6 +28,7 @@ export interface AppDependencies {
   marketplaceService?: MarketplaceServiceContract;
   cartPricingService?: CartPricingServiceContract;
   deliveryService?: DeliveryServiceContract;
+  paymentService?: PaymentServiceContract;
 }
 
 export function buildApp(
@@ -139,6 +142,14 @@ export function buildApp(
           securedApp,
           dependencies.authService!,
           dependencies.deliveryService
+        );
+      }
+
+      if (dependencies.paymentService) {
+        registerPaymentRoutes(
+          securedApp,
+          dependencies.authService!,
+          dependencies.paymentService
         );
       }
     });

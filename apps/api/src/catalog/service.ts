@@ -503,13 +503,18 @@ export class CatalogService implements CatalogServiceContract {
       throw new CatalogError("category_not_found", 404);
     }
 
-    const productCount =
-      await this.repository.countNonArchivedProductsInCategory(
+    const [productCount, activeChildCount] = await Promise.all([
+      this.repository.countNonArchivedProductsInCategory(
         storeId,
         categoryId
-      );
+      ),
+      this.repository.countActiveChildCategories(
+        storeId,
+        categoryId
+      )
+    ]);
 
-    if (productCount > 0) {
+    if (productCount > 0 || activeChildCount > 0) {
       throw new CatalogError("category_in_use", 409);
     }
 
@@ -532,6 +537,17 @@ export class CatalogService implements CatalogServiceContract {
   ): Promise<CatalogCategoryRecord> {
     const access = await this.requireStore(ownerUserId, storeId);
     this.requireWritableSubscription(access);
+    const existing = await this.repository.findCategory(storeId, categoryId);
+
+    if (!existing) {
+      throw new CatalogError("category_not_found", 404);
+    }
+
+    await this.validateCategoryParent(
+      storeId,
+      categoryId,
+      existing.parentId
+    );
 
     try {
       const restored = await this.repository.restoreCategory(

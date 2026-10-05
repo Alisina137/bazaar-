@@ -132,9 +132,9 @@ function normalizeZoneInput<T extends CreateDeliveryZoneInput | UpdateDeliveryZo
   } as T;
 
   if (
-    normalized.province === null &&
-    normalized.districtCity === null &&
-    normalized.areaNeighborhood === null
+    normalized.province == null &&
+    normalized.districtCity == null &&
+    normalized.areaNeighborhood == null
   ) {
     throw new DeliveryError("invalid_request", 400);
   }
@@ -316,13 +316,21 @@ function distanceRule(
           (rule.maxDistanceKm === null ||
             distanceKm < rule.maxDistanceKm)
       )
-      .sort(
-        (left, right) =>
+      .sort((left, right) => {
+        const typePriority =
+          left.type === right.type
+            ? 0
+            : left.type === "tier"
+              ? -1
+              : 1;
+
+        return (
           right.priority - left.priority ||
-          (left.type === "tier" ? -1 : 1) ||
+          typePriority ||
           right.minDistanceKm - left.minDistanceKm ||
           left.id.localeCompare(right.id)
-      )[0] ?? null
+        );
+      })[0] ?? null
   );
 }
 
@@ -743,8 +751,8 @@ export class DeliveryService implements DeliveryServiceContract {
   ) {
     const advanced =
       input.surchargeType === "multiplier" ||
-      input.maxRangeKm !== undefined ||
-      input.maxWeightGrams !== undefined;
+      input.maxRangeKm != null ||
+      input.maxWeightGrams != null;
 
     if (advanced) {
       this.requireAdvanced(config);

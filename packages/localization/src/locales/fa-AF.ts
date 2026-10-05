@@ -185,7 +185,7 @@ export const faAfMessages = {
   "seller.store.editSettings": "ویرایش تنظیمات",
   "seller.store.emptyTitle": "ویترین شما آماده است",
   "seller.store.emptyMessage":
-    "فروشگاه می‌تواند پیش از افزودن محصولات عمومی شود. ساخت کاتالوگ در فاز ۳ آغاز می‌شود.",
+    "ویترین شما آماده است. برای ساخت کاتالوگ عمومی از بخش محصولات، محصول اضافه کنید.",
   "seller.store.location": "موقعیت",
   "seller.store.contact": "تماس",
   "seller.store.category": "دسته",
@@ -221,10 +221,162 @@ export const faAfMessages = {
 
   "seller.products.title": "محصولات",
   "seller.products.message":
-    "کاتالوگ و موجودی در فاز ۳ پیاده‌سازی می‌شوند.",
+    "کاتالوگ واقعی فروشگاه، انواع، تصاویر و موجودی را بسازید و مدیریت کنید.",
   "seller.orders.title": "سفارش‌ها",
   "seller.orders.message":
     "مدیریت و تکمیل سفارش در فاز ۸ پیاده‌سازی می‌شود.",
+
+
+  "catalog.phaseBadge": "کاتالوگ و موجودی",
+  "catalog.products.title": "محصولات",
+  "catalog.products.loading": "در حال بارگذاری کاتالوگ شما.",
+  "catalog.products.errorTitle": "کاتالوگ در دسترس نیست",
+  "catalog.products.description":
+    "محصول بسازید، دسته‌ها، انواع، تصاویر و موجودی را مدیریت کنید.",
+  "catalog.products.emptyTitle": "هنوز محصولی ندارید",
+  "catalog.products.emptyMessage":
+    "اولین محصول را بسازید تا کاتالوگ قابل فروش خود را آغاز کنید.",
+  "catalog.usage.title": "استفاده از پلن",
+  "catalog.usage.products": "محصولات",
+  "catalog.usage.categories": "دسته‌های فعال",
+
+  "catalog.category.manage": "مدیریت دسته‌ها",
+  "catalog.category.title": "دسته‌ها",
+  "catalog.category.description":
+    "محصولات را با دسته و زیردسته تنظیم کنید. دسته‌های آرشیوشده عمومی نمایش داده نمی‌شوند.",
+  "catalog.category.create": "ساخت دسته",
+  "catalog.category.edit": "ویرایش دسته",
+  "catalog.category.name": "نام دسته",
+  "catalog.category.imageUrl": "آدرس تصویر دسته (اختیاری)",
+  "catalog.category.icon": "نام آیکن (اختیاری)",
+  "catalog.category.sortOrder": "ترتیب نمایش",
+  "catalog.category.parent": "دسته مادر",
+  "catalog.category.noParent": "بدون دسته مادر",
+  "catalog.category.activeList": "دسته‌های فعال",
+  "catalog.category.archivedList": "دسته‌های آرشیوشده",
+  "catalog.category.empty": "هنوز دسته فعالی وجود ندارد.",
+  "catalog.category.moveUp": "انتقال به قبل",
+  "catalog.category.moveDown": "انتقال به بعد",
+  "catalog.category.archive": "آرشیو دسته",
+  "catalog.category.restore": "بازیابی دسته",
+  "catalog.category.active": "فعال",
+  "catalog.category.archived": "آرشیوشده",
+
+  "catalog.product.add": "افزودن محصول",
+  "catalog.product.needCategory":
+    "پیش از افزودن محصول، حداقل یک دسته فعال بسازید.",
+  "catalog.product.manage": "مدیریت محصول",
+  "catalog.product.createTitle": "افزودن محصول",
+  "catalog.product.createDescription":
+    "با موارد ضروری شروع کنید. جزئیات پیشرفته اختیاری هستند.",
+  "catalog.product.photoUrl": "آدرس تصویر محصول (اختیاری)",
+  "catalog.product.name": "نام محصول",
+  "catalog.product.category": "دسته",
+  "catalog.product.price": "قیمت (افغانی)",
+  "catalog.product.description": "توضیحات",
+  "catalog.product.sku": "SKU",
+  "catalog.product.brand": "برند",
+  "catalog.product.compareAtPrice": "قیمت قبلی",
+  "catalog.product.barcode": "بارکد",
+  "catalog.product.weight": "وزن (گرام)",
+  "catalog.product.dimensions": "ابعاد",
+  "catalog.product.tags": "برچسب‌ها",
+  "catalog.product.tagsHint": "برچسب‌ها را با کاما جدا کنید.",
+  "catalog.product.shippingClass": "کلاس ارسال",
+  "catalog.product.deliveryRestrictions": "محدودیت‌های تحویل",
+  "catalog.product.moreOptions": "گزینه‌های بیشتر",
+  "catalog.product.hideMore": "پنهان‌کردن گزینه‌های پیشرفته",
+  "catalog.product.saveDraft": "ذخیره پیش‌نویس",
+  "catalog.product.createAndPublish": "ساخت و انتشار",
+  "catalog.product.details": "جزئیات محصول",
+  "catalog.product.stateActions": "وضعیت محصول",
+  "catalog.product.restore": "بازیابی محصول",
+  "catalog.product.publish": "انتشار محصول",
+  "catalog.product.archive": "آرشیو محصول",
+
+  "catalog.images.title": "تصاویر محصول",
+  "catalog.images.altText": "توضیح تصویر (اختیاری)",
+  "catalog.images.add": "افزودن تصویر",
+  "catalog.images.remove": "حذف تصویر",
+
+  "catalog.variants.title": "انواع محصول",
+  "catalog.variants.add": "افزودن نوع",
+  "catalog.variants.titleField": "عنوان نوع",
+  "catalog.variants.optionName": "نام گزینه",
+  "catalog.variants.optionValue": "مقدار گزینه",
+  "catalog.variants.priceOverride": "قیمت مخصوص نوع",
+  "catalog.variants.imageUrl": "آدرس تصویر نوع (اختیاری)",
+  "catalog.variants.makeUnavailable": "ناموجود کردن",
+  "catalog.variants.makeAvailable": "موجود کردن",
+  "catalog.variants.remove": "حذف نوع",
+
+  "catalog.inventory.title": "موجودی",
+  "catalog.inventory.description":
+    "موجودی قابل فروش، کالاهای کم‌موجود و تغییرات موجودی را پیگیری کنید.",
+  "catalog.inventory.loading": "در حال بارگذاری موجودی.",
+  "catalog.inventory.emptyTitle": "هنوز موجودی ندارید",
+  "catalog.inventory.emptyMessage":
+    "پیش از مدیریت موجودی، محصول اضافه کنید.",
+  "catalog.inventory.stock": "موجودی قابل فروش",
+  "catalog.inventory.available": "موجود",
+  "catalog.inventory.lowStock": "موجودی کم",
+  "catalog.inventory.lowStockList": "فهرست موجودی کم",
+  "catalog.inventory.noLowStock": "فعلاً مورد کم‌موجودی وجود ندارد.",
+  "catalog.inventory.lowStockThreshold": "حد هشدار موجودی کم",
+  "catalog.inventory.variantCount": "انواع",
+  "catalog.inventory.manage": "مدیریت موجودی",
+  "catalog.inventory.target": "هدف موجودی",
+  "catalog.inventory.productLevel": "موجودی در سطح محصول",
+  "catalog.inventory.adjustment": "تغییر موجودی",
+  "catalog.inventory.adjustmentHint":
+    "برای افزودن موجودی عدد مثبت و برای کم‌کردن عدد منفی وارد کنید.",
+  "catalog.inventory.reason": "دلیل (اختیاری)",
+  "catalog.inventory.apply": "اعمال تغییر",
+  "catalog.inventory.history": "مشاهده سابقه موجودی",
+
+  "catalog.status.draft": "پیش‌نویس",
+  "catalog.status.active": "فعال",
+  "catalog.status.outOfStock": "ناموجود",
+  "catalog.status.archived": "آرشیوشده",
+  "catalog.status.planRestricted": "محدود توسط پلن",
+
+  "catalog.action.retry": "تلاش دوباره",
+  "catalog.action.save": "ذخیره",
+  "catalog.action.cancel": "لغو",
+  "catalog.action.loadMore": "نمایش بیشتر",
+  "catalog.action.backToProducts": "بازگشت به محصولات",
+
+  "catalog.error.invalidRequest": "اطلاعات کاتالوگ را بررسی کرده و دوباره تلاش کنید.",
+  "catalog.error.invalidSession": "نشست شما معتبر نیست. دوباره وارد شوید.",
+  "catalog.error.accountUnavailable": "این حساب فعلاً در دسترس نیست.",
+  "catalog.error.forbidden": "اجازه مدیریت این کاتالوگ را ندارید.",
+  "catalog.error.rateLimited": "تلاش‌های زیادی انجام شده است. کمی بعد دوباره تلاش کنید.",
+  "catalog.error.storeNotFound": "فروشگاه فروشنده پیدا نشد.",
+  "catalog.error.categoryNotFound": "دسته انتخاب‌شده پیدا نشد.",
+  "catalog.error.categoryLimitReached":
+    "حد دسته‌های فعال پلن فعلی شما تکمیل شده است.",
+  "catalog.error.categoryInUse":
+    "پیش از آرشیو دسته، محصولات آن را آرشیو یا به دسته دیگری منتقل کنید.",
+  "catalog.error.productNotFound": "محصول پیدا نشد.",
+  "catalog.error.productLimitReached":
+    "حد محصولات غیرآرشیوی پلن فعلی شما تکمیل شده است.",
+  "catalog.error.productArchived": "پیش از انتشار، محصول را بازیابی کنید.",
+  "catalog.error.productPlanRestricted":
+    "این محصول توسط پلن فعلی محدود است و قابل انتشار نیست.",
+  "catalog.error.variantNotFound": "نوع انتخاب‌شده پیدا نشد.",
+  "catalog.error.imageNotFound": "تصویر انتخاب‌شده پیدا نشد.",
+  "catalog.error.inventoryTargetInvalid":
+    "یک محصول یا نوع معتبر برای موجودی انتخاب کنید.",
+  "catalog.error.inventoryWouldBeNegative":
+    "این تغییر باعث منفی‌شدن موجودی می‌شود.",
+  "catalog.error.subscriptionUnavailable":
+    "اشتراک فعلی اجازه تغییر کاتالوگ را نمی‌دهد.",
+  "catalog.error.serviceUnavailable":
+    "بازارلینک به سرویس کاتالوگ دسترسی ندارد. اتصال خود را بررسی کرده و دوباره تلاش کنید.",
+
+  "storefront.catalogTitle": "محصولات",
+  "storefront.outOfStock": "ناموجود",
+  "storefront.fromPrice": "از",
 
   "store.error.invalidRequest": "اطلاعات فروشگاه را بررسی کرده و دوباره تلاش کنید.",
   "store.error.invalidSession": "نشست شما معتبر نیست. دوباره وارد شوید.",

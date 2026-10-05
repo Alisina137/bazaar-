@@ -185,7 +185,7 @@ export const psAfMessages = {
   "seller.store.editSettings": "تنظیمات سمول",
   "seller.store.emptyTitle": "ستاسو پلورنځی چمتو دی",
   "seller.store.emptyMessage":
-    "پلورنځی د محصولاتو له زیاتولو مخکې عامه کېدای شي. د کټالوګ جوړول په ۳ پړاو کې پیلېږي.",
+    "ستاسو پلورنځی چمتو دی. د عامه کټالوګ لپاره د محصولاتو له برخې محصولات زیات کړئ.",
   "seller.store.location": "ځای",
   "seller.store.contact": "اړیکه",
   "seller.store.category": "کټګوري",
@@ -221,10 +221,162 @@ export const psAfMessages = {
 
   "seller.products.title": "محصولات",
   "seller.products.message":
-    "کټالوګ او موجودي په ۳ پړاو کې پلي کېږي.",
+    "د پلورنځي ریښتینی کټالوګ، ډولونه، انځورونه او موجودي جوړه او اداره کړئ.",
   "seller.orders.title": "فرمایشونه",
   "seller.orders.message":
     "د فرمایش بشپړول په ۸ پړاو کې پلي کېږي.",
+
+
+  "catalog.phaseBadge": "کټالوګ او موجودي",
+  "catalog.products.title": "محصولات",
+  "catalog.products.loading": "ستاسو کټالوګ پورته کېږي.",
+  "catalog.products.errorTitle": "کټالوګ لاسرسی نه لري",
+  "catalog.products.description":
+    "محصولات جوړ کړئ او کټګورۍ، ډولونه، انځورونه او موجودي اداره کړئ.",
+  "catalog.products.emptyTitle": "تر اوسه محصول نشته",
+  "catalog.products.emptyMessage":
+    "خپل لومړی محصول جوړ کړئ او د پلور وړ کټالوګ پیل کړئ.",
+  "catalog.usage.title": "د پلان کارونه",
+  "catalog.usage.products": "محصولات",
+  "catalog.usage.categories": "فعالې کټګورۍ",
+
+  "catalog.category.manage": "کټګورۍ اداره کړئ",
+  "catalog.category.title": "کټګورۍ",
+  "catalog.category.description":
+    "محصولات په کټګوریو او فرعي کټګوریو تنظیم کړئ. آرشیف شوې کټګورۍ عام نه ښکاري.",
+  "catalog.category.create": "کټګوري جوړه کړئ",
+  "catalog.category.edit": "کټګوري سمول",
+  "catalog.category.name": "د کټګورۍ نوم",
+  "catalog.category.imageUrl": "د کټګورۍ انځور پته (اختیاري)",
+  "catalog.category.icon": "د آیکن نوم (اختیاري)",
+  "catalog.category.sortOrder": "د ښودلو ترتیب",
+  "catalog.category.parent": "اصلي کټګوري",
+  "catalog.category.noParent": "بې اصلي کټګورۍ",
+  "catalog.category.activeList": "فعالې کټګورۍ",
+  "catalog.category.archivedList": "آرشیف شوې کټګورۍ",
+  "catalog.category.empty": "تر اوسه فعاله کټګوري نشته.",
+  "catalog.category.moveUp": "مخکې یې یوسئ",
+  "catalog.category.moveDown": "وروسته یې یوسئ",
+  "catalog.category.archive": "کټګوري آرشیف کړئ",
+  "catalog.category.restore": "کټګوري بېرته راوګرځوئ",
+  "catalog.category.active": "فعاله",
+  "catalog.category.archived": "آرشیف شوې",
+
+  "catalog.product.add": "محصول زیات کړئ",
+  "catalog.product.needCategory":
+    "د محصول تر زیاتولو مخکې لږ تر لږه یوه فعاله کټګوري جوړه کړئ.",
+  "catalog.product.manage": "محصول اداره کړئ",
+  "catalog.product.createTitle": "محصول زیات کړئ",
+  "catalog.product.createDescription":
+    "له اړینو معلوماتو پیل وکړئ. پرمختللي جزئیات اختیاري دي.",
+  "catalog.product.photoUrl": "د محصول انځور پته (اختیاري)",
+  "catalog.product.name": "د محصول نوم",
+  "catalog.product.category": "کټګوري",
+  "catalog.product.price": "بیه (افغانۍ)",
+  "catalog.product.description": "تشریح",
+  "catalog.product.sku": "SKU",
+  "catalog.product.brand": "برانډ",
+  "catalog.product.compareAtPrice": "پخوانۍ بیه",
+  "catalog.product.barcode": "بارکوډ",
+  "catalog.product.weight": "وزن (ګرام)",
+  "catalog.product.dimensions": "ابعاد",
+  "catalog.product.tags": "ټګونه",
+  "catalog.product.tagsHint": "ټګونه په کامو جلا کړئ.",
+  "catalog.product.shippingClass": "د لېږد ټولګی",
+  "catalog.product.deliveryRestrictions": "د تحویل محدودیتونه",
+  "catalog.product.moreOptions": "نور انتخابونه",
+  "catalog.product.hideMore": "پرمختللي انتخابونه پټ کړئ",
+  "catalog.product.saveDraft": "مسوده خوندي کړئ",
+  "catalog.product.createAndPublish": "جوړ او خپور کړئ",
+  "catalog.product.details": "د محصول جزئیات",
+  "catalog.product.stateActions": "د محصول حالت",
+  "catalog.product.restore": "محصول بېرته راوګرځوئ",
+  "catalog.product.publish": "محصول خپور کړئ",
+  "catalog.product.archive": "محصول آرشیف کړئ",
+
+  "catalog.images.title": "د محصول انځورونه",
+  "catalog.images.altText": "د انځور تشریح (اختیاري)",
+  "catalog.images.add": "انځور زیات کړئ",
+  "catalog.images.remove": "انځور لرې کړئ",
+
+  "catalog.variants.title": "د محصول ډولونه",
+  "catalog.variants.add": "ډول زیات کړئ",
+  "catalog.variants.titleField": "د ډول سرلیک",
+  "catalog.variants.optionName": "د انتخاب نوم",
+  "catalog.variants.optionValue": "د انتخاب ارزښت",
+  "catalog.variants.priceOverride": "د ډول ځانګړې بیه",
+  "catalog.variants.imageUrl": "د ډول انځور پته (اختیاري)",
+  "catalog.variants.makeUnavailable": "ناموجود یې کړئ",
+  "catalog.variants.makeAvailable": "موجود یې کړئ",
+  "catalog.variants.remove": "ډول لرې کړئ",
+
+  "catalog.inventory.title": "موجودي",
+  "catalog.inventory.description":
+    "د پلور موجودي، کم موجود محصولات او د موجودۍ بدلونونه تعقیب کړئ.",
+  "catalog.inventory.loading": "موجودي پورته کېږي.",
+  "catalog.inventory.emptyTitle": "تر اوسه موجودي نشته",
+  "catalog.inventory.emptyMessage":
+    "د موجودۍ له مدیریت مخکې محصولات زیات کړئ.",
+  "catalog.inventory.stock": "د پلور موجودي",
+  "catalog.inventory.available": "موجود",
+  "catalog.inventory.lowStock": "کم موجود",
+  "catalog.inventory.lowStockList": "د کم موجودۍ لېست",
+  "catalog.inventory.noLowStock": "اوس مهال کم موجود توکي نشته.",
+  "catalog.inventory.lowStockThreshold": "د کم موجودۍ حد",
+  "catalog.inventory.variantCount": "ډولونه",
+  "catalog.inventory.manage": "موجودي اداره کړئ",
+  "catalog.inventory.target": "د موجودۍ هدف",
+  "catalog.inventory.productLevel": "د محصول په کچه موجودي",
+  "catalog.inventory.adjustment": "د موجودۍ بدلون",
+  "catalog.inventory.adjustmentHint":
+    "د موجودۍ زیاتولو لپاره مثبت او کمولو لپاره منفي شمېر وکاروئ.",
+  "catalog.inventory.reason": "دلیل (اختیاري)",
+  "catalog.inventory.apply": "بدلون عملي کړئ",
+  "catalog.inventory.history": "د موجودۍ تاریخ وګورئ",
+
+  "catalog.status.draft": "مسوده",
+  "catalog.status.active": "فعال",
+  "catalog.status.outOfStock": "ناموجود",
+  "catalog.status.archived": "آرشیف شوی",
+  "catalog.status.planRestricted": "د پلان له امله محدود",
+
+  "catalog.action.retry": "بیا هڅه",
+  "catalog.action.save": "خوندي کول",
+  "catalog.action.cancel": "لغوه",
+  "catalog.action.loadMore": "نور ښکاره کړئ",
+  "catalog.action.backToProducts": "محصولاتو ته ستنېدل",
+
+  "catalog.error.invalidRequest": "د کټالوګ معلومات وګورئ او بیا هڅه وکړئ.",
+  "catalog.error.invalidSession": "ستاسو ناسته نوره معتبره نه ده. بیا ننوځئ.",
+  "catalog.error.accountUnavailable": "دا حساب اوس د لاسرسي وړ نه دی.",
+  "catalog.error.forbidden": "تاسو د دې کټالوګ د مدیریت اجازه نه لرئ.",
+  "catalog.error.rateLimited": "ډېرې هڅې شوې دي. لږ وروسته بیا هڅه وکړئ.",
+  "catalog.error.storeNotFound": "د پلورونکي پلورنځی ونه موندل شو.",
+  "catalog.error.categoryNotFound": "ټاکل شوې کټګوري ونه موندل شوه.",
+  "catalog.error.categoryLimitReached":
+    "ستاسو د اوسني پلان د فعالو کټګوریو حد بشپړ شوی.",
+  "catalog.error.categoryInUse":
+    "د کټګورۍ تر آرشیف مخکې یې محصولات آرشیف یا بلې کټګورۍ ته انتقال کړئ.",
+  "catalog.error.productNotFound": "محصول ونه موندل شو.",
+  "catalog.error.productLimitReached":
+    "ستاسو د اوسني پلان د غیر آرشیف محصولاتو حد بشپړ شوی.",
+  "catalog.error.productArchived": "تر خپرولو مخکې محصول بېرته راوګرځوئ.",
+  "catalog.error.productPlanRestricted":
+    "دا محصول د اوسني پلان له امله محدود دی او نه شي خپرېدای.",
+  "catalog.error.variantNotFound": "ټاکل شوی ډول ونه موندل شو.",
+  "catalog.error.imageNotFound": "ټاکل شوی انځور ونه موندل شو.",
+  "catalog.error.inventoryTargetInvalid":
+    "د موجودۍ لپاره معتبر محصول یا ډول وټاکئ.",
+  "catalog.error.inventoryWouldBeNegative":
+    "دا بدلون موجودي منفي کوي.",
+  "catalog.error.subscriptionUnavailable":
+    "اوسنی ګډون د کټالوګ بدلونونو اجازه نه ورکوي.",
+  "catalog.error.serviceUnavailable":
+    "بازارلینک د کټالوګ خدمت ته ونه رسېد. خپله اړیکه وګورئ او بیا هڅه وکړئ.",
+
+  "storefront.catalogTitle": "محصولات",
+  "storefront.outOfStock": "ناموجود",
+  "storefront.fromPrice": "له",
 
   "store.error.invalidRequest": "د پلورنځي معلومات وګورئ او بیا هڅه وکړئ.",
   "store.error.invalidSession": "ستاسو ناسته نوره معتبره نه ده. بیا ننوځئ.",

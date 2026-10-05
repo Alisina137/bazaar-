@@ -1,6 +1,8 @@
 import { useRouter } from "expo-router";
 import { View } from "react-native";
 
+import { productStatusKey } from "@/catalog/messages";
+import { useCatalog } from "@/catalog/provider";
 import {
   AppText,
   Badge,
@@ -17,8 +19,9 @@ import { useStores } from "@/store/provider";
 export default function SellerPreviewScreen() {
   const router = useRouter();
   const theme = useAppTheme();
-  const { t } = useLocalization();
+  const { formatAfn, t } = useLocalization();
   const { currentStore } = useStores();
+  const { products } = useCatalog();
 
   if (!currentStore) {
     return (
@@ -66,12 +69,39 @@ export default function SellerPreviewScreen() {
         </View>
       </Card>
 
-      <Card>
-        <View style={{ gap: theme.spacing.sm }}>
-          <AppText variant="heading">{t("storefront.emptyTitle")}</AppText>
-          <AppText tone="muted">{t("storefront.emptyMessage")}</AppText>
+      {products.filter((product) => product.status !== "archived").length === 0 ? (
+        <Card>
+          <View style={{ gap: theme.spacing.sm }}>
+            <AppText variant="heading">{t("storefront.emptyTitle")}</AppText>
+            <AppText tone="muted">{t("storefront.emptyMessage")}</AppText>
+          </View>
+        </Card>
+      ) : (
+        <View style={{ gap: theme.spacing.md }}>
+          <AppText variant="heading">{t("storefront.catalogTitle")}</AppText>
+          {products
+            .filter((product) => product.status !== "archived")
+            .map((product) => (
+              <Card key={product.id}>
+                <View style={{ gap: theme.spacing.sm }}>
+                  <Badge
+                    label={t(productStatusKey(product.status))}
+                    tone={
+                      product.status === "active"
+                        ? "success"
+                        : "warning"
+                    }
+                  />
+                  <AppText variant="heading">{product.name}</AppText>
+                  <AppText>{formatAfn(product.price)}</AppText>
+                  {product.description ? (
+                    <AppText tone="muted">{product.description}</AppText>
+                  ) : null}
+                </View>
+              </Card>
+            ))}
         </View>
-      </Card>
+      )}
 
       <Button
         variant="secondary"

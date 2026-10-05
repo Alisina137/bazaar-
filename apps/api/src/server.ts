@@ -8,6 +8,8 @@ import { config as loadEnv } from "dotenv";
 import { resolve } from "node:path";
 
 import { buildApp } from "./app.js";
+import { DatabaseCatalogRepository } from "./catalog/repository.js";
+import { CatalogService } from "./catalog/service.js";
 import { parseAuthConfig } from "./auth/config.js";
 import { DatabaseAuthRepository } from "./auth/repository.js";
 import { AuthService } from "./auth/service.js";
@@ -30,11 +32,14 @@ const authService = new AuthService(
 );
 const storeRepository = new DatabaseStoreRepository(databaseClient.db);
 const storeService = new StoreService(storeRepository);
+const catalogRepository = new DatabaseCatalogRepository(databaseClient.db);
+const catalogService = new CatalogService(catalogRepository);
 
 const app = buildApp({
   databaseHealthCheck: () => checkDatabaseConnection(databaseClient),
   authService,
-  storeService
+  storeService,
+  catalogService
 });
 
 app.addHook("onClose", async () => {

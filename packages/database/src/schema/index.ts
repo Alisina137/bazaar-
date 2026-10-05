@@ -30,3 +30,24 @@ export {
   type Store,
   type StoreSubscription
 } from "./store.js";
+
+
+export {
+  categories,
+  categoryStatus,
+  inventoryMovements,
+  productImages,
+  products,
+  productStatus,
+  productVariants,
+  type CatalogCategory,
+  type CatalogProduct,
+  type InventoryMovement,
+  type NewCatalogCategory,
+  type NewCatalogProduct,
+  type NewInventoryMovement,
+  type NewProductImage,
+  type NewProductVariant,
+  type ProductImage,
+  type ProductVariant
+} from "./catalog.js";

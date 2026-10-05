@@ -6,6 +6,7 @@ import {
 } from "react-native-safe-area-context";
 
 import { AuthProvider } from "@/auth/provider";
+import { CatalogProvider } from "@/catalog/provider";
 import {
   AppThemeProvider,
   useAppTheme
@@ -46,7 +47,9 @@ export default function RootLayout() {
         <LocalizationProvider>
           <AuthProvider>
             <StoreProvider>
-              <RootNavigator />
+              <CatalogProvider>
+                <RootNavigator />
+              </CatalogProvider>
             </StoreProvider>
           </AuthProvider>
         </LocalizationProvider>

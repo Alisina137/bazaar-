@@ -38,8 +38,21 @@ export interface CreateCustomerAddressInput {
   isDefault?: boolean | undefined;
 }
 
-export type UpdateCustomerAddressInput =
-  Partial<CreateCustomerAddressInput>;
+export interface UpdateCustomerAddressInput {
+  label?: string | null | undefined;
+  recipientName?: string | undefined;
+  country?: string | undefined;
+  province?: string | undefined;
+  districtCity?: string | undefined;
+  areaNeighborhood?: string | null | undefined;
+  addressDescription?: string | undefined;
+  nearestLandmark?: string | null | undefined;
+  phone?: string | undefined;
+  mapLatitude?: number | null | undefined;
+  mapLongitude?: number | null | undefined;
+  deliveryInstructions?: string | null | undefined;
+  isDefault?: boolean | undefined;
+}
 
 export interface CartItemPricingRecord {
   id: string;

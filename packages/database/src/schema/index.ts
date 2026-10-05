@@ -101,6 +101,30 @@ export {
   type StoreDeliverySettings
 } from "./delivery.js";
 
+
+export {
+  fulfillmentState,
+  inventoryReservationState,
+  inventoryReservations,
+  orderEventSource,
+  orderFulfillmentType,
+  orderFulfillments,
+  orderItems,
+  orderState,
+  orderStateEvents,
+  orders,
+  type InventoryReservation,
+  type NewInventoryReservation,
+  type NewOrder,
+  type NewOrderFulfillment,
+  type NewOrderItem,
+  type NewOrderStateEvent,
+  type Order,
+  type OrderFulfillment,
+  type OrderItem,
+  type OrderStateEvent
+} from "./order.js";
+
 export {
   paymentEventSource,
   paymentMethod,

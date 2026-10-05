@@ -83,6 +83,18 @@ const productBaseSchema = z.object({
     .optional(),
   shippingClass: nullableText(120),
   deliveryRestrictions: nullableText(2000),
+  deliveryProfile: z
+    .enum([
+      "normal",
+      "bulky",
+      "fragile",
+      "pickup_only",
+      "no_express",
+      "seller_delivery_only",
+      "digital_no_delivery"
+    ])
+    .optional(),
+  deliverySurcharge: z.number().min(0).max(999999999).optional(),
   lowStockThreshold: z.number().int().min(0).max(100000000).optional()
 });
 

@@ -9,6 +9,7 @@ import type {
   CreateProductVariantInput,
   InventoryAdjustmentInput,
   InventoryHistoryResponse,
+  InventoryLowStockResponse,
   ProductListResponse,
   ProductStatus,
   PublicStoreCatalogResponse,
@@ -133,6 +134,10 @@ export interface CatalogServiceContract {
     storeId: string,
     productId: string
   ): Promise<InventoryHistoryResponse>;
+  lowStock(
+    ownerUserId: string,
+    storeId: string
+  ): Promise<InventoryLowStockResponse>;
   getPublicCatalog(handle: string): Promise<PublicStoreCatalogResponse>;
 }
 
@@ -894,6 +899,17 @@ export class CatalogService implements CatalogServiceContract {
 
     return {
       movements: await this.repository.inventoryHistory(storeId, productId)
+    };
+  }
+
+  async lowStock(
+    ownerUserId: string,
+    storeId: string
+  ): Promise<InventoryLowStockResponse> {
+    await this.requireStore(ownerUserId, storeId);
+
+    return {
+      items: await this.repository.listLowStock(storeId)
     };
   }
 

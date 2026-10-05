@@ -103,6 +103,7 @@ function repository(
       throw new Error("not_used");
     },
     inventoryHistory: async () => [],
+    listLowStock: async () => [],
     getPublicCatalog: async () => ({
       categories: [],
       products: []

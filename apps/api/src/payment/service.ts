@@ -307,23 +307,17 @@ export class PaymentService implements PaymentServiceContract {
       throw new PaymentError("checkout_unavailable", 409);
     }
 
-    const items: HostedPaymentItem[] = group.items.map((item) => ({
-      id: item.id,
-      name:
-        item.name +
-        (item.variantTitle ? " · " + item.variantTitle : ""),
-      price: item.lineTotal
-    }));
+    const payableAmount = roundMoney(
+      group.preDeliveryTotal + delivery.price.finalDeliveryPrice
+    );
 
-    if (delivery.price.finalDeliveryPrice > 0) {
-      items.push({
-        id: "delivery-" + storeId.slice(0, 24),
-        name: "Delivery · " + delivery.label,
-        price: delivery.price.finalDeliveryPrice
-      });
-    }
-
-    return items;
+    return [
+      {
+        id: "store-" + storeId.slice(0, 36),
+        name: "BazaarLink · " + group.store.name,
+        price: payableAmount
+      }
+    ];
   }
 
   private checkoutState(

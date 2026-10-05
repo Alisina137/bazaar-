@@ -106,8 +106,15 @@ export interface CreateDeliveryZoneInput {
   active?: boolean | undefined;
 }
 
-export type UpdateDeliveryZoneInput =
-  Partial<CreateDeliveryZoneInput>;
+export interface UpdateDeliveryZoneInput {
+  name?: string | undefined;
+  province?: string | null | undefined;
+  districtCity?: string | null | undefined;
+  areaNeighborhood?: string | null | undefined;
+  fee?: number | undefined;
+  priority?: number | undefined;
+  active?: boolean | undefined;
+}
 
 export interface DeliveryDistanceRuleRecord {
   id: string;
@@ -137,8 +144,17 @@ export interface CreateDeliveryDistanceRuleInput {
   active?: boolean | undefined;
 }
 
-export type UpdateDeliveryDistanceRuleInput =
-  Partial<CreateDeliveryDistanceRuleInput>;
+export interface UpdateDeliveryDistanceRuleInput {
+  name?: string | undefined;
+  type?: DeliveryDistanceRuleType | undefined;
+  minDistanceKm?: number | undefined;
+  maxDistanceKm?: number | null | undefined;
+  fee?: number | null | undefined;
+  baseFee?: number | null | undefined;
+  perKmFee?: number | null | undefined;
+  priority?: number | undefined;
+  active?: boolean | undefined;
+}
 
 export interface DeliverySpeedRecord {
   id: string;
@@ -176,8 +192,21 @@ export interface CreateDeliverySpeedInput {
   active?: boolean | undefined;
 }
 
-export type UpdateDeliverySpeedInput =
-  Partial<CreateDeliverySpeedInput>;
+export interface UpdateDeliverySpeedInput {
+  name?: string | undefined;
+  kind?: DeliverySpeedKind | undefined;
+  surchargeType?: DeliverySurchargeType | undefined;
+  surchargeValue?: number | undefined;
+  minEtaMinutes?: number | undefined;
+  maxEtaMinutes?: number | undefined;
+  minimumOrderAmount?: number | null | undefined;
+  maxRangeKm?: number | null | undefined;
+  cutoffTime?: string | null | undefined;
+  supportedWeekdays?: number[] | undefined;
+  maxWeightGrams?: number | null | undefined;
+  sortOrder?: number | undefined;
+  active?: boolean | undefined;
+}
 
 export interface StoreDeliveryConfigurationResponse {
   store: Pick<

@@ -245,6 +245,24 @@ describe.skipIf(!hasDatabase)("database-backed catalog and inventory lifecycle",
     expect(history.statusCode).toBe(200);
     expect(history.json().movements.length).toBeGreaterThanOrEqual(2);
 
+    const lowStock = await app.inject({
+      method: "GET",
+      url: "/seller/stores/" + store.id + "/inventory/low-stock",
+      headers: {
+        authorization: "Bearer " + owner.session.token
+      }
+    });
+    expect(lowStock.statusCode).toBe(200);
+    expect(lowStock.json().items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          productId: product.id,
+          variantId,
+          availableQuantity: 0
+        })
+      ])
+    );
+
     await storeService.publishStore(owner.user.id, store.id);
 
     const publicCatalog = await app.inject({

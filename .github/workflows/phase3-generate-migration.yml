@@ -1,0 +1,45 @@
+name: Phase 3 Generate Migration
+
+on:
+  push:
+    branches:
+      - phase-03-catalog-inventory
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: ${{ !contains(github.event.head_commit.message, '[generated-migration]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase-03-catalog-inventory
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.6.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+
+      - run: pnpm install --no-frozen-lockfile
+
+      - name: Generate catalog migration
+        run: pnpm db:generate
+
+      - name: Commit generated migration
+        shell: bash
+        run: |
+          if git diff --quiet -- packages/database/drizzle; then
+            echo "No migration changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/database/drizzle
+          git commit -m "chore(database): generate Phase 3 catalog migration [generated-migration]"
+          git push origin HEAD:phase-03-catalog-inventory

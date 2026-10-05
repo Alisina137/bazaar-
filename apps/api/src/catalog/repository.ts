@@ -5,6 +5,7 @@ import type {
   CreateProductImageInput,
   CreateProductInput,
   CreateProductVariantInput,
+  InventoryLowStockItem,
   InventoryMovementRecord,
   ProductStatus,
   ProductVariantRecord,
@@ -39,6 +40,7 @@ import {
   eq,
   inArray,
   ne,
+  notExists,
   or,
   sql
 } from "drizzle-orm";
@@ -157,6 +159,7 @@ export interface CatalogRepository {
     storeId: string,
     productId: string
   ): Promise<InventoryMovementRecord[]>;
+  listLowStock(storeId: string): Promise<InventoryLowStockItem[]>;
   getPublicCatalog(handle: string): Promise<PublicStoreCatalogResponse | null>;
 }
 
@@ -1132,6 +1135,69 @@ export class DatabaseCatalogRepository implements CatalogRepository {
       .limit(100);
 
     return rows.map(toMovementRecord);
+  }
+
+  async listLowStock(storeId: string): Promise<InventoryLowStockItem[]> {
+    const productRows = await this.db
+      .select({
+        productId: products.id,
+        productName: products.name,
+        availableQuantity: products.availableQuantity,
+        reservedQuantity: products.reservedQuantity,
+        lowStockThreshold: products.lowStockThreshold
+      })
+      .from(products)
+      .where(
+        and(
+          eq(products.storeId, storeId),
+          ne(products.status, "archived"),
+          sql`${products.availableQuantity} - ${products.reservedQuantity} <= ${products.lowStockThreshold}`,
+          notExists(
+            this.db
+              .select({ id: productVariants.id })
+              .from(productVariants)
+              .where(eq(productVariants.productId, products.id))
+          )
+        )
+      )
+      .orderBy(asc(products.name))
+      .limit(100);
+
+    const variantRows = await this.db
+      .select({
+        productId: products.id,
+        productName: products.name,
+        variantId: productVariants.id,
+        variantTitle: productVariants.title,
+        availableQuantity: productVariants.availableQuantity,
+        reservedQuantity: productVariants.reservedQuantity,
+        lowStockThreshold: productVariants.lowStockThreshold
+      })
+      .from(productVariants)
+      .innerJoin(products, eq(products.id, productVariants.productId))
+      .where(
+        and(
+          eq(products.storeId, storeId),
+          ne(products.status, "archived"),
+          eq(productVariants.available, true),
+          sql`${productVariants.availableQuantity} - ${productVariants.reservedQuantity} <= ${productVariants.lowStockThreshold}`
+        )
+      )
+      .orderBy(asc(products.name), asc(productVariants.title))
+      .limit(100);
+
+    return [
+      ...productRows.map((row) => ({
+        productId: row.productId,
+        productName: row.productName,
+        variantId: null,
+        variantTitle: null,
+        availableQuantity: row.availableQuantity,
+        reservedQuantity: row.reservedQuantity,
+        lowStockThreshold: row.lowStockThreshold
+      })),
+      ...variantRows
+    ];
   }
 
   async getPublicCatalog(

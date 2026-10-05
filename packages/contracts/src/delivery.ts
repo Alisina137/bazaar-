@@ -326,7 +326,7 @@ export interface DeliveryCheckoutQuoteResponse {
     delivery: "ready";
     payment: "pending_phase_7";
     review: "delivery_pricing_ready";
-    placeOrder: "blocked_until_phase_8";
+    placeOrder: "blocked_until_payment";
   };
   canProceedToPayment: boolean;
   canPlaceOrder: false;

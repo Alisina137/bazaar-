@@ -482,10 +482,10 @@ Complete and verified on `phase-03-catalog-inventory`.
 - product image metadata management and public storefront images with lazy loading
 - configurable product variants with option values, SKU, price override, image, availability, and independent stock
 - inventory at variant level when variants exist, otherwise at product level
-- database checks and service guards prevent negative inventory
+- database checks plus atomic conditional updates prevent stock from dropping below reserved quantities under concurrent adjustments
 - stock adjustments persist previous/new quantity and reason in inventory history
 - low-stock thresholds plus a complete seller low-stock endpoint and mobile list
-- reserved-quantity fields are present for the later order-reservation phase without implementing checkout early
+- atomic reservation/release operations protect product-level and variant-level free stock under concurrent updates; checkout/order orchestration remains deferred
 - stock changes automatically transition published products between Active and Out of Stock
 - seller Products tab is now a real catalog dashboard with current plan usage
 - dedicated category, product creation/editing, image, variant, and inventory screens
@@ -511,7 +511,7 @@ Passed: a merchant can build a real sellable catalog with categories, products, 
 
 ### Verification
 
-GitHub Actions run `37256640268` passed after the complete low-stock API/integration coverage was added.
+GitHub Actions run `37256956007` passed after the final atomic inventory reservation/release and concurrency-safety regression coverage.
 
 Verified gates include:
 
@@ -529,6 +529,8 @@ Verified gates include:
 - Starter 5-category limit
 - Starter 15-product limit
 - negative-inventory prevention
+- reservation/release capacity protection
+- stock adjustments cannot consume reserved quantity
 - product stock-state transitions
 - low-stock endpoint
 - public-catalog data projection
@@ -540,7 +542,7 @@ Verified gates include:
 ### Deferred by design
 
 - actual paid subscription upgrade/downgrade activation remains in the Merchant Growth phase; Phase 3 models and enforces the documented current entitlements and Plan Restricted product state without inventing pricing or bypassing the required downgrade grace/merchant-selection flow
-- order reservations are represented by reserved quantities but mutation of reservations belongs to checkout/order phases
+- checkout/order creation, reservation expiry, and order-to-reservation ownership remain in the checkout/order phases; Phase 3 provides the atomic inventory reservation primitives they will consume
 - central marketplace discovery/search/filter/product-detail behavior remains Phase 4
 
 ## Current phase
@@ -550,7 +552,7 @@ Phase 3 is complete and verified on `phase-03-catalog-inventory`. The remaining 
 ## Last known-good baseline
 
 - Branch: `phase-03-catalog-inventory`
-- Verification run: `37256640268`
+- Verification run: `37256956007`
 
 ## Known external requirements
 

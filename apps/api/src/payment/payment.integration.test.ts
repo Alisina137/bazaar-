@@ -432,7 +432,7 @@ describe.skipIf(!hasDatabase)(
           steps: {
             payment: "ready",
             review: "payment_ready",
-            placeOrder: "blocked_until_phase_8"
+            placeOrder: "ready"
           }
         });
 

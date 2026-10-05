@@ -11,7 +11,7 @@
 - Repository: Alisina137/bazaar-
 - Local project root: existing user folder named `bazaar`
 - Default branch: main
-- Active product phase: Phase 6 — Delivery
+- Active product phase: Phase 7 — Payments
 - Phase branch: main
 - Initial repository state: empty before Phase 1 planning
 - Phase baseline commit: 536d7b575182988cfb31ee9c483fe5f50f19f228
@@ -853,15 +853,136 @@ Verified Phase 6 gates include:
 - external road-routing/map-provider distance is not fabricated; Phase 6 records straight-line fallback when coordinates are available and remains deterministic without an external routing dependency
 - configurable tax remains inactive until a legally reviewed tax configuration exists
 
+## Phase 7 — Payments
+
+### Status
+
+In progress on `main`.
+
+Task 7.1 — Payment domain & data model is complete and verified. Tasks 7.2–7.6 remain.
+
+### Product outcomes
+
+- Cash on Delivery
+- HesabPay sandbox integration
+- card-capable provider path
+- server-owned payment state machine
+- authenticated/idempotent provider webhooks
+- payment failure handling
+- refund foundation
+
+### Task plan
+
+- [x] 7.1 Payment domain & data model
+- [ ] 7.2 Merchant payment settings
+- [ ] 7.3 Checkout payment availability and selection
+- [ ] 7.4 HesabPay sandbox and card-capable provider integration
+- [ ] 7.5 Webhooks, failure handling, and refund foundation
+- [ ] 7.6 Phase 7 integration/regression verification and close
+
+### Task 7.1 delivered
+
+- provider-agnostic payment contracts for:
+  - Cash on Delivery
+  - HesabPay
+  - card gateway
+  - Pay at Store
+- explicit payment providers separate payment method from provider implementation
+- persisted `store_payment_settings` foundation:
+  - Cash on Delivery defaults enabled
+  - Pay at Store defaults enabled
+  - HesabPay defaults disabled until provider configuration exists
+  - card defaults disabled until a provider is configured
+- persisted `payment_attempts` ledger keyed to:
+  - customer
+  - checkout session
+  - merchant store
+  - payment method
+  - payment provider
+- payment attempts retain:
+  - amount
+  - AFN currency
+  - idempotency key
+  - provider session ID
+  - provider transaction ID
+  - provider reference
+  - hosted checkout URL
+  - failure code/reason
+  - refund state and refunded amount
+  - provider-safe metadata
+  - lifecycle timestamps
+- server-owned payment states:
+  - created
+  - pending
+  - paid
+  - failed
+  - cancelled
+  - expired
+  - refund pending
+  - partially refunded
+  - refunded
+- authoritative transition rules reject direct `created -> paid` client-style success jumps
+- terminal failure/cancellation/expiry/refund states cannot be rewritten as paid
+- refund failure recovery can return `refund_pending -> paid` without fabricating a successful refund
+- persisted `payment_state_events` provide an append-only transition/audit foundation with event source, provider event ID, deduplication key, payload fingerprint, details, and timestamp
+- unique payment idempotency keys prevent duplicate checkout taps from creating duplicate logical attempts
+- provider transaction uniqueness and event deduplication prepare webhook processing for replay safety
+- payment data is modeled independently from orders because order creation belongs to Phase 8; Phase 8 can attach the payment ledger to merchant orders without collapsing payment history into a boolean field
+- no card number, CVV, or sensitive card credential storage exists in BazaarLink payment records
+
+### Database migration
+
+- `0007_striped_tana_nile.sql`
+- adds:
+  - `payment_event_source`
+  - `payment_method`
+  - `payment_provider`
+  - `payment_refund_state`
+  - `payment_state`
+- adds:
+  - `store_payment_settings`
+  - `payment_attempts`
+  - `payment_state_events`
+- migration is additive and preserves all Phase 1–6 data
+
+### Task 7.1 verification
+
+GitHub Actions run `37327650799` passed on exact `main` commit `f69304aebde1c764665e7bc9650e8b0a388c1ebf`.
+
+Verified gates include:
+
+- Drizzle migration history valid
+- zero migration/schema drift
+- fresh Phase 1–7 migration application on PostgreSQL 17
+- database connectivity
+- payment schema invariant tests
+- payment state-machine unit tests
+- invalid direct success transitions rejected
+- all workspace lint/typecheck/test gates
+- three-language localization verification
+- Fastify production build
+- Expo mobile export
+- Next.js admin/storefront production builds
+
+### Deferred to the remaining Phase 7 tasks
+
+- merchant-facing payment settings API/mobile management is Task 7.2
+- checkout per-merchant payment availability/selection is Task 7.3
+- HesabPay sandbox session creation and the card-capable provider adapter are Task 7.4
+- authenticated/idempotent webhooks, provider failure handling, and refund request processing are Task 7.5
+- payment PostgreSQL integration lifecycle, complete regression coverage, and Phase 7 acceptance close are Task 7.6
+- order creation and payment-to-order attachment remain Phase 8
+
+
 ## Current phase
 
-Phase 6 — Delivery is complete and verified. Phase 7 — Payments is the next product phase.
+Phase 7 — Payments is in progress. Task 7.1 is complete and verified; Task 7.2 — Merchant payment settings is next.
 
 ## Last known-good baseline
 
 - Branch: `main`
-- Commit: `b843f97dff3a9f5c10af301d0d7be323223884ae`
-- Verification run: `37322482284`
+- Commit: `f69304aebde1c764665e7bc9650e8b0a388c1ebf`
+- Verification run: `37327650799`
 
 ## Verification workflow
 
@@ -872,7 +993,7 @@ Phase 6 — Delivery is complete and verified. Phase 7 — Payments is the next 
 
 ## Known external requirements
 
-CI verifies the current marketplace, cart/pricing, and delivery baseline against fresh PostgreSQL 17.
+CI verifies the current marketplace, cart/pricing, delivery, and Phase 7 payment-domain baseline against fresh PostgreSQL 17.
 
 Local API/store execution requires a valid `DATABASE_URL` in the root `.env` file. Docker is optional when a hosted PostgreSQL database such as Neon is used.
 

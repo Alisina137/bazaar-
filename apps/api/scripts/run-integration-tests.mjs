@@ -1,0 +1,30 @@
+import { spawnSync } from "node:child_process";
+
+const pnpmCommand = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+
+const result = spawnSync(
+  pnpmCommand,
+  [
+    "exec",
+    "vitest",
+    "run",
+    "src/auth/auth.integration.test.ts",
+    "src/store/store.integration.test.ts",
+    "src/catalog/catalog.integration.test.ts",
+    "--no-file-parallelism"
+  ],
+  {
+    cwd: process.cwd(),
+    env: {
+      ...process.env,
+      RUN_DATABASE_INTEGRATION_TESTS: "true"
+    },
+    stdio: "inherit"
+  }
+);
+
+if (result.error) {
+  throw result.error;
+}
+
+process.exit(result.status ?? 1);

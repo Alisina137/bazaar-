@@ -50,6 +50,13 @@
       "when": 1791207286063,
       "tag": "0006_normal_micromacro",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791211652015,
+      "tag": "0007_striped_tana_nile",
+      "breakpoints": true
     }
   ]
 }

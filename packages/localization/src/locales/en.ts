@@ -356,6 +356,11 @@ export const enMessages = {
   "catalog.product.photoUrl": "Product image URL (optional)",
   "catalog.product.name": "Product name",
   "catalog.product.category": "Category",
+  "catalog.product.marketplaceCategory": "Marketplace category",
+  "catalog.product.marketplaceCategoryHint":
+    "Map your private store category to BazaarLink's shared marketplace taxonomy for better discovery.",
+  "catalog.product.marketplaceCategoryNone": "No marketplace category",
+
   "catalog.product.price": "Price (AFN)",
   "catalog.product.description": "Description",
   "catalog.product.sku": "SKU",

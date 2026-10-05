@@ -14,6 +14,8 @@ import {
   it
 } from "vitest";
 
+import "../test/load-integration-env.js";
+
 import { parseAuthConfig } from "./config.js";
 import { DatabaseAuthRepository } from "./repository.js";
 import { AuthService } from "./service.js";

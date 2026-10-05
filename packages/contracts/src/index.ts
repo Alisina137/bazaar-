@@ -8,3 +8,5 @@ export * from "./store.js";
 export * from "./catalog.js";
 
 export * from "./marketplace.js";
+
+export * from "./cart-pricing.js";

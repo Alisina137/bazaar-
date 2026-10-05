@@ -13,3 +13,5 @@ loadEnv({
   // CI intentionally keeps its workflow-provided PostgreSQL environment.
   override: process.env.CI !== "true"
 });
+
+export const INTEGRATION_TEST_TIMEOUT_MS = 60_000;

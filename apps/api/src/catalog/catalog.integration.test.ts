@@ -11,10 +11,11 @@ import {
   afterAll,
   describe,
   expect,
-  it
+  it,
+  vi
 } from "vitest";
 
-import "../test/load-integration-env.js";
+import { INTEGRATION_TEST_TIMEOUT_MS } from "../test/load-integration-env.js";
 
 import { buildApp } from "../app.js";
 import { parseAuthConfig } from "../auth/config.js";
@@ -24,6 +25,8 @@ import { DatabaseStoreRepository } from "../store/repository.js";
 import { StoreService } from "../store/service.js";
 import { DatabaseCatalogRepository } from "./repository.js";
 import { CatalogService } from "./service.js";
+
+vi.setConfig({ testTimeout: INTEGRATION_TEST_TIMEOUT_MS });
 
 const hasDatabase = Boolean(process.env.DATABASE_URL);
 

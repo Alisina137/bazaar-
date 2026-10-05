@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { View } from "react-native";
 
+import { useCatalog } from "@/catalog/provider";
 import {
   AppText,
   Badge,
@@ -20,8 +21,9 @@ import { useStores } from "@/store/provider";
 export default function SellerDashboardScreen() {
   const router = useRouter();
   const theme = useAppTheme();
-  const { t } = useLocalization();
+  const { formatNumber, t } = useLocalization();
   const { currentStore, status, error, refresh } = useStores();
+  const { usage } = useCatalog();
 
   if (status === "error") {
     return (
@@ -63,7 +65,7 @@ export default function SellerDashboardScreen() {
   const categoryLimit =
     subscription.entitlements.categoryLimit === null
       ? t("seller.subscription.unlimited")
-      : String(subscription.entitlements.categoryLimit);
+      : formatNumber(subscription.entitlements.categoryLimit);
 
   return (
     <Screen>
@@ -92,10 +94,19 @@ export default function SellerDashboardScreen() {
         <View style={{ gap: theme.spacing.md }}>
           <AppText variant="heading">{t("seller.dashboard.planUsage")}</AppText>
           <AppText>
-            {t("seller.dashboard.productsUsage")}: {subscription.entitlements.productLimit}
+            {t("seller.dashboard.productsUsage")}:{" "}
+            {usage
+              ? formatNumber(usage.productCount) + " / " + formatNumber(usage.productLimit)
+              : formatNumber(subscription.entitlements.productLimit)}
           </AppText>
           <AppText>
-            {t("seller.dashboard.categoriesUsage")}: {categoryLimit}
+            {t("seller.dashboard.categoriesUsage")}:{" "}
+            {usage
+              ? formatNumber(usage.activeCategoryCount) + " / " +
+                (usage.categoryLimit === null
+                  ? t("seller.subscription.unlimited")
+                  : formatNumber(usage.categoryLimit))
+              : categoryLimit}
           </AppText>
         </View>
       </Card>

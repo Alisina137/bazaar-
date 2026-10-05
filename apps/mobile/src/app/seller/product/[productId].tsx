@@ -94,6 +94,11 @@ export default function ProductManagementScreen() {
   const [lowStockThreshold, setLowStockThreshold] = useState(
     String(product?.lowStockThreshold ?? 0)
   );
+  const [deliveryProfile, setDeliveryProfile] =
+    useState<ProductDeliveryProfile>(product?.deliveryProfile ?? "normal");
+  const [deliverySurcharge, setDeliverySurcharge] = useState(
+    String(product?.deliverySurcharge ?? 0)
+  );
   const [showMore, setShowMore] = useState(false);
 
   const [imageUrl, setImageUrl] = useState("");

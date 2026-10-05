@@ -1,5 +1,6 @@
+import type { MarketplaceCategoryRecord } from "@bazaarlink/contracts";
 import { useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 
 import { catalogErrorKey } from "@/catalog/messages";
@@ -17,6 +18,18 @@ import {
 } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
+import { marketplaceCategories } from "@/marketplace/api";
+
+function marketplaceCategoryName(
+  category: MarketplaceCategoryRecord,
+  locale: "fa-AF" | "ps-AF" | "en"
+) {
+  return locale === "en"
+    ? category.nameEn
+    : locale === "ps-AF"
+      ? category.namePs
+      : category.nameFa;
+}
 
 function optionalNumber(value: string): number | null | undefined {
   if (!value.trim()) {
@@ -30,7 +43,7 @@ function optionalNumber(value: string): number | null | undefined {
 export default function NewProductScreen() {
   const router = useRouter();
   const theme = useAppTheme();
-  const { t } = useLocalization();
+  const { locale, t } = useLocalization();
   const { categories, createProduct, publishProduct } = useCatalog();
 
   const activeCategories = useMemo(
@@ -41,6 +54,10 @@ export default function NewProductScreen() {
   const [categoryId, setCategoryId] = useState(
     activeCategories[0]?.id ?? ""
   );
+  const [marketplaceCategoryId, setMarketplaceCategoryId] =
+    useState<string | null>(null);
+  const [marketplaceCategoryOptions, setMarketplaceCategoryOptions] =
+    useState<MarketplaceCategoryRecord[]>([]);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("0");
@@ -61,6 +78,22 @@ export default function NewProductScreen() {
   const [errorKey, setErrorKey] = useState<ReturnType<typeof catalogErrorKey> | null>(
     null
   );
+
+  useEffect(() => {
+    let active = true;
+
+    void marketplaceCategories()
+      .then((response) => {
+        if (active) setMarketplaceCategoryOptions(response.categories);
+      })
+      .catch(() => {
+        // Product creation remains available without a platform mapping.
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const submit = async (publish: boolean) => {
     const parsedPrice = Number(price);
@@ -93,6 +126,7 @@ export default function NewProductScreen() {
       const product = await createProduct({
         name,
         categoryId,
+        marketplaceCategoryId,
         price: parsedPrice,
         availableQuantity: parsedStock,
         lowStockThreshold: parsedThreshold,
@@ -160,6 +194,34 @@ export default function NewProductScreen() {
                 onPress={() => setCategoryId(category.id)}
               >
                 {category.name}
+              </Button>
+            ))}
+          </View>
+
+          <View style={{ gap: theme.spacing.sm }}>
+            <AppText variant="label">
+              {t("catalog.product.marketplaceCategory")}
+            </AppText>
+            <AppText variant="caption" tone="muted">
+              {t("catalog.product.marketplaceCategoryHint")}
+            </AppText>
+            <Button
+              variant={marketplaceCategoryId === null ? "primary" : "secondary"}
+              onPress={() => setMarketplaceCategoryId(null)}
+            >
+              {t("catalog.product.marketplaceCategoryNone")}
+            </Button>
+            {marketplaceCategoryOptions.map((category) => (
+              <Button
+                key={category.id}
+                variant={
+                  marketplaceCategoryId === category.id
+                    ? "primary"
+                    : "secondary"
+                }
+                onPress={() => setMarketplaceCategoryId(category.id)}
+              >
+                {marketplaceCategoryName(category, locale)}
               </Button>
             ))}
           </View>

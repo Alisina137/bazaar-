@@ -251,8 +251,7 @@ export const checkoutSessions = pgTable(
     }),
     status: checkoutSessionStatus("status").default("draft").notNull(),
     pricingSnapshot: jsonb("pricing_snapshot")
-      .$type<Record<string, unknown> | null>()
-      .default(null),
+      .$type<Record<string, unknown> | null>(),
     cartUpdatedAt: timestamp("cart_updated_at", {
       withTimezone: true,
       mode: "date"

@@ -59,7 +59,7 @@ jobs:
         with:
           name: drizzle-generated
           path: |
-            packages/database/drizzle/0007_slippery_blonde_phantom.sql
+            packages/database/drizzle/0007_*.sql
             packages/database/drizzle/meta/0007_snapshot.json
             packages/database/drizzle/meta/_journal.json
           if-no-files-found: error

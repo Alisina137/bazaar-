@@ -930,7 +930,7 @@ Complete and verified on `main`.
   - refreshes automatically when the app returns to foreground while provider action is pending
   - shows created/pending/paid/failed/cancelled/expired/refund states
   - unlocks review only when every merchant payment requirement is satisfied
-- Place Order remains blocked until Phase 8
+- at the Phase 7 baseline, Place Order remained blocked pending the Phase 8 order transaction; Phase 8 now resolves that boundary
 - payment UI/errors/statuses are localized in Dari, Pashto, and English with existing RTL/LTR behavior preserved
 - public product payment copy now describes the real checkout behavior instead of future Phase 7 work
 
@@ -1000,25 +1000,210 @@ Cash on Delivery and Pay at Store do not depend on a HesabPay API key.
 
 ### Deferred by design
 
-- order creation, inventory reservation ownership/expiry, merchant suborders, fulfillment state, and final Place Order remain Phase 8
-- payment attempts are intentionally independent from orders until Phase 8 attaches the authoritative payment ledger to created merchant orders
-- automatic provider refunds remain deferred until an approved provider refund operation is documented and integrated
+- Phase 7 intentionally deferred order creation, inventory reservation ownership/expiry, merchant suborders, fulfillment state, and final Place Order to Phase 8; those items are now implemented in the Phase 8 section below
+- automatic external-provider refund execution remains deferred until an approved provider refund operation is documented and integrated
+
+
+## Phase 8 — Orders & Fulfillment
+
+### Status
+
+Complete and verified on `main`.
+
+### Product outcomes
+
+- transactional order creation
+- one merchant order and fulfillment per store group
+- merchant confirmation
+- preparation and fulfillment state management
+- customer order tracking
+- cancellation and refund behavior
+- transactional inventory reservation and release
+- real Place Order checkout completion
+
+### Task plan
+
+- [x] 8.1 Order & reservation data model
+- [x] 8.2 Transactional Place Order
+- [x] 8.3 Merchant order management
+- [x] 8.4 Customer tracking & cancellation
+- [x] 8.5 Payment/refund & inventory-release integration
+- [x] 8.6 Phase 8 integration/regression verification and close
+
+### Delivered
+
+- checkout now exposes a real Place Order action after every merchant payment requirement is satisfied
+- Place Order is idempotent so retrying the same completed checkout does not create duplicate merchant orders
+- multi-store checkout creates one independent order and fulfillment per merchant group
+- all merchant orders in a checkout are created inside one PostgreSQL transaction so the checkout cannot partially create only some seller orders
+- the server revalidates before order creation:
+  - checkout ownership and expiry
+  - published store status
+  - active/grace-period subscription
+  - payment attempt ownership and checkout/store linkage
+  - exact authoritative merchant payable amount
+  - current inventory availability
+- payment attempts are attached to the created merchant order without rewriting the Phase 7 payment ledger
+- checkout sessions move to `ordered` only after successful transactional creation
+- successfully ordered cart items and applied store coupons are cleared after order creation
+- order records preserve immutable purchase-time snapshots for:
+  - product and selected variant identity
+  - product image reference
+  - quantity
+  - unit/list price
+  - product discount
+  - coupon-adjusted merchant subtotal
+  - customer delivery address
+  - selected delivery/fulfillment method
+  - delivery rule and estimate
+  - delivery base/urgency/product surcharge/free-delivery discount
+  - exact final merchant total
+  - payment method/provider/state/amount
+- later product, delivery, store, or catalog edits do not rewrite historical order snapshots
+- inventory is reserved transactionally at Place Order using server-side conditional stock updates; mobile inventory values are never trusted
+- reservations have explicit states:
+  - reserved
+  - committed
+  - released
+  - expired
+- pending-confirmation reservations use a 24-hour confirmation window
+- expired pending-confirmation reservations are reconciled before customer/merchant order reads and actions
+- merchant confirmation commits the reservation:
+  - available stock is decremented
+  - reserved stock is released
+  - inventory movement history is recorded
+- cancellation/rejection releases uncommitted reservations
+- cancellation after a committed reservation restores inventory and records the compensating inventory movement
+- delivery order lifecycle:
+  - pending confirmation
+  - confirmed
+  - preparing
+  - ready
+  - out for delivery
+  - delivered
+- pickup order lifecycle:
+  - pending confirmation
+  - confirmed
+  - preparing
+  - ready for pickup
+  - picked up
+- digital fulfillment can move from ready to delivered without fabricating a physical-delivery state
+- delivery-failed state is supported for merchant-managed delivery failures
+- customer cancellation is allowed while the order is pending merchant confirmation
+- merchant rejection/cancellation requires a reason where applicable
+- cancellation of a paid order transitions the payment/order into the refund-pending workflow
+- completed paid orders can start the refund workflow
+- Cash on Delivery remains pending until the merchant marks the order delivered, then becomes paid
+- Pay at Store remains pending until the merchant marks the pickup completed, then becomes paid
+- customer Orders tab now provides:
+  - order history
+  - current localized status
+  - purchase-time total
+  - order detail
+  - progress timeline
+  - expected fulfillment window
+  - seller/contact information
+  - purchased items
+  - delivery/pickup information
+  - payment information
+  - pre-confirmation cancellation
+- seller Orders tab now provides:
+  - order inbox
+  - customer/address/contact information
+  - products and quantities
+  - fulfillment method and estimate
+  - payment state
+  - complete order timeline
+  - confirm/reject
+  - start preparing
+  - mark ready / ready for pickup
+  - dispatch
+  - deliver / mark picked up
+  - mark delivery failed
+  - cancel with reason
+  - start refund workflow
+- order, fulfillment, payment, and error UI is localized in Dari, Pashto, and English with existing RTL/LTR behavior preserved
+- stale checkout markers that said Place Order was blocked until Phase 8 were replaced with the real current checkout readiness states
+
+### Database migration
+
+- `0008_stormy_stark_industries.sql`
+- adds enums:
+  - `order_state`
+  - `order_fulfillment_type`
+  - `fulfillment_state`
+  - `inventory_reservation_state`
+  - `order_event_source`
+- adds tables:
+  - `orders`
+  - `order_items`
+  - `order_fulfillments`
+  - `inventory_reservations`
+  - `order_state_events`
+- extends checkout-session status with `ordered`
+- extends payment attempts with nullable `order_id`
+- adds ownership, state, timeline, expiry, order-number, checkout/store, reservation, and fulfillment indexes/constraints
+- migration is additive and preserves all Phase 1–7 data
+
+### Acceptance
+
+Passed: the complete BazaarLink purchase-to-delivery workflow functions end to end. A payment-ready checkout creates idempotent per-merchant orders transactionally, reserves stock safely, supports merchant confirmation/preparation/fulfillment, exposes customer tracking, handles pre-confirmation cancellation, settles COD/Pay-at-Store on real-world completion, and enters refund handling when a paid order requires cancellation/refund.
+
+### Verification
+
+GitHub Actions run `37343886343` passed on exact `main` code commit `1944333944f23a400d69d39fc57fb4b0b15fd88c`.
+
+Verified Phase 8 gates include:
+
+- valid Drizzle migration history
+- zero schema/migration drift
+- fresh Phase 1–8 migration application on PostgreSQL 17
+- database connectivity
+- Phase 8 schema invariant tests
+- order/fulfillment state-machine tests
+- all workspace lint/typecheck/unit-test gates
+- three-language localization verification
+- Fastify production build
+- Expo mobile web export
+- Next.js admin/storefront production builds
+- complete serial PostgreSQL integration suite
+- idempotent Place Order retry behavior
+- transactional stock reservation
+- customer cancellation and reservation release
+- merchant confirmation and reservation commit
+- inventory decrement and movement history
+- delivery fulfillment lifecycle through delivered
+- pickup fulfillment lifecycle through picked up
+- Cash on Delivery settlement at delivery
+- Pay at Store settlement at pickup
+- paid hosted-payment order creation
+- verified hosted-payment webhook compatibility
+- paid-order refund-pending transition
+- customer order history/detail/tracking
+- merchant order inbox/action ownership
+- all pre-existing auth/store/catalog/marketplace/cart/delivery/payment integration suites
+
+### Deferred by design
+
+- reviews, Verified Purchase, notifications, reports, basic seller trust, and support workflows remain Phase 9 — Trust & Communication
+- automatic external-provider refund execution remains deferred until the payment provider exposes an approved/documented refund operation; Phase 8 safely records `refund_pending` rather than fabricating provider behavior
+- a platform-owned courier fleet, external courier orchestration, and advanced logistics remain outside the approved Phase 8 scope
 
 
 ## Current phase
 
-Phase 7 — Payments is complete and verified. Phase 8 — Orders & Fulfillment is next.
+Phase 8 — Orders & Fulfillment is complete and verified. Phase 9 — Trust & Communication is next.
 
 ## Last known-good baseline
 
 - Branch: `main`
-- Commit: `ca3df04d1d455036f1bb08eeedb104a6c0d90993`
-- Verification run: `37335866032`
+- Commit: `1944333944f23a400d69d39fc57fb4b0b15fd88c`
+- Verification run: `37343886343`
 
 ## Verification workflow
 
 - Local `pnpm verify` runs deterministic lint, typecheck, unit, localization, and build checks without invoking remote database integration suites.
-- `pnpm test:integration` explicitly runs the auth, store, catalog, marketplace, cart/pricing, delivery, and payment PostgreSQL integration suites serially against the configured root `.env` database.
+- `pnpm test:integration` explicitly runs the auth, store, catalog, marketplace, cart/pricing, delivery, payment, and order PostgreSQL integration suites serially against the configured root `.env` database.
 - GitHub Actions runs `pnpm verify` without database integration discovery, then runs `pnpm test:integration` as one explicit serial PostgreSQL gate against fresh PostgreSQL 17 on every push/PR. `dist/**` is excluded from Vitest discovery so compiled test copies cannot run a second time.
 - Unexpected catalog failures are logged server-side before returning the safe public `service_unavailable` response.
 
@@ -1032,7 +1217,7 @@ Phase 7 — Payments is complete and verified. Phase 8 — Orders & Fulfillment 
 
 ## Known external requirements
 
-CI verifies the current marketplace, cart/pricing, delivery, and completed Phase 7 payment baseline against fresh PostgreSQL 17.
+CI verifies the current marketplace, cart/pricing, delivery, payment, and completed Phase 8 orders/fulfillment baseline against fresh PostgreSQL 17.
 
 Local API/store execution requires a valid `DATABASE_URL` in the root `.env` file. Docker is optional when a hosted PostgreSQL database such as Neon is used.
 

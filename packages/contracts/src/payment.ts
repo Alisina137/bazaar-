@@ -67,15 +67,12 @@ export interface UpdateStorePaymentSettingsInput {
 }
 
 export interface MerchantPaymentConfigurationResponse {
-  store: Pick<
-    StoreRecord,
-    "id" | "name" | "subscription"
-  >;
+  store: Pick<StoreRecord, "id" | "name" | "subscription">;
   entitlements: StoreEntitlements;
   settings: StorePaymentSettingsRecord;
   providerReadiness: {
-    hesabpay: boolean;
-    cardGateway: boolean;
+    hesabpayHostedCheckout: boolean;
+    cardViaHesabPay: boolean;
   };
 }
 
@@ -121,16 +118,71 @@ export interface PaymentStateEventRecord {
   createdAt: string;
 }
 
+export type PaymentUnavailableReason =
+  | "merchant_disabled"
+  | "provider_unavailable"
+  | "pickup_required"
+  | "delivery_required"
+  | null;
+
 export interface PaymentMethodAvailability {
+  method: PaymentMethod;
+  provider: PaymentProvider;
+  available: boolean;
+  unavailableReason: PaymentUnavailableReason;
+  requiresHostedCheckout: boolean;
+}
+
+export interface PaymentMerchantOptions {
+  storeId: string;
+  storeName: string;
+  amount: number;
+  currency: "AFN";
+  fulfillmentType: "delivery" | "pickup" | "digital";
+  methods: PaymentMethodAvailability[];
+}
+
+export interface PaymentOptionsResponse {
+  checkoutSessionId: string;
+  currency: "AFN";
+  merchantGroups: PaymentMerchantOptions[];
+  canContinue: boolean;
+  expiresAt: string;
+}
+
+export interface PaymentSelectionInput {
   storeId: string;
   method: PaymentMethod;
-  available: boolean;
-  unavailableReason:
-    | "merchant_disabled"
-    | "provider_unavailable"
-    | "pickup_required"
-    | "delivery_required"
-    | null;
+}
+
+export interface CreatePaymentAttemptsInput {
+  checkoutSessionId: string;
+  idempotencyKey: string;
+  selections: PaymentSelectionInput[];
+}
+
+export interface PaymentCheckoutResponse {
+  checkoutSessionId: string;
+  attempts: PaymentAttemptRecord[];
+  canProceedToReview: boolean;
+  requiresCustomerAction: boolean;
+  steps: {
+    address: "ready";
+    delivery: "ready";
+    payment: "ready" | "action_required";
+    review: "payment_ready" | "blocked";
+    placeOrder: "blocked_until_phase_8";
+  };
+}
+
+export interface RefundPaymentInput {
+  amount?: number | undefined;
+}
+
+export interface RefundPaymentResponse {
+  attempt: PaymentAttemptRecord;
+  requestedAmount: number;
+  manualActionRequired: boolean;
 }
 
 export const paymentErrorCodes = [
@@ -139,6 +191,7 @@ export const paymentErrorCodes = [
   "account_unavailable",
   "forbidden",
   "store_not_found",
+  "subscription_unavailable",
   "payment_configuration_not_found",
   "payment_method_unavailable",
   "payment_attempt_not_found",
@@ -147,6 +200,7 @@ export const paymentErrorCodes = [
   "provider_unavailable",
   "provider_rejected",
   "webhook_unverified",
+  "refund_not_available",
   "rate_limited",
   "service_unavailable"
 ] as const;

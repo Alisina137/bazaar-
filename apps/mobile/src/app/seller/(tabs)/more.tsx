@@ -16,7 +16,6 @@ export default function SellerMoreScreen() {
   const { t } = useLocalization();
 
   const futureItems = [
-    "seller.more.inventory",
     "seller.more.customers",
     "seller.more.delivery",
     "seller.more.payments",
@@ -31,6 +30,14 @@ export default function SellerMoreScreen() {
 
       <Card>
         <View style={{ gap: theme.spacing.md }}>
+          <Button
+            variant="secondary"
+            onPress={() => {
+              router.push("/seller/inventory");
+            }}
+          >
+            {t("seller.more.inventory")}
+          </Button>
           <Button
             variant="secondary"
             onPress={() => {

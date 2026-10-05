@@ -35,6 +35,7 @@ export {
 export {
   categories,
   categoryStatus,
+  deliveryProductProfile,
   inventoryMovements,
   marketplaceProductMetrics,
   platformCategories,
@@ -80,3 +81,22 @@ export {
   type NewStoreCoupon,
   type StoreCoupon
 } from "./commerce.js";
+
+
+export {
+  deliveryDistanceRuleType,
+  deliveryDistanceRules,
+  deliverySpeedKind,
+  deliverySpeeds,
+  deliverySurchargeType,
+  deliveryZones,
+  storeDeliverySettings,
+  type DeliveryDistanceRule,
+  type DeliverySpeed,
+  type DeliveryZone,
+  type NewDeliveryDistanceRule,
+  type NewDeliverySpeed,
+  type NewDeliveryZone,
+  type NewStoreDeliverySettings,
+  type StoreDeliverySettings
+} from "./delivery.js";

@@ -89,6 +89,8 @@ export const stores = pgTable(
     uniqueIndex("stores_handle_uidx").on(table.handle),
     index("stores_owner_user_id_idx").on(table.ownerUserId),
     index("stores_status_idx").on(table.status),
+    index("stores_province_idx").on(table.province),
+    index("stores_marketplace_idx").on(table.status, table.province),
     index("stores_created_at_idx").on(table.createdAt)
   ]
 );

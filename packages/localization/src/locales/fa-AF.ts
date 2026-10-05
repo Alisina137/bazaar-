@@ -401,6 +401,90 @@ export const faAfMessages = {
   "delivery.error.rateLimited": "درخواست‌های قیمت تحویل زیاد است؛ کمی بعد دوباره تلاش کنید.",
   "delivery.error.serviceUnavailable": "بازارلینک به سرویس تحویل دسترسی پیدا نکرد. اتصال را بررسی و دوباره تلاش کنید.",
 
+
+  "payment.phaseBadge": "پرداخت‌ها",
+  "payment.method.cod": "پرداخت هنگام تحویل",
+  "payment.method.hesabpay": "حساب‌پی",
+  "payment.method.card": "کارت",
+  "payment.method.payAtStore": "پرداخت در فروشگاه",
+  "payment.seller.loadingTitle": "بارگذاری تنظیمات پرداخت",
+  "payment.seller.loadingMessage": "روش‌های پرداخت موجود این فروشگاه بررسی می‌شود.",
+  "payment.seller.errorTitle": "تنظیمات پرداخت در دسترس نیست",
+  "payment.seller.title": "پرداخت‌ها",
+  "payment.seller.description":
+    "روش‌های پرداختی را انتخاب کنید که مشتریان بتوانند برای این فروشگاه استفاده کنند.",
+  "payment.seller.providerStatus": "ارائه‌دهنده پرداخت دیجیتال",
+  "payment.seller.providerReady": "محیط آزمایشی حساب‌پی آماده است",
+  "payment.seller.providerNotReady": "حساب‌پی تنظیم نشده است",
+  "payment.seller.providerHint":
+    "کیف پول حساب‌پی، کارت‌های AfPay و کارت‌های بین‌المللی پشتیبانی‌شده از پرداخت میزبانی‌شده استفاده می‌کنند. پیش از فعال‌سازی روش‌های دیجیتال، کلید API سرور را تنظیم کنید.",
+  "payment.seller.codHint":
+    "مشتری هنگام رسیدن سفارش تحویلی پرداخت می‌کند.",
+  "payment.seller.hesabpayHint":
+    "مشتری پرداخت را در صفحه امن و میزبانی‌شده حساب‌پی تکمیل می‌کند.",
+  "payment.seller.cardHint":
+    "پرداخت کارتی از صفحه میزبانی‌شده حساب‌پی استفاده می‌کند تا بازارلینک هیچ شماره کارت یا CVV را ذخیره نکند.",
+  "payment.seller.payAtStoreHint":
+    "مشتری هنگام دریافت سفارش حضوری در فروشگاه پرداخت می‌کند.",
+  "payment.seller.securityHint":
+    "اطلاعات پرداخت دیجیتال فقط در سرور نگهداری می‌شود. نتیجه بازگشت از درگاه پرداخت را قطعی نمی‌کند؛ فقط وب‌هوک تأییدشده ارائه‌دهنده می‌تواند پرداخت را نهایی کند.",
+  "payment.seller.enabled": "فعال",
+  "payment.seller.disabled": "غیرفعال",
+  "payment.seller.enable": "فعال‌کردن",
+  "payment.seller.disable": "غیرفعال‌کردن",
+  "payment.customer.loadingTitle": "بارگذاری روش‌های پرداخت",
+  "payment.customer.loadingMessage": "روش‌های پرداخت هر فروشنده بررسی می‌شود.",
+  "payment.customer.description":
+    "برای هر فروشنده در این خرید یک روش پرداخت موجود انتخاب کنید.",
+  "payment.customer.confirm": "تأیید روش‌های پرداخت",
+  "payment.customer.statusTitle": "وضعیت پرداخت",
+  "payment.customer.openHostedCheckout": "بازکردن پرداخت امن",
+  "payment.customer.cancelAttempt": "لغو تلاش پرداخت",
+  "payment.customer.webhookPending":
+    "پرداخت امن را تکمیل کرده و سپس به اینجا برگردید. بازارلینک تا دریافت پیام تأییدشده ارائه‌دهنده، پرداخت را قطعی نمی‌کند.",
+  "payment.customer.refreshStatus": "تازه‌سازی وضعیت پرداخت",
+  "payment.customer.readyForReview": "مرحله پرداخت آماده است",
+  "payment.customer.securityHint":
+    "بازارلینک شماره کارت یا CVV را دریافت نمی‌کند. پرداخت‌های دیجیتال به‌صورت سرور به سرور تأیید می‌شوند.",
+  "payment.customer.reviewReady":
+    "آدرس، تحویل و پرداخت آماده است. ایجاد سفارش در مرحله ۸ انجام می‌شود.",
+  "payment.customer.reviewBlocked":
+    "پیش از ادامه مرور نهایی، مرحله پرداخت همه فروشنده‌ها را تکمیل کنید.",
+  "payment.unavailable.merchantDisabled":
+    "این فروشنده این روش پرداخت را غیرفعال کرده است.",
+  "payment.unavailable.providerUnavailable":
+    "ارائه‌دهنده پرداخت دیجیتال فعلاً تنظیم نشده است.",
+  "payment.unavailable.pickupRequired":
+    "پرداخت در فروشگاه فقط برای دریافت حضوری موجود است.",
+  "payment.unavailable.deliveryRequired":
+    "پرداخت هنگام تحویل فقط برای سفارش‌های تحویلی موجود است.",
+  "payment.state.created": "ایجاد شد",
+  "payment.state.pending": "در انتظار",
+  "payment.state.paid": "پرداخت شد",
+  "payment.state.failed": "ناموفق",
+  "payment.state.cancelled": "لغوشده",
+  "payment.state.expired": "منقضی",
+  "payment.state.refundPending": "بازپرداخت در انتظار",
+  "payment.state.partiallyRefunded": "بخشی بازپرداخت شد",
+  "payment.state.refunded": "بازپرداخت شد",
+  "payment.error.invalidRequest": "اطلاعات پرداخت را بررسی کرده و دوباره تلاش کنید.",
+  "payment.error.invalidSession": "نشست شما منقضی شده است. دوباره وارد شوید.",
+  "payment.error.accountUnavailable": "این حساب فعلاً در دسترس نیست.",
+  "payment.error.forbidden": "اجازه انجام این عملیات پرداخت را ندارید.",
+  "payment.error.storeNotFound": "این فروشگاه پیدا نشد.",
+  "payment.error.subscriptionUnavailable": "اشتراک این فروشگاه فعلاً اجازه استفاده از پرداخت را نمی‌دهد.",
+  "payment.error.configurationNotFound": "تنظیمات پرداخت بارگذاری نشد.",
+  "payment.error.methodUnavailable": "برای هر فروشنده یک روش پرداخت موجود انتخاب کنید.",
+  "payment.error.attemptNotFound": "این تلاش پرداخت پیدا نشد.",
+  "payment.error.stateConflict": "وضعیت پرداخت تغییر کرده است. تازه‌سازی کرده و دوباره تلاش کنید.",
+  "payment.error.checkoutUnavailable": "پیش‌فاکتور خرید منقضی شده یا دیگر در دسترس نیست.",
+  "payment.error.providerUnavailable": "ارائه‌دهنده پرداخت دیجیتال فعلاً در دسترس نیست.",
+  "payment.error.providerRejected": "ارائه‌دهنده نتوانست این پرداخت را آغاز یا تکمیل کند.",
+  "payment.error.webhookUnverified": "پیام پرداخت قابل تأیید نبود.",
+  "payment.error.refundUnavailable": "این پرداخت برای درخواست بازپرداخت واجد شرایط نیست.",
+  "payment.error.rateLimited": "تلاش‌های پرداخت زیاد است. کمی بعد دوباره تلاش کنید.",
+  "payment.error.serviceUnavailable": "بازارلینک به سرویس پرداخت دسترسی ندارد. اتصال خود را بررسی کرده و دوباره تلاش کنید.",
+
   "orders.title": "سفارش‌ها",
   "orders.description":
     "ساختار سفارش‌ها ناوبری را آماده می‌کند، بدون این‌که منطق سفارش زودتر از زمان آن اضافه شود.",

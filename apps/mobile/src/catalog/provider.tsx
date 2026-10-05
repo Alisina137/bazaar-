@@ -7,6 +7,7 @@ import type {
   CreateProductInput,
   CreateProductVariantInput,
   InventoryAdjustmentInput,
+  InventoryLowStockItem,
   InventoryMovementRecord,
   UpdateCategoryInput,
   UpdateProductInput,
@@ -38,6 +39,7 @@ import {
   getProduct as getProductRequest,
   inventoryHistory as inventoryHistoryRequest,
   listCategories,
+  lowStockInventory,
   listProducts,
   productAction,
   updateCategory as updateCategoryRequest,
@@ -52,6 +54,7 @@ interface CatalogContextValue {
   categories: CatalogCategoryRecord[];
   products: CatalogProductRecord[];
   usage: CatalogUsage | null;
+  lowStockItems: InventoryLowStockItem[];
   hasMore: boolean;
   loadingMore: boolean;
   error: CatalogApiError | null;
@@ -112,6 +115,7 @@ export function CatalogProvider({ children }: PropsWithChildren) {
   const [categories, setCategories] = useState<CatalogCategoryRecord[]>([]);
   const [products, setProducts] = useState<CatalogProductRecord[]>([]);
   const [usage, setUsage] = useState<CatalogUsage | null>(null);
+  const [lowStockItems, setLowStockItems] = useState<InventoryLowStockItem[]>([]);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<CatalogApiError | null>(null);
@@ -141,6 +145,7 @@ export function CatalogProvider({ children }: PropsWithChildren) {
       setCategories([]);
       setProducts([]);
       setUsage(null);
+      setLowStockItems([]);
       setHasMore(false);
       setError(null);
       setStatus("idle");
@@ -151,14 +156,17 @@ export function CatalogProvider({ children }: PropsWithChildren) {
     setError(null);
 
     try {
-      const [categoryResponse, productResponse] = await Promise.all([
-        listCategories(sessionToken, currentStore.id),
-        listProducts(sessionToken, currentStore.id, 0, PAGE_SIZE)
-      ]);
+      const [categoryResponse, productResponse, lowStockResponse] =
+        await Promise.all([
+          listCategories(sessionToken, currentStore.id),
+          listProducts(sessionToken, currentStore.id, 0, PAGE_SIZE),
+          lowStockInventory(sessionToken, currentStore.id)
+        ]);
 
       setCategories(categoryResponse.categories);
       setProducts(productResponse.products);
       setUsage(productResponse.usage);
+      setLowStockItems(lowStockResponse.items);
       setHasMore(productResponse.pageInfo.hasMore);
       setStatus("ready");
     } catch (requestError) {
@@ -421,6 +429,7 @@ export function CatalogProvider({ children }: PropsWithChildren) {
       categories,
       products,
       usage,
+      lowStockItems,
       hasMore,
       loadingMore,
       error,
@@ -454,6 +463,7 @@ export function CatalogProvider({ children }: PropsWithChildren) {
       categories,
       products,
       usage,
+      lowStockItems,
       hasMore,
       loadingMore,
       error,

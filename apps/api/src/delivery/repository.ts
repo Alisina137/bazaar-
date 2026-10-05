@@ -449,7 +449,30 @@ export class DatabaseDeliveryRepository implements DeliveryRepository {
     const [updated] = await this.db
       .update(storeDeliverySettings)
       .set({
-        ...input,
+        ...(input.deliveryEnabled !== undefined
+          ? { deliveryEnabled: input.deliveryEnabled }
+          : {}),
+        ...(input.pickupEnabled !== undefined
+          ? { pickupEnabled: input.pickupEnabled }
+          : {}),
+        ...(input.originAddress !== undefined
+          ? { originAddress: input.originAddress }
+          : {}),
+        ...(input.originProvince !== undefined
+          ? { originProvince: input.originProvince }
+          : {}),
+        ...(input.originDistrict !== undefined
+          ? { originDistrict: input.originDistrict }
+          : {}),
+        ...(input.originArea !== undefined
+          ? { originArea: input.originArea }
+          : {}),
+        ...(input.originLatitude !== undefined
+          ? { originLatitude: input.originLatitude }
+          : {}),
+        ...(input.originLongitude !== undefined
+          ? { originLongitude: input.originLongitude }
+          : {}),
         ...(input.defaultDeliveryFee !== undefined
           ? {
               defaultDeliveryFee:
@@ -473,6 +496,18 @@ export class DatabaseDeliveryRepository implements DeliveryRepository {
                   ? null
                   : input.minimumOrderAmount.toFixed(2)
             }
+          : {}),
+        ...(input.operatingWeekdays !== undefined
+          ? { operatingWeekdays: input.operatingWeekdays }
+          : {}),
+        ...(input.cutoffTime !== undefined
+          ? { cutoffTime: input.cutoffTime }
+          : {}),
+        ...(input.pickupMinMinutes !== undefined
+          ? { pickupMinMinutes: input.pickupMinMinutes }
+          : {}),
+        ...(input.pickupMaxMinutes !== undefined
+          ? { pickupMaxMinutes: input.pickupMaxMinutes }
           : {}),
         updatedAt: new Date()
       })
@@ -521,8 +556,23 @@ export class DatabaseDeliveryRepository implements DeliveryRepository {
     const [updated] = await this.db
       .update(deliveryZones)
       .set({
-        ...input,
-        ...(input.fee !== undefined ? { fee: input.fee.toFixed(2) } : {}),
+        ...(input.name !== undefined ? { name: input.name } : {}),
+        ...(input.province !== undefined
+          ? { province: input.province }
+          : {}),
+        ...(input.districtCity !== undefined
+          ? { districtCity: input.districtCity }
+          : {}),
+        ...(input.areaNeighborhood !== undefined
+          ? { areaNeighborhood: input.areaNeighborhood }
+          : {}),
+        ...(input.fee !== undefined
+          ? { fee: input.fee.toFixed(2) }
+          : {}),
+        ...(input.priority !== undefined
+          ? { priority: input.priority }
+          : {}),
+        ...(input.active !== undefined ? { active: input.active } : {}),
         updatedAt: new Date()
       })
       .where(
@@ -611,7 +661,8 @@ export class DatabaseDeliveryRepository implements DeliveryRepository {
     const [updated] = await this.db
       .update(deliveryDistanceRules)
       .set({
-        ...input,
+        ...(input.name !== undefined ? { name: input.name } : {}),
+        ...(input.type !== undefined ? { type: input.type } : {}),
         ...(input.minDistanceKm !== undefined
           ? { minDistanceKm: input.minDistanceKm.toFixed(2) }
           : {}),
@@ -640,6 +691,10 @@ export class DatabaseDeliveryRepository implements DeliveryRepository {
                 input.perKmFee === null ? null : input.perKmFee.toFixed(2)
             }
           : {}),
+        ...(input.priority !== undefined
+          ? { priority: input.priority }
+          : {}),
+        ...(input.active !== undefined ? { active: input.active } : {}),
         updatedAt: new Date()
       })
       .where(
@@ -728,9 +783,19 @@ export class DatabaseDeliveryRepository implements DeliveryRepository {
     const [updated] = await this.db
       .update(deliverySpeeds)
       .set({
-        ...input,
+        ...(input.name !== undefined ? { name: input.name } : {}),
+        ...(input.kind !== undefined ? { kind: input.kind } : {}),
+        ...(input.surchargeType !== undefined
+          ? { surchargeType: input.surchargeType }
+          : {}),
         ...(input.surchargeValue !== undefined
           ? { surchargeValue: input.surchargeValue.toFixed(2) }
+          : {}),
+        ...(input.minEtaMinutes !== undefined
+          ? { minEtaMinutes: input.minEtaMinutes }
+          : {}),
+        ...(input.maxEtaMinutes !== undefined
+          ? { maxEtaMinutes: input.maxEtaMinutes }
           : {}),
         ...(input.minimumOrderAmount !== undefined
           ? {
@@ -748,6 +813,19 @@ export class DatabaseDeliveryRepository implements DeliveryRepository {
                   : input.maxRangeKm.toFixed(2)
             }
           : {}),
+        ...(input.cutoffTime !== undefined
+          ? { cutoffTime: input.cutoffTime }
+          : {}),
+        ...(input.supportedWeekdays !== undefined
+          ? { supportedWeekdays: input.supportedWeekdays }
+          : {}),
+        ...(input.maxWeightGrams !== undefined
+          ? { maxWeightGrams: input.maxWeightGrams }
+          : {}),
+        ...(input.sortOrder !== undefined
+          ? { sortOrder: input.sortOrder }
+          : {}),
+        ...(input.active !== undefined ? { active: input.active } : {}),
         updatedAt: new Date()
       })
       .where(

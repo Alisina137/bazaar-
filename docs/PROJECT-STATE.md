@@ -554,6 +554,13 @@ Phase 3 — Catalog & Inventory is complete and verified. Phase 4 — Marketplac
 - Branch: `phase-03-catalog-inventory`
 - Verification run: `37256956007`
 
+## Verification workflow
+
+- Local `pnpm verify` runs deterministic lint, typecheck, unit, localization, and build checks without invoking remote database integration suites.
+- `pnpm test:integration` explicitly runs the auth, store, and catalog PostgreSQL integration suites serially against the configured root `.env` database.
+- GitHub Actions sets `RUN_DATABASE_INTEGRATION_TESTS=true` and continues to run the complete PostgreSQL integration suite against fresh PostgreSQL 17 on every push/PR.
+- Unexpected catalog failures are logged server-side before returning the safe public `service_unavailable` response.
+
 ## Known external requirements
 
 CI verifies the current catalog baseline against fresh PostgreSQL 17.

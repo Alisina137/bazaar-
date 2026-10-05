@@ -75,6 +75,7 @@ function repository(
     countActiveCategories: async () => 1,
     countNonArchivedProducts: async () => 1,
     countNonArchivedProductsInCategory: async () => 0,
+    countActiveChildCategories: async () => 0,
     findCategory: async () => category,
     createCategory: async () => category,
     updateCategory: async () => category,

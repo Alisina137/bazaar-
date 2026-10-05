@@ -51,7 +51,7 @@ function storeLocale(value: string): "fa-AF" | "ps-AF" | "en" {
 }
 
 function productVisibilityIssue(
-  product: CartProductState | undefined
+  product: CartProductState | null | undefined
 ): "product_unavailable" | null {
   if (
     !product ||

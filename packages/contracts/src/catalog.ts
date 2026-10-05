@@ -161,6 +161,11 @@ export interface InventoryAdjustmentInput {
   reason?: string | null | undefined;
 }
 
+export interface InventoryReservationInput {
+  variantId?: string | null | undefined;
+  quantity: number;
+}
+
 export interface InventoryMovementRecord {
   id: string;
   storeId: string;

@@ -17,7 +17,6 @@ export default function SellerMoreScreen() {
 
   const futureItems = [
     "seller.more.customers",
-    "seller.more.payments",
     "seller.more.discounts",
     "seller.more.analytics",
     "seller.more.staff"
@@ -52,6 +51,14 @@ export default function SellerMoreScreen() {
             }}
           >
             {t("seller.more.delivery")}
+          </Button>
+          <Button
+            variant="secondary"
+            onPress={() => {
+              router.push("/seller/payments");
+            }}
+          >
+            {t("seller.more.payments")}
           </Button>
           <Button
             variant="secondary"

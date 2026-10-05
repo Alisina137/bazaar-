@@ -184,7 +184,8 @@ export const psAfMessages = {
   "seller.store.published": "پلورنځی خپور شو",
   "seller.store.editSettings": "تنظیمات سمول",
   "seller.store.emptyTitle": "ستاسو پلورنځی چمتو دی",
-  "seller.store.emptyMessage":\n    "ستاسو پلورنځی چمتو دی. د عامه کټالوګ لپاره د محصولاتو له برخې محصولات زیات کړئ.",
+  "seller.store.emptyMessage":
+    "ستاسو پلورنځی چمتو دی. د عامه کټالوګ لپاره د محصولاتو له برخې محصولات زیات کړئ.",
   "seller.store.location": "ځای",
   "seller.store.contact": "اړیکه",
   "seller.store.category": "کټګوري",
@@ -219,7 +220,8 @@ export const psAfMessages = {
   "seller.more.futureFeature": "په راتلونکي محصول پړاو کې فعالېږي",
 
   "seller.products.title": "محصولات",
-  "seller.products.message":\n    "د پلورنځي ریښتینی کټالوګ، ډولونه، انځورونه او موجودي جوړه او اداره کړئ.",
+  "seller.products.message":
+    "د پلورنځي ریښتینی کټالوګ، ډولونه، انځورونه او موجودي جوړه او اداره کړئ.",
   "seller.orders.title": "فرمایشونه",
   "seller.orders.message":
     "د فرمایش بشپړول په ۸ پړاو کې پلي کېږي.",

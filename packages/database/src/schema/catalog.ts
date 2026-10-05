@@ -9,6 +9,7 @@ import {
   pgEnum,
   pgTable,
   text,
+  uniqueIndex,
   timestamp,
   uuid,
   varchar,
@@ -63,7 +64,7 @@ export const platformCategories = pgTable(
     index("platform_categories_parent_id_idx").on(table.parentId),
     index("platform_categories_sort_idx").on(table.sortOrder),
     index("platform_categories_active_idx").on(table.active),
-    index("platform_categories_slug_idx").on(table.slug)
+    uniqueIndex("platform_categories_slug_uidx").on(table.slug)
   ]
 );
 

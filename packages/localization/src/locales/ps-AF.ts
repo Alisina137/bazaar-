@@ -358,6 +358,11 @@ export const psAfMessages = {
   "catalog.product.photoUrl": "د محصول انځور پته (اختیاري)",
   "catalog.product.name": "د محصول نوم",
   "catalog.product.category": "کټګوري",
+  "catalog.product.marketplaceCategory": "د بازار کټګوري",
+  "catalog.product.marketplaceCategoryHint":
+    "د ښه موندنې لپاره د خپل پلورنځي داخلي کټګوري د بازارلینک ګډې کټګورۍ سره ونښلوئ.",
+  "catalog.product.marketplaceCategoryNone": "د بازار کټګوري نشته",
+
   "catalog.product.price": "بیه (افغانۍ)",
   "catalog.product.description": "تشریح",
   "catalog.product.sku": "SKU",

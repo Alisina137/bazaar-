@@ -182,8 +182,7 @@ export const enMessages = {
   "seller.store.published": "Store published",
   "seller.store.editSettings": "Edit settings",
   "seller.store.emptyTitle": "Your storefront is ready",
-  "seller.store.emptyMessage":
-    "This store can be public before products are added. Catalog creation begins in Phase 3.",
+  "seller.store.emptyMessage":\n    "Your storefront is ready. Add products from the Products tab to build the public catalog.",
   "seller.store.location": "Location",
   "seller.store.contact": "Contact",
   "seller.store.category": "Category",
@@ -218,11 +217,160 @@ export const enMessages = {
   "seller.more.futureFeature": "Available in a later product phase",
 
   "seller.products.title": "Products",
-  "seller.products.message":
-    "Catalog and inventory are implemented in Phase 3.",
+  "seller.products.message":\n    "Build and manage your real store catalog, variants, images, and inventory.",
   "seller.orders.title": "Orders",
   "seller.orders.message":
     "Order fulfillment is implemented in Phase 8.",
+
+
+  "catalog.phaseBadge": "Catalog & Inventory",
+  "catalog.products.title": "Products",
+  "catalog.products.loading": "Loading your catalog.",
+  "catalog.products.errorTitle": "Catalog unavailable",
+  "catalog.products.description":
+    "Create products, organize categories, manage variants, images, and stock.",
+  "catalog.products.emptyTitle": "No products yet",
+  "catalog.products.emptyMessage":
+    "Create your first product to start building a sellable catalog.",
+  "catalog.usage.title": "Plan usage",
+  "catalog.usage.products": "Products",
+  "catalog.usage.categories": "Active categories",
+
+  "catalog.category.manage": "Manage categories",
+  "catalog.category.title": "Categories",
+  "catalog.category.description":
+    "Organize products with categories and subcategories. Archived categories do not appear publicly.",
+  "catalog.category.create": "Create category",
+  "catalog.category.edit": "Edit category",
+  "catalog.category.name": "Category name",
+  "catalog.category.imageUrl": "Category image URL (optional)",
+  "catalog.category.icon": "Icon name (optional)",
+  "catalog.category.sortOrder": "Sort order",
+  "catalog.category.parent": "Parent category",
+  "catalog.category.noParent": "No parent",
+  "catalog.category.activeList": "Active categories",
+  "catalog.category.archivedList": "Archived categories",
+  "catalog.category.empty": "No active categories yet.",
+  "catalog.category.moveUp": "Move earlier",
+  "catalog.category.moveDown": "Move later",
+  "catalog.category.archive": "Archive category",
+  "catalog.category.restore": "Restore category",
+  "catalog.category.active": "Active",
+  "catalog.category.archived": "Archived",
+
+  "catalog.product.add": "Add product",
+  "catalog.product.needCategory":
+    "Create at least one active category before adding a product.",
+  "catalog.product.manage": "Manage product",
+  "catalog.product.createTitle": "Add a product",
+  "catalog.product.createDescription":
+    "Start with the essentials. Advanced product details stay optional.",
+  "catalog.product.photoUrl": "Product image URL (optional)",
+  "catalog.product.name": "Product name",
+  "catalog.product.category": "Category",
+  "catalog.product.price": "Price (AFN)",
+  "catalog.product.description": "Description",
+  "catalog.product.sku": "SKU",
+  "catalog.product.brand": "Brand",
+  "catalog.product.compareAtPrice": "Old / compare-at price",
+  "catalog.product.barcode": "Barcode",
+  "catalog.product.weight": "Weight (grams)",
+  "catalog.product.dimensions": "Dimensions",
+  "catalog.product.tags": "Tags",
+  "catalog.product.tagsHint": "Separate tags with commas.",
+  "catalog.product.shippingClass": "Shipping class",
+  "catalog.product.deliveryRestrictions": "Delivery restrictions",
+  "catalog.product.moreOptions": "More options",
+  "catalog.product.hideMore": "Hide advanced options",
+  "catalog.product.saveDraft": "Save draft",
+  "catalog.product.createAndPublish": "Create and publish",
+  "catalog.product.details": "Product details",
+  "catalog.product.stateActions": "Product status",
+  "catalog.product.restore": "Restore product",
+  "catalog.product.publish": "Publish product",
+  "catalog.product.archive": "Archive product",
+
+  "catalog.images.title": "Product images",
+  "catalog.images.altText": "Image description (optional)",
+  "catalog.images.add": "Add image",
+  "catalog.images.remove": "Remove image",
+
+  "catalog.variants.title": "Variants",
+  "catalog.variants.add": "Add variant",
+  "catalog.variants.titleField": "Variant title",
+  "catalog.variants.optionName": "Option name",
+  "catalog.variants.optionValue": "Option value",
+  "catalog.variants.priceOverride": "Variant price override",
+  "catalog.variants.imageUrl": "Variant image URL (optional)",
+  "catalog.variants.makeUnavailable": "Mark unavailable",
+  "catalog.variants.makeAvailable": "Mark available",
+  "catalog.variants.remove": "Remove variant",
+
+  "catalog.inventory.title": "Inventory",
+  "catalog.inventory.description":
+    "Track available stock, low-stock items, and inventory adjustments.",
+  "catalog.inventory.loading": "Loading inventory.",
+  "catalog.inventory.emptyTitle": "No inventory yet",
+  "catalog.inventory.emptyMessage":
+    "Add products before managing inventory.",
+  "catalog.inventory.stock": "Available stock",
+  "catalog.inventory.available": "Available",
+  "catalog.inventory.lowStock": "Low stock",
+  "catalog.inventory.lowStockThreshold": "Low-stock threshold",
+  "catalog.inventory.variantCount": "Variants",
+  "catalog.inventory.manage": "Manage inventory",
+  "catalog.inventory.target": "Inventory target",
+  "catalog.inventory.productLevel": "Product-level inventory",
+  "catalog.inventory.adjustment": "Stock adjustment",
+  "catalog.inventory.adjustmentHint":
+    "Use a positive number to add stock or a negative number to remove stock.",
+  "catalog.inventory.reason": "Reason (optional)",
+  "catalog.inventory.apply": "Apply adjustment",
+  "catalog.inventory.history": "View stock history",
+
+  "catalog.status.draft": "Draft",
+  "catalog.status.active": "Active",
+  "catalog.status.outOfStock": "Out of stock",
+  "catalog.status.archived": "Archived",
+  "catalog.status.planRestricted": "Plan restricted",
+
+  "catalog.action.retry": "Try again",
+  "catalog.action.save": "Save",
+  "catalog.action.cancel": "Cancel",
+  "catalog.action.loadMore": "Load more",
+  "catalog.action.backToProducts": "Back to products",
+
+  "catalog.error.invalidRequest": "Check the catalog information and try again.",
+  "catalog.error.invalidSession": "Your session is no longer valid. Please sign in again.",
+  "catalog.error.accountUnavailable": "This account is currently unavailable.",
+  "catalog.error.forbidden": "You do not have permission to manage this catalog.",
+  "catalog.error.rateLimited": "Too many attempts. Please wait and try again.",
+  "catalog.error.storeNotFound": "The seller store could not be found.",
+  "catalog.error.categoryNotFound": "The selected category could not be found.",
+  "catalog.error.categoryLimitReached":
+    "Your current plan has reached its active category limit.",
+  "catalog.error.categoryInUse":
+    "Archive or reassign products in this category before archiving it.",
+  "catalog.error.productNotFound": "The product could not be found.",
+  "catalog.error.productLimitReached":
+    "Your current plan has reached its non-archived product limit.",
+  "catalog.error.productArchived": "Restore this product before publishing it.",
+  "catalog.error.productPlanRestricted":
+    "This product is restricted by the current plan and cannot be published.",
+  "catalog.error.variantNotFound": "The selected variant could not be found.",
+  "catalog.error.imageNotFound": "The selected product image could not be found.",
+  "catalog.error.inventoryTargetInvalid":
+    "Choose a valid product or variant inventory target.",
+  "catalog.error.inventoryWouldBeNegative":
+    "This adjustment would make inventory negative.",
+  "catalog.error.subscriptionUnavailable":
+    "The current subscription does not allow catalog changes.",
+  "catalog.error.serviceUnavailable":
+    "BazaarLink could not reach the catalog service. Check your connection and try again.",
+
+  "storefront.catalogTitle": "Products",
+  "storefront.outOfStock": "Out of stock",
+  "storefront.fromPrice": "From",
 
   "store.error.invalidRequest": "Please check the store information and try again.",
   "store.error.invalidSession": "Your session is no longer valid. Please sign in again.",

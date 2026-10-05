@@ -70,7 +70,14 @@ async function authenticate(
     return await authService.authenticateToken(token);
   } catch (error) {
     if (error instanceof AuthError) {
-      throw new OrderError(error.code, error.statusCode);
+      const code =
+        error.code === "invalid_session" ||
+        error.code === "account_unavailable" ||
+        error.code === "forbidden" ||
+        error.code === "rate_limited"
+          ? error.code
+          : "service_unavailable";
+      throw new OrderError(code, error.statusCode);
     }
     throw error;
   }

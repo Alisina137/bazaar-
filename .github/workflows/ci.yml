@@ -14,7 +14,6 @@ jobs:
       DATABASE_CONNECT_TIMEOUT_SECONDS: "10"
       DATABASE_IDLE_TIMEOUT_SECONDS: "20"
       DATABASE_PREPARE_STATEMENTS: "false"
-      RUN_DATABASE_INTEGRATION_TESTS: "true"
 
     services:
       postgres:
@@ -64,3 +63,6 @@ jobs:
 
       - name: Verify repository
         run: pnpm verify
+
+      - name: Verify database integrations serially
+        run: pnpm test:integration

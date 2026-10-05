@@ -16,7 +16,6 @@ import type {
   UpdateStoreDeliverySettingsInput
 } from "@bazaarlink/contracts";
 import {
-  carts,
   checkoutSessions,
   customerAddresses,
   deliveryDistanceRules,

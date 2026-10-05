@@ -638,6 +638,26 @@ export function registerCatalogRoutes(
     }
   );
 
+  app.get(
+    "/seller/stores/:storeId/inventory/low-stock",
+    async (request, reply) => {
+      const params = storeParamsSchema.safeParse(request.params);
+      if (!params.success) {
+        return reply.code(400).send(catalogErrorBody("invalid_request"));
+      }
+
+      try {
+        const session = await authenticate(request, authService);
+        return await catalogService.lowStock(
+          session.user.id,
+          params.data.storeId
+        );
+      } catch (error) {
+        return sendCatalogError(reply, error);
+      }
+    }
+  );
+
   app.get("/stores/:handle/catalog", async (request, reply) => {
     const params = publicHandleSchema.safeParse(request.params);
     if (!params.success) {

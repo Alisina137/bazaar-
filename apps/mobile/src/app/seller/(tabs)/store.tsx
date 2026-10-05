@@ -27,7 +27,7 @@ export default function SellerStoreScreen() {
   const theme = useAppTheme();
   const { formatNumber, t } = useLocalization();
   const { currentStore, publishStore } = useStores();
-  const { products } = useCatalog();
+  const { products, usage } = useCatalog();
   const [busy, setBusy] = useState(false);
   const [errorKey, setErrorKey] = useState<ReturnType<typeof storeErrorKey> | null>(null);
 
@@ -94,7 +94,7 @@ export default function SellerStoreScreen() {
               : t("catalog.products.description")}
           </AppText>
           <AppText>
-            {t("catalog.usage.products")}: {formatNumber(products.length)}
+            {t("catalog.usage.products")}: {formatNumber(usage?.productCount ?? products.length)}
           </AppText>
 
           <Button

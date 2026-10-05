@@ -295,4 +295,17 @@ describe("CartPricingService", () => {
       statusCode: 409
     });
   });
+  it("rejects a partial map pin when editing a saved address", async () => {
+    const service = new CartPricingService(repository());
+
+    await expect(
+      service.updateAddress(address.userId, address.id, {
+        mapLatitude: 34.5
+      })
+    ).rejects.toMatchObject({
+      code: "invalid_request",
+      statusCode: 400
+    });
+  });
+
 });

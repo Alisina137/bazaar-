@@ -547,7 +547,7 @@ Verified gates include:
 
 ## Current phase
 
-Phase 3 is complete and verified on `phase-03-catalog-inventory`. The remaining delivery action is merge of the Phase 3 pull request into `main`.
+Phase 3 — Catalog & Inventory is complete and verified. Phase 4 — Marketplace is the next product phase after Phase 3 delivery.
 
 ## Last known-good baseline
 

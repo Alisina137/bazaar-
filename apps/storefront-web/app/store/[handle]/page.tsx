@@ -200,6 +200,8 @@ export default async function StorePage({ params }: StorePageProps) {
                       <img
                         src={image.url}
                         alt={image.altText ?? product.name}
+                        loading="lazy"
+                        decoding="async"
                       />
                     ) : (
                       <div

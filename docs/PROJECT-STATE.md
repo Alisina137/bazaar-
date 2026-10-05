@@ -11,8 +11,8 @@
 - Repository: Alisina137/bazaar-
 - Local project root: existing user folder named `bazaar`
 - Default branch: main
-- Active product phase: Phase 1 — Foundation
-- Phase branch: phase-01-foundation
+- Active product phase: Phase 3 — Catalog & Inventory
+- Phase branch: phase-03-catalog-inventory
 - Initial repository state: empty before Phase 1 planning
 - Phase baseline commit: 536d7b575182988cfb31ee9c483fe5f50f19f228
 - Package manager: pnpm 12.6
@@ -358,7 +358,7 @@ Complete and verified. Phase 1 is the recovery baseline for Phase 2.
 
 ### Status
 
-Complete and verified on `phase-02-merchant-store`.
+Complete, verified, and merged into `main`.
 
 ### Product outcomes
 
@@ -437,18 +437,124 @@ The original Phase 2 PR was merged before its final CI gate was green. The corre
 
 CI has been restored to read-only migration verification after recovery.
 
+Post-merge mobile corrections were also delivered:
+- PR #4 surfaced the Phase 2 seller entry point on the customer Home screen.
+- PR #5 added visible customer and seller bottom-navigation icons.
+
+## Phase 3 — Catalog & Inventory
+
+### Status
+
+Complete and verified on `phase-03-catalog-inventory`.
+
+### Product outcomes
+
+- category and subcategory management
+- seller product catalog
+- product images
+- configurable variants
+- product/variant inventory
+- low-stock tracking and stock-adjustment history
+- Starter / Pro / Business catalog-limit enforcement
+- public storefront catalog rendering
+
+### Task plan
+
+- [x] 3.1 Catalog contracts and PostgreSQL schema
+- [x] 3.2 Category hierarchy and plan-aware category management
+- [x] 3.3 Product CRUD, lifecycle, pagination, and plan limits
+- [x] 3.4 Product images and configurable variants
+- [x] 3.5 Product-level and variant-level inventory
+- [x] 3.6 Seller mobile catalog/inventory experience
+- [x] 3.7 Public storefront catalog and Phase 3 regression
+
+### Delivered
+
+- category create, edit, reorder, archive, restore, image/icon metadata, and subcategory parenting
+- active subcategory and product safeguards prevent unsafe category archival
+- Starter active-category limit enforced transactionally; Pro/Business retain unlimited category entitlement
+- complete seller product model with required and advanced fields from Product Specification V1
+- Draft, Active, Out of Stock, Archived, and Plan Restricted product states
+- non-archived product limits enforced transactionally: Starter 15, Pro 300, Business 1,200
+- archived products do not consume the product limit
+- Plan Restricted products are blocked from publication and are excluded from the public catalog
+- paginated seller product listing so large catalogs are not loaded entirely into client state
+- product image metadata management and public storefront images with lazy loading
+- configurable product variants with option values, SKU, price override, image, availability, and independent stock
+- inventory at variant level when variants exist, otherwise at product level
+- database checks and service guards prevent negative inventory
+- stock adjustments persist previous/new quantity and reason in inventory history
+- low-stock thresholds plus a complete seller low-stock endpoint and mobile list
+- reserved-quantity fields are present for the later order-reservation phase without implementing checkout early
+- stock changes automatically transition published products between Active and Out of Stock
+- seller Products tab is now a real catalog dashboard with current plan usage
+- dedicated category, product creation/editing, image, variant, and inventory screens
+- simple-first product creation with optional advanced fields
+- Store and Preview screens now consume live catalog data
+- public published storefront renders active/out-of-stock catalog products while hiding draft, archived, and Plan Restricted products
+- Dari, Pashto, and English Phase 3 localization
+- seller/store ownership boundaries continue to protect catalog mutations
+- real PostgreSQL integration coverage for store ownership, category rules, product publishing, variants, inventory, public visibility, low-stock behavior, and Starter plan limits
+
+### Database migration
+
+- `0003_green_roland_deschain.sql`
+- adds `category_status` and `product_status` enums
+- adds `categories`, `products`, `product_images`, `product_variants`, and `inventory_movements`
+- preserves existing Phase 1/2 data
+- adds store/product/category/variant foreign keys and catalog/inventory indexes
+- adds non-negative price/quantity/threshold constraints
+
+### Acceptance
+
+Passed: a merchant can build a real sellable catalog with categories, products, images, variants, and inventory; publish products into a published storefront; and operate within current subscription limits without loading an entire large catalog into mobile state.
+
+### Verification
+
+GitHub Actions run `37256640268` passed after the complete low-stock API/integration coverage was added.
+
+Verified gates include:
+
+- fresh PostgreSQL 17
+- migration history and schema-drift verification
+- Phase 1 + Phase 2 + Phase 3 migrations
+- live database connectivity
+- ESLint
+- all workspace TypeScript checks
+- database schema tests
+- catalog service rule tests
+- PostgreSQL catalog/inventory lifecycle integration tests
+- cross-owner catalog isolation
+- category-in-use safeguards
+- Starter 5-category limit
+- Starter 15-product limit
+- negative-inventory prevention
+- product stock-state transitions
+- low-stock endpoint
+- public-catalog data projection
+- three-language localization parity and mobile raw-text guard
+- Fastify production build
+- Next.js admin/storefront production builds
+- Expo mobile web export
+
+### Deferred by design
+
+- actual paid subscription upgrade/downgrade activation remains in the Merchant Growth phase; Phase 3 models and enforces the documented current entitlements and Plan Restricted product state without inventing pricing or bypassing the required downgrade grace/merchant-selection flow
+- order reservations are represented by reserved quantities but mutation of reservations belongs to checkout/order phases
+- central marketplace discovery/search/filter/product-detail behavior remains Phase 4
+
 ## Current phase
 
-Phase 2 is complete and verified on the correction branch. The correction PR must be reviewed/merged into `main` before Phase 3 starts.
+Phase 3 is complete and verified on `phase-03-catalog-inventory`. The remaining delivery action is merge of the Phase 3 pull request into `main`.
 
 ## Last known-good baseline
 
-- Branch: `phase-02-merchant-store`
-- Verification run: `37210407024`
+- Branch: `phase-03-catalog-inventory`
+- Verification run: `37256640268`
 
 ## Known external requirements
 
-CI verifies Phase 2 against fresh PostgreSQL 17.
+CI verifies the current catalog baseline against fresh PostgreSQL 17.
 
 Local API/store execution requires a valid `DATABASE_URL` in the root `.env` file. Docker is optional when a hosted PostgreSQL database such as Neon is used.
 

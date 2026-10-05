@@ -760,8 +760,7 @@ export const enMessages = {
     "Build and manage your real store catalog, variants, images, and inventory.",
   "seller.orders.title": "Orders",
   "seller.orders.message":
-    "Receive, confirm, prepare, and fulfill customer orders."
-
+    "Receive, confirm, prepare, and fulfill customer orders.",
 
   "catalog.phaseBadge": "Catalog & Inventory",
   "catalog.products.title": "Products",

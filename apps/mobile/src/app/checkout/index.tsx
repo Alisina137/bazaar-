@@ -14,6 +14,7 @@ import {
 import {
   useCallback,
   useMemo,
+  useRef,
   useState
 } from "react";
 import { View } from "react-native";
@@ -42,6 +43,20 @@ import { deliveryErrorKey } from "@/delivery/messages";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 import { CheckoutPaymentSection } from "@/payment/CheckoutPaymentSection";
+import {
+  OrderApiError,
+  placeOrder
+} from "@/order/api";
+import { orderErrorKey } from "@/order/messages";
+
+function makeOrderIdempotencyKey(sessionId: string): string {
+  return (
+    "order-" +
+    sessionId.replace(/-/g, "").slice(0, 20) +
+    "-" +
+    Date.now().toString(36)
+  );
+}
 
 function unavailableKey(
   reason: DeliveryMerchantQuote["unavailableReason"]
@@ -120,6 +135,9 @@ export default function CheckoutScreen() {
   const [quote, setQuote] =
     useState<DeliveryCheckoutQuoteResponse | null>(null);
   const [paymentReady, setPaymentReady] = useState(false);
+  const [placingOrder, setPlacingOrder] = useState(false);
+  const [orderError, setOrderError] = useState<TranslationKey | null>(null);
+  const orderIdempotencyRef = useRef<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [deliveryLoading, setDeliveryLoading] = useState(false);
   const [quoting, setQuoting] = useState(false);
@@ -157,6 +175,8 @@ export default function CheckoutScreen() {
       setSelectedOptions({});
       setQuote(null);
       setPaymentReady(false);
+      setOrderError(null);
+      orderIdempotencyRef.current = null;
     } catch (error) {
       const safe =
         error instanceof CartPricingApiError
@@ -257,6 +277,10 @@ export default function CheckoutScreen() {
       setQuote(response);
       setCart(response.cart);
       setPaymentReady(false);
+      setOrderError(null);
+      orderIdempotencyRef.current = makeOrderIdempotencyKey(
+        response.sessionId
+      );
     } catch (error) {
       const safe =
         error instanceof DeliveryApiError
@@ -265,6 +289,8 @@ export default function CheckoutScreen() {
       setErrorKey(deliveryErrorKey(safe.code));
       setQuote(null);
       setPaymentReady(false);
+      setOrderError(null);
+      orderIdempotencyRef.current = null;
 
       if (
         safe.code === "delivery_unavailable" ||
@@ -275,6 +301,46 @@ export default function CheckoutScreen() {
       }
     } finally {
       setQuoting(false);
+    }
+  };
+
+  const submitOrder = async () => {
+    if (!sessionToken || !quote || !paymentReady) {
+      setOrderError("order.error.paymentNotReady");
+      return;
+    }
+
+    setPlacingOrder(true);
+    setOrderError(null);
+
+    try {
+      const idempotencyKey =
+        orderIdempotencyRef.current ??
+        makeOrderIdempotencyKey(quote.sessionId);
+      orderIdempotencyRef.current = idempotencyKey;
+
+      await placeOrder(sessionToken, {
+        checkoutSessionId: quote.sessionId,
+        idempotencyKey
+      });
+
+      router.replace("/(tabs)/orders");
+    } catch (error) {
+      const safe =
+        error instanceof OrderApiError
+          ? error
+          : new OrderApiError("service_unavailable");
+      setOrderError(orderErrorKey(safe.code));
+
+      if (
+        safe.code === "checkout_unavailable" ||
+        safe.code === "inventory_unavailable" ||
+        safe.code === "payment_not_ready"
+      ) {
+        orderIdempotencyRef.current = null;
+      }
+    } finally {
+      setPlacingOrder(false);
     }
   };
 
@@ -632,11 +698,23 @@ export default function CheckoutScreen() {
                   ? t("payment.customer.reviewReady")
                   : t("payment.customer.reviewBlocked")}
               </AppText>
-              <Button fullWidth disabled>
-                {t("checkout.placeOrderBlocked")}
+              {orderError ? (
+                <AppText tone="danger">{t(orderError)}</AppText>
+              ) : null}
+              <Button
+                fullWidth
+                loading={placingOrder}
+                disabled={!paymentReady || placingOrder}
+                onPress={() => {
+                  void submitOrder();
+                }}
+              >
+                {placingOrder
+                  ? t("order.customer.placingOrder")
+                  : t("order.customer.placeOrder")}
               </Button>
               <AppText variant="caption" tone="muted">
-                {t("checkout.orderBoundary")}
+                {t("order.customer.placeOrderHint")}
               </AppText>
             </View>
           </Card>
@@ -791,7 +869,7 @@ function CheckoutSteps({
           ["2", "checkout.step.delivery", deliveryReady],
           ["3", "checkout.step.payment", paymentReady],
           ["4", "checkout.step.review", paymentReady],
-          ["5", "checkout.step.placeOrder", false]
+          ["5", "checkout.step.placeOrder", paymentReady]
         ].map(([number, key, ready]) => (
           <View
             key={String(key)}

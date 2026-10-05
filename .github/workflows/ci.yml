@@ -4,9 +4,6 @@ on:
   push:
   pull_request:
 
-permissions:
-  contents: write
-
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -54,21 +51,10 @@ jobs:
       - name: Verify migration history
         run: pnpm db:check
 
-      - name: Generate database migrations
-        run: pnpm db:generate
-
-      - name: Commit generated migration artifacts
-        run: |
-          if [ -n "$(git status --porcelain -- packages/database/drizzle)" ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add packages/database/drizzle
-            git commit -m "chore(db): add Phase 7 payment migration"
-            git push origin HEAD:main
-          fi
-
       - name: Verify schema has committed migrations
-        run: git diff --exit-code -- packages/database/drizzle
+        run: |
+          pnpm db:generate
+          git diff --exit-code -- packages/database/drizzle
 
       - name: Apply database migrations
         run: pnpm db:migrate

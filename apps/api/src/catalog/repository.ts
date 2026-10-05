@@ -155,6 +155,18 @@ export interface CatalogRepository {
     delta: number,
     reason: string | null
   ): Promise<InventoryMovementRecord>;
+  reserveInventory(
+    storeId: string,
+    productId: string,
+    variantId: string | null,
+    quantity: number
+  ): Promise<void>;
+  releaseInventory(
+    storeId: string,
+    productId: string,
+    variantId: string | null,
+    quantity: number
+  ): Promise<void>;
   inventoryHistory(
     storeId: string,
     productId: string
@@ -1011,99 +1023,141 @@ export class DatabaseCatalogRepository implements CatalogRepository {
     reason: string | null
   ): Promise<InventoryMovementRecord> {
     const movement = await this.db.transaction(async (tx) => {
-      const [product] = await tx
-        .select()
-        .from(products)
-        .where(
-          and(
-            eq(products.storeId, storeId),
-            eq(products.id, productId)
+      if (variantId) {
+        const [updated] = await tx
+          .update(productVariants)
+          .set({
+            availableQuantity: sql`${productVariants.availableQuantity} + ${delta}`,
+            updatedAt: new Date()
+          })
+          .where(
+            and(
+              eq(productVariants.id, variantId),
+              eq(productVariants.productId, productId),
+              sql`${productVariants.availableQuantity} + ${delta} >= ${productVariants.reservedQuantity}`,
+              sql`exists (
+                select 1 from ${products}
+                where ${products.id} = ${productId}
+                  and ${products.storeId} = ${storeId}
+                  and ${products.id} = ${productVariants.productId}
+              )`
+            )
           )
-        )
-        .limit(1);
+          .returning({
+            newQuantity: productVariants.availableQuantity
+          });
 
-      if (!product) {
+        if (!updated) {
+          const [variant] = await tx
+            .select({
+              id: productVariants.id,
+              availableQuantity: productVariants.availableQuantity,
+              reservedQuantity: productVariants.reservedQuantity
+            })
+            .from(productVariants)
+            .innerJoin(products, eq(products.id, productVariants.productId))
+            .where(
+              and(
+                eq(productVariants.id, variantId),
+                eq(productVariants.productId, productId),
+                eq(products.storeId, storeId)
+              )
+            )
+            .limit(1);
+
+          if (!variant) {
+            throw new CatalogRepositoryInventoryError(
+              "inventory_target_invalid"
+            );
+          }
+
+          throw new CatalogRepositoryInventoryError(
+            "inventory_would_be_negative"
+          );
+        }
+
+        const previousQuantity = updated.newQuantity - delta;
+        const [row] = await tx
+          .insert(inventoryMovements)
+          .values({
+            storeId,
+            productId,
+            variantId,
+            delta,
+            previousQuantity,
+            newQuantity: updated.newQuantity,
+            reason
+          })
+          .returning();
+
+        if (!row) {
+          throw new Error("inventory_movement_insert_failed");
+        }
+
+        return row;
+      }
+
+      const [variantUsage] = await tx
+        .select({ value: count() })
+        .from(productVariants)
+        .where(eq(productVariants.productId, productId));
+
+      if ((variantUsage?.value ?? 0) > 0) {
         throw new CatalogRepositoryInventoryError(
           "inventory_target_invalid"
         );
       }
 
-      let previousQuantity: number;
-      let newQuantity: number;
+      const [updated] = await tx
+        .update(products)
+        .set({
+          availableQuantity: sql`${products.availableQuantity} + ${delta}`,
+          updatedAt: new Date()
+        })
+        .where(
+          and(
+            eq(products.storeId, storeId),
+            eq(products.id, productId),
+            sql`${products.availableQuantity} + ${delta} >= ${products.reservedQuantity}`
+          )
+        )
+        .returning({
+          newQuantity: products.availableQuantity
+        });
 
-      if (variantId) {
-        const [variant] = await tx
-          .select()
-          .from(productVariants)
+      if (!updated) {
+        const [product] = await tx
+          .select({ id: products.id })
+          .from(products)
           .where(
             and(
-              eq(productVariants.id, variantId),
-              eq(productVariants.productId, productId)
+              eq(products.storeId, storeId),
+              eq(products.id, productId)
             )
           )
           .limit(1);
 
-        if (!variant) {
+        if (!product) {
           throw new CatalogRepositoryInventoryError(
             "inventory_target_invalid"
           );
         }
 
-        previousQuantity = variant.availableQuantity;
-        newQuantity = previousQuantity + delta;
-
-        if (newQuantity < 0) {
-          throw new CatalogRepositoryInventoryError(
-            "inventory_would_be_negative"
-          );
-        }
-
-        await tx
-          .update(productVariants)
-          .set({
-            availableQuantity: newQuantity,
-            updatedAt: new Date()
-          })
-          .where(eq(productVariants.id, variantId));
-      } else {
-        const [variantUsage] = await tx
-          .select({ value: count() })
-          .from(productVariants)
-          .where(eq(productVariants.productId, productId));
-
-        if ((variantUsage?.value ?? 0) > 0) {
-          throw new CatalogRepositoryInventoryError(
-            "inventory_target_invalid"
-          );
-        }
-
-        previousQuantity = product.availableQuantity;
-        newQuantity = previousQuantity + delta;
-
-        if (newQuantity < 0) {
-          throw new CatalogRepositoryInventoryError(
-            "inventory_would_be_negative"
-          );
-        }
-
-        await tx
-          .update(products)
-          .set({
-            availableQuantity: newQuantity,
-            updatedAt: new Date()
-          })
-          .where(eq(products.id, productId));
+        throw new CatalogRepositoryInventoryError(
+          "inventory_would_be_negative"
+        );
       }
 
+      const previousQuantity = updated.newQuantity - delta;
       const [row] = await tx
         .insert(inventoryMovements)
         .values({
           storeId,
           productId,
-          variantId,
+          variantId: null,
           delta,
           previousQuantity,
-          newQuantity,
+          newQuantity: updated.newQuantity,
           reason
         })
         .returning();
@@ -1116,6 +1170,142 @@ export class DatabaseCatalogRepository implements CatalogRepository {
     });
 
     return toMovementRecord(movement);
+  }
+
+  async reserveInventory(
+    storeId: string,
+    productId: string,
+    variantId: string | null,
+    quantity: number
+  ): Promise<void> {
+    const updated = await this.db.transaction(async (tx) => {
+      if (variantId) {
+        const [row] = await tx
+          .update(productVariants)
+          .set({
+            reservedQuantity: sql`${productVariants.reservedQuantity} + ${quantity}`,
+            updatedAt: new Date()
+          })
+          .where(
+            and(
+              eq(productVariants.id, variantId),
+              eq(productVariants.productId, productId),
+              sql`${productVariants.availableQuantity} - ${productVariants.reservedQuantity} >= ${quantity}`,
+              sql`exists (
+                select 1 from ${products}
+                where ${products.id} = ${productId}
+                  and ${products.storeId} = ${storeId}
+                  and ${products.id} = ${productVariants.productId}
+              )`
+            )
+          )
+          .returning({ id: productVariants.id });
+
+        return row;
+      }
+
+      const [variantUsage] = await tx
+        .select({ value: count() })
+        .from(productVariants)
+        .where(eq(productVariants.productId, productId));
+
+      if ((variantUsage?.value ?? 0) > 0) {
+        throw new CatalogRepositoryInventoryError(
+          "inventory_target_invalid"
+        );
+      }
+
+      const [row] = await tx
+        .update(products)
+        .set({
+          reservedQuantity: sql`${products.reservedQuantity} + ${quantity}`,
+          updatedAt: new Date()
+        })
+        .where(
+          and(
+            eq(products.storeId, storeId),
+            eq(products.id, productId),
+            sql`${products.availableQuantity} - ${products.reservedQuantity} >= ${quantity}`
+          )
+        )
+        .returning({ id: products.id });
+
+      return row;
+    });
+
+    if (!updated) {
+      throw new CatalogRepositoryInventoryError(
+        "inventory_would_be_negative"
+      );
+    }
+  }
+
+  async releaseInventory(
+    storeId: string,
+    productId: string,
+    variantId: string | null,
+    quantity: number
+  ): Promise<void> {
+    const updated = await this.db.transaction(async (tx) => {
+      if (variantId) {
+        const [row] = await tx
+          .update(productVariants)
+          .set({
+            reservedQuantity: sql`${productVariants.reservedQuantity} - ${quantity}`,
+            updatedAt: new Date()
+          })
+          .where(
+            and(
+              eq(productVariants.id, variantId),
+              eq(productVariants.productId, productId),
+              sql`${productVariants.reservedQuantity} >= ${quantity}`,
+              sql`exists (
+                select 1 from ${products}
+                where ${products.id} = ${productId}
+                  and ${products.storeId} = ${storeId}
+                  and ${products.id} = ${productVariants.productId}
+              )`
+            )
+          )
+          .returning({ id: productVariants.id });
+
+        return row;
+      }
+
+      const [variantUsage] = await tx
+        .select({ value: count() })
+        .from(productVariants)
+        .where(eq(productVariants.productId, productId));
+
+      if ((variantUsage?.value ?? 0) > 0) {
+        throw new CatalogRepositoryInventoryError(
+          "inventory_target_invalid"
+        );
+      }
+
+      const [row] = await tx
+        .update(products)
+        .set({
+          reservedQuantity: sql`${products.reservedQuantity} - ${quantity}`,
+          updatedAt: new Date()
+        })
+        .where(
+          and(
+            eq(products.storeId, storeId),
+            eq(products.id, productId),
+            sql`${products.reservedQuantity} >= ${quantity}`
+          )
+        )
+        .returning({ id: products.id });
+
+      return row;
+    });
+
+    if (!updated) {
+      throw new CatalogRepositoryInventoryError(
+        "inventory_would_be_negative"
+      );
+    }
   }
 
   async inventoryHistory(

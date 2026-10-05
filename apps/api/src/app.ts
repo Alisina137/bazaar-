@@ -4,6 +4,8 @@ import Fastify from "fastify";
 import {
   registerAuthRoutes
 } from "./auth/routes.js";
+import { registerCatalogRoutes } from "./catalog/routes.js";
+import type { CatalogServiceContract } from "./catalog/service.js";
 import type {
   AuthServiceContract
 } from "./auth/service.js";
@@ -14,6 +16,7 @@ export interface AppDependencies {
   databaseHealthCheck?: () => Promise<void>;
   authService?: AuthServiceContract;
   storeService?: StoreServiceContract;
+  catalogService?: CatalogServiceContract;
 }
 
 export function buildApp(
@@ -90,6 +93,14 @@ export function buildApp(
           securedApp,
           dependencies.authService!,
           dependencies.storeService
+        );
+      }
+
+      if (dependencies.catalogService) {
+        registerCatalogRoutes(
+          securedApp,
+          dependencies.authService!,
+          dependencies.catalogService
         );
       }
     });

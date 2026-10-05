@@ -358,6 +358,11 @@ export const faAfMessages = {
   "catalog.product.photoUrl": "آدرس تصویر محصول (اختیاری)",
   "catalog.product.name": "نام محصول",
   "catalog.product.category": "دسته",
+  "catalog.product.marketplaceCategory": "دسته‌بندی بازار",
+  "catalog.product.marketplaceCategoryHint":
+    "برای جستجوی بهتر، دسته‌بندی داخلی فروشگاه را به دسته‌بندی مشترک بازارلینک وصل کنید.",
+  "catalog.product.marketplaceCategoryNone": "بدون دسته‌بندی بازار",
+
   "catalog.product.price": "قیمت (افغانی)",
   "catalog.product.description": "توضیحات",
   "catalog.product.sku": "SKU",

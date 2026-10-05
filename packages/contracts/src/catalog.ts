@@ -201,6 +201,21 @@ export interface InventoryHistoryResponse {
   movements: InventoryMovementRecord[];
 }
 
+export interface InventoryLowStockItem {
+  productId: string;
+  productName: string;
+  variantId: string | null;
+  variantTitle: string | null;
+  availableQuantity: number;
+  reservedQuantity: number;
+  lowStockThreshold: number;
+}
+
+export interface InventoryLowStockResponse {
+  items: InventoryLowStockItem[];
+}
+
+
 export interface PublicCatalogCategory {
   id: string;
   parentId: string | null;

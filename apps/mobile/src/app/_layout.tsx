@@ -34,6 +34,7 @@ function RootNavigator() {
         }}
       >
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="marketplace" />
         <Stack.Screen name="seller" />
       </Stack>
     </>

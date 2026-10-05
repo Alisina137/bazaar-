@@ -291,9 +291,10 @@ export function CatalogProvider({ children }: PropsWithChildren) {
         input
       );
       replaceProduct(product);
+      await refresh();
       return product;
     },
-    [credentials, replaceProduct]
+    [credentials, refresh, replaceProduct]
   );
 
   const mutateProductStatus = useCallback(
@@ -355,9 +356,10 @@ export function CatalogProvider({ children }: PropsWithChildren) {
         input
       );
       replaceProduct(product);
+      await refresh();
       return product;
     },
-    [credentials, replaceProduct]
+    [credentials, refresh, replaceProduct]
   );
 
   const updateVariant = useCallback(
@@ -375,9 +377,10 @@ export function CatalogProvider({ children }: PropsWithChildren) {
         input
       );
       replaceProduct(product);
+      await refresh();
       return product;
     },
-    [credentials, replaceProduct]
+    [credentials, refresh, replaceProduct]
   );
 
   const deleteVariant = useCallback(
@@ -390,9 +393,10 @@ export function CatalogProvider({ children }: PropsWithChildren) {
         variantId
       );
       replaceProduct(product);
+      await refresh();
       return product;
     },
-    [credentials, replaceProduct]
+    [credentials, refresh, replaceProduct]
   );
 
   const adjustInventory = useCallback(
@@ -405,9 +409,10 @@ export function CatalogProvider({ children }: PropsWithChildren) {
         input
       );
       replaceProduct(product);
+      await refresh();
       return product;
     },
-    [credentials, replaceProduct]
+    [credentials, refresh, replaceProduct]
   );
 
   const inventoryHistory = useCallback(

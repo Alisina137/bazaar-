@@ -81,6 +81,7 @@ export interface PaymentAttemptRecord {
   userId: string;
   checkoutSessionId: string;
   storeId: string;
+  orderId: string | null;
   method: PaymentMethod;
   provider: PaymentProvider;
   state: PaymentState;

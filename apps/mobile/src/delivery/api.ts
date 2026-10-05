@@ -8,7 +8,6 @@ import type {
   DeliveryErrorResponse,
   DeliveryOptionsResponse,
   StoreDeliveryConfigurationResponse,
-  UpdateDeliveryDistanceRuleInput,
   UpdateDeliverySpeedInput,
   UpdateDeliveryZoneInput,
   UpdateStoreDeliverySettingsInput

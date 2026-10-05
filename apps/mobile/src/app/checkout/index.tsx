@@ -41,6 +41,7 @@ import {
 import { deliveryErrorKey } from "@/delivery/messages";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
+import { CheckoutPaymentSection } from "@/payment/CheckoutPaymentSection";
 
 function unavailableKey(
   reason: DeliveryMerchantQuote["unavailableReason"]
@@ -118,6 +119,7 @@ export default function CheckoutScreen() {
   >({});
   const [quote, setQuote] =
     useState<DeliveryCheckoutQuoteResponse | null>(null);
+  const [paymentReady, setPaymentReady] = useState(false);
   const [loading, setLoading] = useState(false);
   const [deliveryLoading, setDeliveryLoading] = useState(false);
   const [quoting, setQuoting] = useState(false);
@@ -154,6 +156,7 @@ export default function CheckoutScreen() {
       setDelivery(null);
       setSelectedOptions({});
       setQuote(null);
+      setPaymentReady(false);
     } catch (error) {
       const safe =
         error instanceof CartPricingApiError
@@ -198,6 +201,7 @@ export default function CheckoutScreen() {
     setDeliveryLoading(true);
     setErrorKey(null);
     setQuote(null);
+    setPaymentReady(false);
     setSelectedOptions({});
 
     try {
@@ -252,6 +256,7 @@ export default function CheckoutScreen() {
 
       setQuote(response);
       setCart(response.cart);
+      setPaymentReady(false);
     } catch (error) {
       const safe =
         error instanceof DeliveryApiError
@@ -259,6 +264,7 @@ export default function CheckoutScreen() {
           : new DeliveryApiError("service_unavailable");
       setErrorKey(deliveryErrorKey(safe.code));
       setQuote(null);
+      setPaymentReady(false);
 
       if (
         safe.code === "delivery_unavailable" ||
@@ -277,6 +283,7 @@ export default function CheckoutScreen() {
     setDelivery(null);
     setSelectedOptions({});
     setQuote(null);
+    setPaymentReady(false);
     setErrorKey(null);
   };
 
@@ -368,7 +375,10 @@ export default function CheckoutScreen() {
         <AppText tone="muted">{t("checkout.description")}</AppText>
       </View>
 
-      <CheckoutSteps deliveryReady={Boolean(quote)} />
+      <CheckoutSteps
+        deliveryReady={Boolean(quote)}
+        paymentReady={paymentReady}
+      />
 
       {errorKey ? (
         <Card>
@@ -606,20 +616,11 @@ export default function CheckoutScreen() {
             </View>
           </Card>
 
-          <Card>
-            <View style={{ gap: theme.spacing.md }}>
-              <AppText variant="title">
-                {t("checkout.step.payment")}
-              </AppText>
-              <Badge
-                label={t("checkout.pendingPhase7")}
-                tone="warning"
-              />
-              <AppText tone="muted">
-                {t("checkout.paymentBoundary")}
-              </AppText>
-            </View>
-          </Card>
+          <CheckoutPaymentSection
+            token={sessionToken}
+            quote={quote}
+            onPaymentReady={setPaymentReady}
+          />
 
           <Card muted>
             <View style={{ gap: theme.spacing.md }}>
@@ -627,7 +628,9 @@ export default function CheckoutScreen() {
                 {t("checkout.step.review")}
               </AppText>
               <AppText tone="muted">
-                {t("delivery.customer.reviewReady")}
+                {paymentReady
+                  ? t("payment.customer.reviewReady")
+                  : t("payment.customer.reviewBlocked")}
               </AppText>
               <Button fullWidth disabled>
                 {t("checkout.placeOrderBlocked")}
@@ -770,7 +773,13 @@ function DeliveryGroupCard({
   );
 }
 
-function CheckoutSteps({ deliveryReady }: { deliveryReady: boolean }) {
+function CheckoutSteps({
+  deliveryReady,
+  paymentReady
+}: {
+  deliveryReady: boolean;
+  paymentReady: boolean;
+}) {
   const theme = useAppTheme();
   const { t } = useLocalization();
 
@@ -780,8 +789,8 @@ function CheckoutSteps({ deliveryReady }: { deliveryReady: boolean }) {
         {[
           ["1", "checkout.step.address", true],
           ["2", "checkout.step.delivery", deliveryReady],
-          ["3", "checkout.step.payment", false],
-          ["4", "checkout.step.review", false],
+          ["3", "checkout.step.payment", paymentReady],
+          ["4", "checkout.step.review", paymentReady],
           ["5", "checkout.step.placeOrder", false]
         ].map(([number, key, ready]) => (
           <View

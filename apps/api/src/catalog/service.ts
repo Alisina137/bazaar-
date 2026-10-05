@@ -9,6 +9,7 @@ import type {
   CreateProductVariantInput,
   InventoryAdjustmentInput,
   InventoryHistoryResponse,
+  InventoryReservationInput,
   InventoryLowStockResponse,
   ProductListResponse,
   ProductStatus,
@@ -128,6 +129,18 @@ export interface CatalogServiceContract {
     storeId: string,
     productId: string,
     input: InventoryAdjustmentInput
+  ): Promise<CatalogProductRecord>;
+  reserveInventory(
+    ownerUserId: string,
+    storeId: string,
+    productId: string,
+    input: InventoryReservationInput
+  ): Promise<CatalogProductRecord>;
+  releaseInventory(
+    ownerUserId: string,
+    storeId: string,
+    productId: string,
+    input: InventoryReservationInput
   ): Promise<CatalogProductRecord>;
   inventoryHistory(
     ownerUserId: string,
@@ -883,6 +896,62 @@ export class CatalogService implements CatalogServiceContract {
       if (error instanceof CatalogRepositoryInventoryError) {
         throw new CatalogError(error.code, 409);
       }
+      throw error;
+    }
+
+    return this.syncPublishedStockStatus(storeId, productId);
+  }
+
+  async reserveInventory(
+    ownerUserId: string,
+    storeId: string,
+    productId: string,
+    input: InventoryReservationInput
+  ): Promise<CatalogProductRecord> {
+    const access = await this.requireStore(ownerUserId, storeId);
+    this.requireWritableSubscription(access);
+    await this.requireProduct(storeId, productId);
+
+    try {
+      await this.repository.reserveInventory(
+        storeId,
+        productId,
+        input.variantId ?? null,
+        input.quantity
+      );
+    } catch (error) {
+      if (error instanceof CatalogRepositoryInventoryError) {
+        throw new CatalogError(error.code, 409);
+      }
+
+      throw error;
+    }
+
+    return this.syncPublishedStockStatus(storeId, productId);
+  }
+
+  async releaseInventory(
+    ownerUserId: string,
+    storeId: string,
+    productId: string,
+    input: InventoryReservationInput
+  ): Promise<CatalogProductRecord> {
+    const access = await this.requireStore(ownerUserId, storeId);
+    this.requireWritableSubscription(access);
+    await this.requireProduct(storeId, productId);
+
+    try {
+      await this.repository.releaseInventory(
+        storeId,
+        productId,
+        input.variantId ?? null,
+        input.quantity
+      );
+    } catch (error) {
+      if (error instanceof CatalogRepositoryInventoryError) {
+        throw new CatalogError(error.code, 409);
+      }
+
       throw error;
     }
 

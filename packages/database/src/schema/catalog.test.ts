@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 import {
   categories,
   inventoryMovements,
+  marketplaceProductMetrics,
+  platformCategories,
   productImages,
   products,
   productVariants
@@ -12,7 +14,9 @@ import {
 describe("catalog schema", () => {
   it("uses stable catalog table names", () => {
     expect(getTableName(categories)).toBe("categories");
+    expect(getTableName(platformCategories)).toBe("platform_categories");
     expect(getTableName(products)).toBe("products");
+    expect(getTableName(marketplaceProductMetrics)).toBe("marketplace_product_metrics");
     expect(getTableName(productImages)).toBe("product_images");
     expect(getTableName(productVariants)).toBe("product_variants");
     expect(getTableName(inventoryMovements)).toBe("inventory_movements");
@@ -29,6 +33,8 @@ describe("catalog schema", () => {
     expect(categories.storeId.dataType).toBe("string");
     expect(products.storeId.dataType).toBe("string");
     expect(products.categoryId.dataType).toBe("string");
+    expect(products.marketplaceCategoryId.dataType).toBe("string");
+    expect(platformCategories.id.dataType).toBe("string");
     expect(productVariants.productId.dataType).toBe("string");
   });
 });

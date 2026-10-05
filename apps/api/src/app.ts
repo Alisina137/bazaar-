@@ -9,6 +9,8 @@ import type { CatalogServiceContract } from "./catalog/service.js";
 import type {
   AuthServiceContract
 } from "./auth/service.js";
+import { registerMarketplaceRoutes } from "./marketplace/routes.js";
+import type { MarketplaceServiceContract } from "./marketplace/service.js";
 import { registerStoreRoutes } from "./store/routes.js";
 import type { StoreServiceContract } from "./store/service.js";
 
@@ -17,6 +19,7 @@ export interface AppDependencies {
   authService?: AuthServiceContract;
   storeService?: StoreServiceContract;
   catalogService?: CatalogServiceContract;
+  marketplaceService?: MarketplaceServiceContract;
 }
 
 export function buildApp(
@@ -53,6 +56,19 @@ export function buildApp(
       });
     }
   });
+
+  if (dependencies.marketplaceService) {
+    app.register(async (publicMarketplaceApp) => {
+      await publicMarketplaceApp.register(rateLimit, {
+        global: false
+      });
+
+      registerMarketplaceRoutes(
+        publicMarketplaceApp,
+        dependencies.marketplaceService!
+      );
+    });
+  }
 
   if (dependencies.authService) {
     app.register(async (securedApp) => {

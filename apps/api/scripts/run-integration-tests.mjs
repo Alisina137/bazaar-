@@ -12,6 +12,7 @@ const result = spawnSync(
     "src/auth/auth.integration.test.ts",
     "src/store/store.integration.test.ts",
     "src/catalog/catalog.integration.test.ts",
+    "src/marketplace/marketplace.integration.test.ts",
     "--no-file-parallelism"
   ],
   {

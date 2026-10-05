@@ -350,6 +350,18 @@ export class CatalogService implements CatalogServiceContract {
     };
   }
 
+  private async requireMarketplaceCategory(
+    categoryId: string | null | undefined
+  ): Promise<void> {
+    if (!categoryId) {
+      return;
+    }
+
+    if (!(await this.repository.marketplaceCategoryExists(categoryId))) {
+      throw new CatalogError("category_not_found", 404);
+    }
+  }
+
   private async requireActiveCategory(
     storeId: string,
     categoryId: string
@@ -630,6 +642,7 @@ export class CatalogService implements CatalogServiceContract {
     const access = await this.requireStore(ownerUserId, storeId);
     this.requireWritableSubscription(access);
     await this.requireActiveCategory(storeId, input.categoryId);
+    await this.requireMarketplaceCategory(input.marketplaceCategoryId);
 
     const normalized = normalizeProductInput(input);
     validateCompareAt(normalized.price, normalized.compareAtPrice);
@@ -663,6 +676,10 @@ export class CatalogService implements CatalogServiceContract {
 
     if (input.categoryId !== undefined) {
       await this.requireActiveCategory(storeId, input.categoryId);
+    }
+
+    if (input.marketplaceCategoryId !== undefined) {
+      await this.requireMarketplaceCategory(input.marketplaceCategoryId);
     }
 
     const normalized = normalizeProductUpdate(input);

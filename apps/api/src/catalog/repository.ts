@@ -19,6 +19,7 @@ import type {
 import {
   categories,
   inventoryMovements,
+  platformCategories,
   productImages,
   products,
   productVariants,
@@ -84,6 +85,7 @@ export interface CatalogRepository {
     storeId: string,
     categoryId: string
   ): Promise<CatalogCategoryRecord | null>;
+  marketplaceCategoryExists(categoryId: string): Promise<boolean>;
   createCategory(
     storeId: string,
     input: CreateCategoryInput,
@@ -243,6 +245,7 @@ function toProductRecord(
     id: row.id,
     storeId: row.storeId,
     categoryId: row.categoryId,
+    marketplaceCategoryId: row.marketplaceCategoryId,
     name: row.name,
     description: row.description,
     price: Number(row.price),
@@ -344,6 +347,21 @@ export class DatabaseCatalogRepository implements CatalogRepository {
       );
 
     return rows.map(toCategoryRecord);
+  }
+
+  async marketplaceCategoryExists(categoryId: string): Promise<boolean> {
+    const [row] = await this.db
+      .select({ id: platformCategories.id })
+      .from(platformCategories)
+      .where(
+        and(
+          eq(platformCategories.id, categoryId),
+          eq(platformCategories.active, true)
+        )
+      )
+      .limit(1);
+
+    return Boolean(row);
   }
 
   async countActiveCategories(storeId: string): Promise<number> {
@@ -657,6 +675,7 @@ export class DatabaseCatalogRepository implements CatalogRepository {
       const values: NewCatalogProduct = {
         storeId,
         categoryId: input.categoryId,
+        marketplaceCategoryId: input.marketplaceCategoryId ?? null,
         name: input.name,
         description: input.description ?? null,
         price: numberToDecimal(input.price),
@@ -768,6 +787,9 @@ export class DatabaseCatalogRepository implements CatalogRepository {
 
     if (input.name !== undefined) changes.name = input.name;
     if (input.categoryId !== undefined) changes.categoryId = input.categoryId;
+    if (input.marketplaceCategoryId !== undefined) {
+      changes.marketplaceCategoryId = input.marketplaceCategoryId;
+    }
     if (input.price !== undefined) changes.price = numberToDecimal(input.price);
     if (input.description !== undefined) changes.description = input.description;
     if (input.sku !== undefined) changes.sku = input.sku;

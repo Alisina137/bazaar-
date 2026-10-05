@@ -9,6 +9,7 @@ import {
   pgEnum,
   pgTable,
   text,
+  uniqueIndex,
   timestamp,
   uuid,
   varchar,
@@ -29,6 +30,43 @@ export const productStatus = pgEnum("product_status", [
   "archived",
   "plan_restricted"
 ]);
+
+export const platformCategories = pgTable(
+  "platform_categories",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    parentId: uuid("parent_id").references(
+      (): AnyPgColumn => platformCategories.id,
+      { onDelete: "restrict" }
+    ),
+    slug: varchar("slug", { length: 100 }).notNull(),
+    nameFa: varchar("name_fa", { length: 120 }).notNull(),
+    namePs: varchar("name_ps", { length: 120 }).notNull(),
+    nameEn: varchar("name_en", { length: 120 }).notNull(),
+    imageUrl: text("image_url"),
+    icon: varchar("icon", { length: 80 }),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    active: boolean("active").default(true).notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date"
+    })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "date"
+    })
+      .defaultNow()
+      .notNull()
+  },
+  (table) => [
+    index("platform_categories_parent_id_idx").on(table.parentId),
+    index("platform_categories_sort_idx").on(table.sortOrder),
+    index("platform_categories_active_idx").on(table.active),
+    uniqueIndex("platform_categories_slug_uidx").on(table.slug)
+  ]
+);
 
 export const categories = pgTable(
   "categories",
@@ -77,6 +115,10 @@ export const products = pgTable(
     categoryId: uuid("category_id")
       .notNull()
       .references(() => categories.id, { onDelete: "restrict" }),
+    marketplaceCategoryId: uuid("marketplace_category_id").references(
+      () => platformCategories.id,
+      { onDelete: "set null" }
+    ),
     name: varchar("name", { length: 180 }).notNull(),
     description: text("description"),
     price: numeric("price", { precision: 14, scale: 2 }).notNull(),
@@ -113,7 +155,10 @@ export const products = pgTable(
   (table) => [
     index("products_store_id_idx").on(table.storeId),
     index("products_category_id_idx").on(table.categoryId),
+    index("products_marketplace_category_idx").on(table.marketplaceCategoryId),
     index("products_status_idx").on(table.status),
+    index("products_price_idx").on(table.price),
+    index("products_published_at_idx").on(table.publishedAt),
     index("products_store_created_idx").on(table.storeId, table.createdAt),
     check("products_price_nonnegative", sql`${table.price} >= 0`),
     check(
@@ -207,6 +252,31 @@ export const productVariants = pgTable(
   ]
 );
 
+
+export const marketplaceProductMetrics = pgTable(
+  "marketplace_product_metrics",
+  {
+    productId: uuid("product_id")
+      .primaryKey()
+      .references(() => products.id, { onDelete: "cascade" }),
+    viewCount: integer("view_count").default(0).notNull(),
+    lastViewedAt: timestamp("last_viewed_at", {
+      withTimezone: true,
+      mode: "date"
+    }),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "date"
+    })
+      .defaultNow()
+      .notNull()
+  },
+  (table) => [
+    index("marketplace_product_metrics_view_count_idx").on(table.viewCount),
+    index("marketplace_product_metrics_last_viewed_idx").on(table.lastViewedAt)
+  ]
+);
+
 export const inventoryMovements = pgTable(
   "inventory_movements",
   {
@@ -239,6 +309,10 @@ export const inventoryMovements = pgTable(
   ]
 );
 
+export type PlatformCategory = typeof platformCategories.$inferSelect;
+export type NewPlatformCategory = typeof platformCategories.$inferInsert;
+export type MarketplaceProductMetric = typeof marketplaceProductMetrics.$inferSelect;
+export type NewMarketplaceProductMetric = typeof marketplaceProductMetrics.$inferInsert;
 export type CatalogCategory = typeof categories.$inferSelect;
 export type NewCatalogCategory = typeof categories.$inferInsert;
 export type CatalogProduct = typeof products.$inferSelect;

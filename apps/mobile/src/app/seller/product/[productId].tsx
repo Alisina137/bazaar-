@@ -1,6 +1,7 @@
 import type {
   CatalogProductRecord,
-  InventoryMovementRecord
+  InventoryMovementRecord,
+  MarketplaceCategoryRecord
 } from "@bazaarlink/contracts";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -26,6 +27,18 @@ import {
 } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
+import { marketplaceCategories } from "@/marketplace/api";
+
+function marketplaceCategoryName(
+  category: MarketplaceCategoryRecord,
+  locale: "fa-AF" | "ps-AF" | "en"
+) {
+  return locale === "en"
+    ? category.nameEn
+    : locale === "ps-AF"
+      ? category.namePs
+      : category.nameFa;
+}
 
 function stockFor(product: CatalogProductRecord): number {
   if (product.variants.length > 0) {
@@ -52,7 +65,7 @@ export default function ProductManagementScreen() {
   const { productId } = useLocalSearchParams<{ productId: string }>();
   const router = useRouter();
   const theme = useAppTheme();
-  const { formatAfn, formatNumber, t } = useLocalization();
+  const { formatAfn, formatNumber, locale, t } = useLocalization();
   const catalog = useCatalog();
 
   const product = catalog.products.find((item) => item.id === productId);
@@ -64,6 +77,10 @@ export default function ProductManagementScreen() {
 
   const [name, setName] = useState(product?.name ?? "");
   const [categoryId, setCategoryId] = useState(product?.categoryId ?? "");
+  const [marketplaceCategoryId, setMarketplaceCategoryId] =
+    useState<string | null>(product?.marketplaceCategoryId ?? null);
+  const [marketplaceCategoryOptions, setMarketplaceCategoryOptions] =
+    useState<MarketplaceCategoryRecord[]>([]);
   const [price, setPrice] = useState(product ? String(product.price) : "");
   const [description, setDescription] = useState(product?.description ?? "");
   const [sku, setSku] = useState(product?.sku ?? "");
@@ -93,6 +110,22 @@ export default function ProductManagementScreen() {
   const [inventoryDelta, setInventoryDelta] = useState("");
   const [inventoryReason, setInventoryReason] = useState("");
   const [history, setHistory] = useState<InventoryMovementRecord[] | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    void marketplaceCategories()
+      .then((response) => {
+        if (active) setMarketplaceCategoryOptions(response.categories);
+      })
+      .catch(() => {
+        // Existing product management remains available without taxonomy data.
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!productId || product) {
@@ -127,6 +160,7 @@ export default function ProductManagementScreen() {
 
     setName(current.name);
     setCategoryId(current.categoryId);
+    setMarketplaceCategoryId(current.marketplaceCategoryId);
     setPrice(String(current.price));
     setDescription(current.description ?? "");
     setSku(current.sku ?? "");
@@ -204,6 +238,7 @@ export default function ProductManagementScreen() {
       await catalog.updateProduct(current.id, {
         name,
         categoryId,
+        marketplaceCategoryId,
         price: parsedPrice,
         description: description.trim() || null,
         sku: sku.trim() || null,
@@ -324,6 +359,34 @@ export default function ProductManagementScreen() {
               </Button>
             ))}
           </View>
+          <View style={{ gap: theme.spacing.sm }}>
+            <AppText variant="label">
+              {t("catalog.product.marketplaceCategory")}
+            </AppText>
+            <AppText variant="caption" tone="muted">
+              {t("catalog.product.marketplaceCategoryHint")}
+            </AppText>
+            <Button
+              variant={marketplaceCategoryId === null ? "primary" : "secondary"}
+              onPress={() => setMarketplaceCategoryId(null)}
+            >
+              {t("catalog.product.marketplaceCategoryNone")}
+            </Button>
+            {marketplaceCategoryOptions.map((category) => (
+              <Button
+                key={category.id}
+                variant={
+                  marketplaceCategoryId === category.id
+                    ? "primary"
+                    : "secondary"
+                }
+                onPress={() => setMarketplaceCategoryId(category.id)}
+              >
+                {marketplaceCategoryName(category, locale)}
+              </Button>
+            ))}
+          </View>
+
           <TextField
             label={t("catalog.product.price")}
             value={price}

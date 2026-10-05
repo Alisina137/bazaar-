@@ -9,6 +9,7 @@ import {
   type SupportedLocale
 } from "@bazaarlink/localization";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 interface StorePageProps {
@@ -194,7 +195,11 @@ export default async function StorePage({ params }: StorePageProps) {
               const image = product.images[0];
 
               return (
-                <article className="storefront__product-card" key={product.id}>
+                <Link
+                  className="storefront__product-card"
+                  href={"/product/" + product.id}
+                  key={product.id}
+                >
                   <div className="storefront__product-media">
                     {image ? (
                       <img
@@ -239,7 +244,7 @@ export default async function StorePage({ params }: StorePageProps) {
                       ) : null}
                     </div>
                   </div>
-                </article>
+                </Link>
               );
             })}
           </div>

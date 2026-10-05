@@ -48,16 +48,18 @@ const settingsSchema = z
   })
   .strict();
 
+const zoneShape = {
+  name: z.string().trim().min(1).max(160),
+  province: z.string().trim().max(100).nullable().optional(),
+  districtCity: z.string().trim().max(120).nullable().optional(),
+  areaNeighborhood: z.string().trim().max(160).nullable().optional(),
+  fee: moneySchema,
+  priority: z.number().int().min(-100_000).max(100_000).optional(),
+  active: z.boolean().optional()
+};
+
 const zoneCreateSchema = z
-  .object({
-    name: z.string().trim().min(1).max(160),
-    province: z.string().trim().max(100).nullable().optional(),
-    districtCity: z.string().trim().max(120).nullable().optional(),
-    areaNeighborhood: z.string().trim().max(160).nullable().optional(),
-    fee: moneySchema,
-    priority: z.number().int().min(-100_000).max(100_000).optional(),
-    active: z.boolean().optional()
-  })
+  .object(zoneShape)
   .strict()
   .refine(
     (value) =>
@@ -69,8 +71,10 @@ const zoneCreateSchema = z
     { message: "zone_matcher_required" }
   );
 
-const zoneUpdateSchema = zoneCreateSchema
+const zoneUpdateSchema = z
+  .object(zoneShape)
   .partial()
+  .strict()
   .refine((value) => Object.keys(value).length > 0);
 
 const distanceRuleCreateSchema = z

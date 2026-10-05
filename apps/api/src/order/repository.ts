@@ -1194,6 +1194,64 @@ export class DatabaseOrderRepository implements OrderRepository {
         updatedAt: now
       };
 
+      if (
+        transition.nextState === "delivered" ||
+        transition.nextState === "picked_up"
+      ) {
+        const [attempt] = await tx
+          .select()
+          .from(paymentAttempts)
+          .where(eq(paymentAttempts.orderId, order.id))
+          .limit(1)
+          .for("update");
+
+        const manualCompletion =
+          attempt?.provider === "manual" &&
+          attempt.state === "pending" &&
+          ((transition.nextState === "delivered" &&
+            attempt.method === "cash_on_delivery") ||
+            (transition.nextState === "picked_up" &&
+              attempt.method === "pay_at_store"));
+
+        if (attempt && manualCompletion) {
+          const [paid] = await tx
+            .update(paymentAttempts)
+            .set({
+              state: "paid",
+              paidAt: now,
+              updatedAt: now
+            })
+            .where(
+              and(
+                eq(paymentAttempts.id, attempt.id),
+                eq(paymentAttempts.state, "pending")
+              )
+            )
+            .returning();
+
+          if (paid) {
+            await tx.insert(paymentStateEvents).values({
+              paymentAttemptId: attempt.id,
+              fromState: "pending",
+              toState: "paid",
+              source: "merchant",
+              details: {
+                reason:
+                  transition.nextState === "delivered"
+                    ? "cash_collected_on_delivery"
+                    : "payment_collected_at_pickup",
+                orderId: order.id
+              }
+            });
+
+            orderChanges.paymentSnapshot = {
+              ...(order.paymentSnapshot ?? {}),
+              state: "paid"
+            };
+          }
+        }
+      }
+
       if (transition.nextState === "confirmed") {
         orderChanges.confirmedAt = now;
       } else if (transition.nextState === "preparing") {

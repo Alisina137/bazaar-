@@ -27,7 +27,7 @@ import { getStoreEntitlements } from "../store/entitlements.js";
 export interface PaymentCheckoutSessionRecord {
   id: string;
   userId: string;
-  status: "draft" | "quoted" | "expired";
+  status: "draft" | "quoted" | "expired" | "ordered";
   pricingSnapshot: Record<string, unknown> | null;
   expiresAt: Date | null;
 }

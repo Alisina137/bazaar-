@@ -320,6 +320,8 @@ export const psAfMessages = {
   "catalog.inventory.stock": "د پلور موجودي",
   "catalog.inventory.available": "موجود",
   "catalog.inventory.lowStock": "کم موجود",
+  "catalog.inventory.lowStockList": "د کم موجودۍ لېست",
+  "catalog.inventory.noLowStock": "اوس مهال کم موجود توکي نشته.",
   "catalog.inventory.lowStockThreshold": "د کم موجودۍ حد",
   "catalog.inventory.variantCount": "ډولونه",
   "catalog.inventory.manage": "موجودي اداره کړئ",

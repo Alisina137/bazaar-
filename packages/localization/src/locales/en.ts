@@ -581,7 +581,7 @@ export const enMessages = {
     "View your BazaarLink purchase history and fulfillment progress.",
   "orders.statusTitle": "No orders yet",
   "orders.statusMessage":
-    "Completed checkout orders will appear here."
+    "Completed checkout orders will appear here.",
 
   "account.title": "Account",
   "account.description":

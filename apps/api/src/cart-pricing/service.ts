@@ -678,6 +678,25 @@ export class CartPricingService implements CartPricingServiceContract {
     addressId: string,
     input: UpdateCustomerAddressInput
   ): Promise<CustomerAddressRecord> {
+    const existing = await this.repository.findAddress(userId, addressId);
+
+    if (!existing) {
+      throw new CartPricingError("address_not_found", 404);
+    }
+
+    const nextLatitude =
+      input.mapLatitude !== undefined
+        ? input.mapLatitude
+        : existing.mapLatitude;
+    const nextLongitude =
+      input.mapLongitude !== undefined
+        ? input.mapLongitude
+        : existing.mapLongitude;
+
+    if ((nextLatitude === null) !== (nextLongitude === null)) {
+      throw new CartPricingError("invalid_request", 400);
+    }
+
     const updated = await this.repository.updateAddress(
       userId,
       addressId,

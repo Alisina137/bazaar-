@@ -15,6 +15,8 @@ import { DatabaseAuthRepository } from "./auth/repository.js";
 import { AuthService } from "./auth/service.js";
 import { DatabaseStoreRepository } from "./store/repository.js";
 import { StoreService } from "./store/service.js";
+import { DatabaseMarketplaceRepository } from "./marketplace/repository.js";
+import { MarketplaceService } from "./marketplace/service.js";
 
 loadEnv({
   path: resolve(process.cwd(), "../../.env"),
@@ -34,12 +36,17 @@ const storeRepository = new DatabaseStoreRepository(databaseClient.db);
 const storeService = new StoreService(storeRepository);
 const catalogRepository = new DatabaseCatalogRepository(databaseClient.db);
 const catalogService = new CatalogService(catalogRepository);
+const marketplaceRepository = new DatabaseMarketplaceRepository(
+  databaseClient.db
+);
+const marketplaceService = new MarketplaceService(marketplaceRepository);
 
 const app = buildApp({
   databaseHealthCheck: () => checkDatabaseConnection(databaseClient),
   authService,
   storeService,
-  catalogService
+  catalogService,
+  marketplaceService
 });
 
 app.addHook("onClose", async () => {

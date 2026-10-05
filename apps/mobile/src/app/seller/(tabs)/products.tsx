@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { View } from "react-native";
 
 import {
+  catalogErrorKey,
   categoryStatusKey,
   productStatusKey
 } from "@/catalog/messages";
@@ -69,7 +70,7 @@ export default function SellerProductsScreen() {
           title={t("catalog.products.errorTitle")}
           message={t(
             error
-              ? "catalog.error.serviceUnavailable"
+              ? catalogErrorKey(error.code)
               : "catalog.error.serviceUnavailable"
           )}
           actionLabel={t("catalog.action.retry")}

@@ -28,7 +28,8 @@ export const couponDiscountType = pgEnum("coupon_discount_type", [
 export const checkoutSessionStatus = pgEnum("checkout_session_status", [
   "draft",
   "quoted",
-  "expired"
+  "expired",
+  "ordered"
 ]);
 
 export const customerAddresses = pgTable(

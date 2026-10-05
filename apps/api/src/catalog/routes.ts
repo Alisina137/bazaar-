@@ -103,6 +103,13 @@ const inventoryAdjustmentSchema = z
   })
   .strict();
 
+const inventoryReservationSchema = z
+  .object({
+    variantId: uuidSchema.nullable().optional(),
+    quantity: z.number().int().min(1).max(100000000)
+  })
+  .strict();
+
 const storeParamsSchema = z.object({
   storeId: uuidSchema
 });
@@ -616,6 +623,39 @@ export function registerCatalogRoutes(
       }
     }
   );
+
+  for (const action of ["reserve", "release"] as const) {
+    app.post(
+      "/seller/stores/:storeId/products/:productId/inventory/" + action,
+      async (request, reply) => {
+        const params = productParamsSchema.safeParse(request.params);
+        const input = inventoryReservationSchema.safeParse(request.body);
+
+        if (!params.success || !input.success) {
+          return reply.code(400).send(catalogErrorBody("invalid_request"));
+        }
+
+        try {
+          const session = await authenticate(request, authService);
+          return action === "reserve"
+            ? await catalogService.reserveInventory(
+                session.user.id,
+                params.data.storeId,
+                params.data.productId,
+                input.data
+              )
+            : await catalogService.releaseInventory(
+                session.user.id,
+                params.data.storeId,
+                params.data.productId,
+                input.data
+              );
+        } catch (error) {
+          return sendCatalogError(reply, error);
+        }
+      }
+    );
+  }
 
   app.get(
     "/seller/stores/:storeId/products/:productId/inventory/history",

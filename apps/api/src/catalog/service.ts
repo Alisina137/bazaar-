@@ -11,7 +11,6 @@ import type {
   InventoryHistoryResponse,
   ProductListResponse,
   ProductStatus,
-  ProductVariantRecord,
   PublicStoreCatalogResponse,
   UpdateCategoryInput,
   UpdateProductInput,

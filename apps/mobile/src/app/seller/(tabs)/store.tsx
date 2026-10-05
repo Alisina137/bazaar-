@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 
+import { useCatalog } from "@/catalog/provider";
 import {
   AppText,
   Badge,
@@ -24,8 +25,9 @@ import {
 export default function SellerStoreScreen() {
   const router = useRouter();
   const theme = useAppTheme();
-  const { t } = useLocalization();
+  const { formatNumber, t } = useLocalization();
   const { currentStore, publishStore } = useStores();
+  const { products } = useCatalog();
   const [busy, setBusy] = useState(false);
   const [errorKey, setErrorKey] = useState<ReturnType<typeof storeErrorKey> | null>(null);
 
@@ -85,8 +87,24 @@ export default function SellerStoreScreen() {
 
       <Card>
         <View style={{ gap: theme.spacing.md }}>
-          <AppText variant="heading">{t("seller.store.emptyTitle")}</AppText>
-          <AppText tone="muted">{t("seller.store.emptyMessage")}</AppText>
+          <AppText variant="heading">{t("catalog.products.title")}</AppText>
+          <AppText tone="muted">
+            {products.length === 0
+              ? t("seller.store.emptyMessage")
+              : t("catalog.products.description")}
+          </AppText>
+          <AppText>
+            {t("catalog.usage.products")}: {formatNumber(products.length)}
+          </AppText>
+
+          <Button
+            variant="secondary"
+            onPress={() => {
+              router.push("/seller/(tabs)/products");
+            }}
+          >
+            {t("catalog.product.manage")}
+          </Button>
 
           <Button
             variant="secondary"

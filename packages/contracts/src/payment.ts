@@ -172,7 +172,7 @@ export interface PaymentCheckoutResponse {
     delivery: "ready";
     payment: "ready" | "action_required";
     review: "payment_ready" | "blocked";
-    placeOrder: "blocked_until_phase_8";
+    placeOrder: "ready" | "blocked";
   };
 }
 

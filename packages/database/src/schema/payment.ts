@@ -16,6 +16,7 @@ import {
 
 import { users } from "./auth.js";
 import { checkoutSessions } from "./commerce.js";
+import { orders } from "./order.js";
 import { stores } from "./store.js";
 
 export const paymentMethod = pgEnum("payment_method", [
@@ -106,6 +107,9 @@ export const paymentAttempts = pgTable(
     storeId: uuid("store_id")
       .notNull()
       .references(() => stores.id, { onDelete: "restrict" }),
+    orderId: uuid("order_id").references(() => orders.id, {
+      onDelete: "set null"
+    }),
     method: paymentMethod("method").notNull(),
     provider: paymentProvider("provider").notNull(),
     state: paymentState("state").default("created").notNull(),
@@ -177,6 +181,7 @@ export const paymentAttempts = pgTable(
       table.checkoutSessionId
     ),
     index("payment_attempts_store_id_idx").on(table.storeId),
+    index("payment_attempts_order_id_idx").on(table.orderId),
     index("payment_attempts_state_idx").on(table.state),
     index("payment_attempts_method_idx").on(table.method),
     check("payment_attempts_amount_nonnegative", sql`${table.amount} >= 0`),

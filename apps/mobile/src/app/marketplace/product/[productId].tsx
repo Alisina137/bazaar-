@@ -2,6 +2,7 @@ import type {
   MarketplaceProductDetailResponse,
   MarketplaceVariantSummary
 } from "@bazaarlink/contracts";
+import type { TranslationKey } from "@bazaarlink/localization";
 import {
   useLocalSearchParams,
   useRouter
@@ -18,6 +19,12 @@ import {
   View
 } from "react-native";
 
+import { useAuth } from "@/auth/provider";
+import {
+  addCartItem,
+  CartPricingApiError
+} from "@/cart-pricing/api";
+import { cartPricingErrorKey } from "@/cart-pricing/messages";
 import { MarketplaceProductCard } from "@/components/marketplace/MarketplaceProductCard";
 import {
   AppText,
@@ -53,6 +60,7 @@ export default function MarketplaceProductScreen() {
   const { productId } = useLocalSearchParams<{ productId: string }>();
   const router = useRouter();
   const theme = useAppTheme();
+  const { status: authStatus, sessionToken } = useAuth();
   const { formatAfn, t } = useLocalization();
 
   const [data, setData] = useState<MarketplaceProductDetailResponse | null>(
@@ -64,6 +72,11 @@ export default function MarketplaceProductScreen() {
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
     null
   );
+  const [purchaseBusy, setPurchaseBusy] = useState<"cart" | "buy" | null>(null);
+  const [purchaseError, setPurchaseError] = useState<TranslationKey | null>(
+    null
+  );
+  const [addedToCart, setAddedToCart] = useState(false);
 
   useEffect(() => {
     if (!productId) {
@@ -169,6 +182,48 @@ export default function MarketplaceProductScreen() {
     selectedVariant !== null
       ? selectedVariant.inStock
       : product.inStock;
+  const variantRequired =
+    product.variants.length > 0 && selectedVariant === null;
+  const purchaseDisabled = !available || variantRequired;
+
+  const purchase = async (buyNow: boolean) => {
+    setPurchaseError(null);
+    setAddedToCart(false);
+
+    if (authStatus !== "signedIn" || !sessionToken) {
+      router.push("/(tabs)/account");
+      return;
+    }
+
+    if (variantRequired) {
+      setPurchaseError("cart.selectVariant");
+      return;
+    }
+
+    setPurchaseBusy(buyNow ? "buy" : "cart");
+
+    try {
+      await addCartItem(sessionToken, {
+        productId: product.id,
+        variantId: selectedVariant?.id ?? null,
+        quantity: 1
+      });
+
+      if (buyNow) {
+        router.push("/checkout");
+      } else {
+        setAddedToCart(true);
+      }
+    } catch (requestError) {
+      const error =
+        requestError instanceof CartPricingApiError
+          ? requestError
+          : new CartPricingApiError("service_unavailable");
+      setPurchaseError(cartPricingErrorKey(error.code));
+    } finally {
+      setPurchaseBusy(null);
+    }
+  };
 
   return (
     <Screen contentStyle={{ paddingBottom: theme.spacing["2xl"] * 2 }}>
@@ -320,7 +375,7 @@ export default function MarketplaceProductScreen() {
                     ? "primary"
                     : "secondary"
                 }
-                disabled={!variant.available}
+                disabled={!variant.available || !variant.inStock}
                 onPress={() => setSelectedVariantId(variant.id)}
               >
                 {variant.title}
@@ -400,10 +455,36 @@ export default function MarketplaceProductScreen() {
           <AppText tone="muted">
             {t("marketplace.product.cartPhaseReady")}
           </AppText>
-          <Button fullWidth disabled>
+          {variantRequired ? (
+            <AppText variant="caption" tone="muted">
+              {t("cart.selectVariant")}
+            </AppText>
+          ) : null}
+          {addedToCart ? (
+            <Badge label={t("cart.added")} tone="success" />
+          ) : null}
+          {purchaseError ? (
+            <AppText tone="danger">{t(purchaseError)}</AppText>
+          ) : null}
+          <Button
+            fullWidth
+            disabled={purchaseDisabled || purchaseBusy !== null}
+            loading={purchaseBusy === "cart"}
+            onPress={() => {
+              void purchase(false);
+            }}
+          >
             {t("marketplace.product.addToCart")}
           </Button>
-          <Button fullWidth variant="secondary" disabled>
+          <Button
+            fullWidth
+            variant="secondary"
+            disabled={purchaseDisabled || purchaseBusy !== null}
+            loading={purchaseBusy === "buy"}
+            onPress={() => {
+              void purchase(true);
+            }}
+          >
             {t("marketplace.product.buyNow")}
           </Button>
         </View>

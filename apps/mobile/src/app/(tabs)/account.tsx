@@ -168,6 +168,14 @@ export default function AccountScreen() {
                 ? t("account.openSellerDashboard")
                 : t("account.sellOnBazaarLink")}
             </Button>
+            <Button
+              variant="secondary"
+              onPress={() => {
+                router.push("/checkout/addresses");
+              }}
+            >
+              {t("address.manage")}
+            </Button>
             <AppText tone="muted">{t("auth.sessionProtected")}</AppText>
             <Button
               variant="secondary"

@@ -11,8 +11,8 @@
 - Repository: Alisina137/bazaar-
 - Local project root: existing user folder named `bazaar`
 - Default branch: main
-- Active product phase: Phase 4 — Marketplace
-- Phase branch: phase-04-marketplace
+- Active product phase: Phase 5 — Cart & Pricing
+- Phase branch: phase-05-cart-pricing
 - Initial repository state: empty before Phase 1 planning
 - Phase baseline commit: 536d7b575182988cfb31ee9c483fe5f50f19f228
 - Package manager: pnpm 12.6
@@ -622,25 +622,115 @@ Deferred to later Phase 4 tasks:
 - recently viewed/offline caching
 
 
+
+## Phase 5 — Cart & Pricing
+
+### Status
+
+Complete and verified on `phase-05-cart-pricing`.
+
+### Product outcomes
+
+- persistent customer cart
+- multi-store merchant grouping
+- live product-discount and coupon-aware pricing
+- Afghanistan-friendly saved customer addresses
+- server-authoritative pricing engine
+- checkout foundation
+
+### Delivered
+
+- one persistent server-backed cart per signed-in customer
+- Add to Cart and Buy Now connected from public marketplace product pages
+- variant selection and live stock validation before adding or changing quantity
+- customer cart grouped by merchant so later delivery/payment/order logic remains merchant-scoped
+- live server repricing on every cart read and checkout quote instead of trusting client or stale cart prices
+- explicit detection when seller price or compare-at discount changes after an item was added
+- product discounts calculated from current compare-at price versus current sell price
+- coupon pricing infrastructure for percentage, fixed, minimum-order, activation-window, and seller-scoped coupons
+- only one manual coupon selection per merchant group; complicated coupon stacking is intentionally disabled
+- Pro/Business coupon entitlement enforced by the pricing engine; Starter remains ineligible
+- merchant coupon/promotion creation and campaign management remain deferred to the Merchant Growth phase instead of being pulled forward
+- current cart stock is revalidated against available minus reserved inventory; stale cart quantities become blocking issues rather than silently overselling
+- published-store, active/out-of-stock product, subscription, and variant visibility revalidated server-side during cart and checkout
+- Afghanistan-friendly saved addresses with country, province, district/city, area/neighborhood, address description, landmark, phone, optional map pin, and delivery instructions
+- first saved address becomes default; customers can create, edit, delete, and choose a default address
+- address ownership is user-scoped and map-pin coordinates are kept as a valid latitude/longitude pair
+- checkout flow establishes Address → Delivery → Payment → Review → Place Order without fabricating later-phase data
+- persisted 15-minute checkout pricing quotes bound to the customer cart and selected address
+- authoritative Phase 5 total covers current items, product discounts, and eligible coupon discounts
+- delivery fee, urgency surcharge, delivery-specific product surcharge, configured disclosed fees, and legally configured tax are not invented before their authoritative phases/configuration exist
+- Delivery is explicitly pending Phase 6, Payment pending Phase 7, and Place Order blocked until the order phase
+- customer Account exposes saved address management
+- Dari, Pashto, and English cart/address/checkout localization with existing RTL/LTR behavior preserved
+- dedicated cart/pricing contracts, safe public error codes, route validation, and rate-limited checkout quote creation
+
+### Database migration
+
+- `0005_cart_pricing.sql`
+- adds `coupon_discount_type` and `checkout_session_status` enums
+- adds `customer_addresses`, `carts`, `cart_items`, `store_coupons`, `cart_store_coupons`, and `checkout_sessions`
+- enforces one active cart per user and one selected coupon per cart/store pair
+- keeps product deletion protected while referenced by cart items
+- stores cart price snapshots only for change detection; authoritative totals always use live catalog data
+- preserves all Phase 1–4 data and uses additive foreign keys, indexes, and quantity/value checks
+
+### Acceptance
+
+Passed: a customer can add products from multiple published stores, see them grouped by merchant, receive current product-discount/coupon-aware server pricing, manage a locally appropriate delivery address, and create an authoritative address-bound pre-delivery checkout quote. Price and stock changes are detected before checkout and block unsafe progression.
+
+### Verification
+
+GitHub Actions run `37299864188` passed the complete repository gate after the final Phase 5 address invariant.
+
+Verified Phase 5 gates include:
+
+- zero Drizzle migration/schema drift
+- fresh Phase 1–5 migration application on PostgreSQL 17
+- live database connectivity
+- ESLint and all workspace TypeScript checks
+- 17 database tests across 6 files, including Phase 5 commerce schema coverage
+- 53 API tests across 15 files
+- real PostgreSQL Phase 5 lifecycle integration covering two merchants in one cart
+- product discount and one-seller-coupon pricing
+- Pro coupon eligibility enforcement and Starter ineligibility unit coverage
+- Afghanistan-friendly saved-address persistence and cross-account isolation
+- address map-pin invariant coverage
+- authoritative checkout quote persistence and later-phase boundaries
+- live seller price-change repricing
+- inventory dropping below cart quantity and checkout blocking
+- three-language localization raw-text verification
+- Fastify production build
+- Expo mobile web export
+- Next.js admin/storefront production builds
+
+### Deferred by design
+
+- delivery coverage, delivery options, delivery base fees, urgency surcharge, delivery-specific product surcharge, and delivery estimate remain Phase 6
+- real seller payment-method availability and payment selection remain Phase 7
+- order creation, inventory-reservation ownership/expiry orchestration, merchant suborders, and final Place Order remain Phase 8
+- merchant-facing coupon/promotion campaign management and broader promotional tooling remain the Merchant Growth phase
+- no tax percentage is assumed; tax remains configurable and subject to legal review before activation
+
 ## Current phase
 
-Phase 4 — Marketplace is complete and verified. Phase 5 — Cart & Pricing is the next product phase.
+Phase 5 — Cart & Pricing is complete and verified. Phase 6 — Delivery is the next product phase.
 
 ## Last known-good baseline
 
-- Branch: `phase-03-catalog-inventory`
-- Verification run: `37256956007`
+- Branch: `phase-05-cart-pricing`
+- Verification run: `37299864188`
 
 ## Verification workflow
 
 - Local `pnpm verify` runs deterministic lint, typecheck, unit, localization, and build checks without invoking remote database integration suites.
-- `pnpm test:integration` explicitly runs the auth, store, and catalog PostgreSQL integration suites serially against the configured root `.env` database.
+- `pnpm test:integration` explicitly runs the auth, store, catalog, marketplace, and cart/pricing PostgreSQL integration suites serially against the configured root `.env` database.
 - GitHub Actions sets `RUN_DATABASE_INTEGRATION_TESTS=true` and continues to run the complete PostgreSQL integration suite against fresh PostgreSQL 17 on every push/PR.
 - Unexpected catalog failures are logged server-side before returning the safe public `service_unavailable` response.
 
 ## Known external requirements
 
-CI verifies the current catalog baseline against fresh PostgreSQL 17.
+CI verifies the current marketplace and cart/pricing baseline against fresh PostgreSQL 17.
 
 Local API/store execution requires a valid `DATABASE_URL` in the root `.env` file. Docker is optional when a hosted PostgreSQL database such as Neon is used.
 

@@ -8,3 +8,5 @@ export * from "./store";
 export * from "./catalog";
 
 export * from "./marketplace";
+
+export * from "./cart-pricing";

@@ -6,6 +6,8 @@ import {
 } from "./auth/routes.js";
 import { registerCatalogRoutes } from "./catalog/routes.js";
 import type { CatalogServiceContract } from "./catalog/service.js";
+import { registerCartPricingRoutes } from "./cart-pricing/routes.js";
+import type { CartPricingServiceContract } from "./cart-pricing/service.js";
 import type {
   AuthServiceContract
 } from "./auth/service.js";
@@ -20,6 +22,7 @@ export interface AppDependencies {
   storeService?: StoreServiceContract;
   catalogService?: CatalogServiceContract;
   marketplaceService?: MarketplaceServiceContract;
+  cartPricingService?: CartPricingServiceContract;
 }
 
 export function buildApp(
@@ -117,6 +120,14 @@ export function buildApp(
           securedApp,
           dependencies.authService!,
           dependencies.catalogService
+        );
+      }
+
+      if (dependencies.cartPricingService) {
+        registerCartPricingRoutes(
+          securedApp,
+          dependencies.authService!,
+          dependencies.cartPricingService
         );
       }
     });

@@ -55,6 +55,8 @@ function product(
     tags: [],
     shippingClass: null,
     deliveryRestrictions: null,
+    deliveryProfile: "normal",
+    deliverySurcharge: 0,
     status,
     availableQuantity: 5,
     reservedQuantity: 0,

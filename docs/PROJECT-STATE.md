@@ -1012,15 +1012,23 @@ Phase 7 — Payments is complete and verified. Phase 8 — Orders & Fulfillment 
 ## Last known-good baseline
 
 - Branch: `main`
-- Commit: `d37127985a35ade657cb290947111c95cdddf389`
-- Verification run: `37334531587`
+- Commit: `ca3df04d1d455036f1bb08eeedb104a6c0d90993`
+- Verification run: `37335866032`
 
 ## Verification workflow
 
 - Local `pnpm verify` runs deterministic lint, typecheck, unit, localization, and build checks without invoking remote database integration suites.
 - `pnpm test:integration` explicitly runs the auth, store, catalog, marketplace, cart/pricing, delivery, and payment PostgreSQL integration suites serially against the configured root `.env` database.
-- GitHub Actions sets `RUN_DATABASE_INTEGRATION_TESTS=true` and continues to run the complete PostgreSQL integration suite against fresh PostgreSQL 17 on every push/PR.
+- GitHub Actions runs `pnpm verify` without database integration discovery, then runs `pnpm test:integration` as one explicit serial PostgreSQL gate against fresh PostgreSQL 17 on every push/PR. `dist/**` is excluded from Vitest discovery so compiled test copies cannot run a second time.
 - Unexpected catalog failures are logged server-side before returning the safe public `service_unavailable` response.
+
+### Verification reliability fix
+
+- ordinary API unit verification now always excludes compiled `dist/**` tests
+- database integration tests are excluded from ordinary `pnpm verify`
+- database integration coverage runs only through the explicit serial `pnpm test:integration` command
+- this prevents source and compiled integration suites from running together and avoids the local cart/catalog timeout pattern reported after Task 7.1
+- corrected workflow verified successfully in GitHub Actions run `37335866032`
 
 ## Known external requirements
 

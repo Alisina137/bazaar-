@@ -124,6 +124,14 @@ export function registerMarketplaceRoutes(
   app: FastifyInstance,
   service: MarketplaceServiceContract
 ) {
+  app.get("/marketplace/categories", async (_request, reply) => {
+    try {
+      return await service.categories();
+    } catch (error) {
+      return sendError(reply, error);
+    }
+  });
+
   app.get("/marketplace/home", async (request, reply) => {
     const query = homeQuerySchema.safeParse(request.query);
 

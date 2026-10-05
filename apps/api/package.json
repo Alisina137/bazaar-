@@ -9,7 +9,8 @@
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "pnpm --filter @bazaarlink/database build && pnpm --filter @bazaarlink/contracts build && vitest run",
-    "test:auth-integration": "pnpm --filter @bazaarlink/database build && pnpm --filter @bazaarlink/contracts build && vitest run src/auth/auth.integration.test.ts"
+    "test:auth-integration": "pnpm --filter @bazaarlink/database build && pnpm --filter @bazaarlink/contracts build && vitest run src/auth/auth.integration.test.ts",
+    "test:integration": "pnpm --filter @bazaarlink/database build && pnpm --filter @bazaarlink/contracts build && node scripts/run-integration-tests.mjs"
   },
   "dependencies": {
     "@bazaarlink/contracts": "workspace:*",

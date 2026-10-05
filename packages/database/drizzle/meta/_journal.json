@@ -57,6 +57,13 @@
       "when": 1791211652015,
       "tag": "0007_striped_tana_nile",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791217635283,
+      "tag": "0008_stormy_stark_industries",
+      "breakpoints": true
     }
   ]
 }

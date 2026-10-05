@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import process from "node:process";
 
 const pnpmCommand = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 

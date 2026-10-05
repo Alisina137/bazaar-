@@ -269,7 +269,7 @@ describe("CartPricingService", () => {
       delivery: "pending_phase_6",
       payment: "pending_phase_7",
       review: "pricing_ready",
-      placeOrder: "blocked_until_phase_8"
+      placeOrder: "blocked_until_delivery_payment"
     });
     expect(quote.canProceedToDelivery).toBe(true);
     expect(quote.canPlaceOrder).toBe(false);

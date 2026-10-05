@@ -5,6 +5,7 @@ export type MarketplaceSort =
   | "newest"
   | "price_asc"
   | "price_desc"
+  | "rating"
   | "popularity";
 
 export interface MarketplaceCategoryRecord {
@@ -68,8 +69,23 @@ export interface MarketplaceProductDetail extends MarketplaceProductSummary {
   tags: string[];
 }
 
+export interface MarketplaceFilterCapabilities {
+  category: true;
+  price: true;
+  province: true;
+  store: true;
+  inStock: true;
+  discount: true;
+  rating: false;
+  deliveryAvailability: false;
+  sameDayDelivery: false;
+  paymentMethod: false;
+  verifiedStore: false;
+}
+
 export interface MarketplaceBrowseResponse {
   products: MarketplaceProductSummary[];
+  filterCapabilities: MarketplaceFilterCapabilities;
   pageInfo: {
     offset: number;
     limit: number;
@@ -87,9 +103,12 @@ export interface MarketplaceHomeResponse {
   categories: MarketplaceCategoryRecord[];
   recommended: MarketplaceProductSummary[];
   popular: MarketplaceProductSummary[];
+  nearby: MarketplaceProductSummary[];
   newest: MarketplaceProductSummary[];
   deals: MarketplaceProductSummary[];
   featuredStores: MarketplaceFeaturedStore[];
+  recentlyViewed: MarketplaceProductSummary[];
+  filterCapabilities: MarketplaceFilterCapabilities;
 }
 
 export interface MarketplaceSearchSuggestion {

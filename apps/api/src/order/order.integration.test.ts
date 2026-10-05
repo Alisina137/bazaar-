@@ -483,7 +483,8 @@ describe.skipIf(!hasDatabase)(
             fulfillmentType: "delivery"
           },
           payment: {
-            method: "cash_on_delivery"
+            method: "cash_on_delivery",
+            state: "paid"
           }
         });
         expect(customerTracking.json().timeline.length).toBeGreaterThanOrEqual(
@@ -526,6 +527,20 @@ describe.skipIf(!hasDatabase)(
         await pickupAction("start_preparing", "preparing");
         await pickupAction("mark_ready", "ready_for_pickup");
         await pickupAction("mark_picked_up", "picked_up");
+
+        const pickupTracking = await app.inject({
+          method: "GET",
+          url: "/customer/orders/" + pickupOrderId,
+          headers: customerHeaders
+        });
+        expect(pickupTracking.statusCode).toBe(200);
+        expect(pickupTracking.json()).toMatchObject({
+          state: "picked_up",
+          payment: {
+            method: "pay_at_store",
+            state: "paid"
+          }
+        });
 
         // A paid hosted payment can enter the refund workflow after delivery.
         const enableCard = await app.inject({

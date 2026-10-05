@@ -1,5 +1,9 @@
-import type { PublicStoreRecord } from "@bazaarlink/contracts";
+import type {
+  PublicStoreCatalogResponse,
+  PublicStoreRecord
+} from "@bazaarlink/contracts";
 import {
+  formatAfn,
   getDirection,
   translate,
   type SupportedLocale
@@ -40,6 +44,27 @@ async function getStore(handle: string): Promise<PublicStoreRecord | null> {
   return (await response.json()) as PublicStoreRecord;
 }
 
+async function getCatalog(
+  handle: string
+): Promise<PublicStoreCatalogResponse | null> {
+  const response = await fetch(
+    apiBaseUrl() + "/stores/" + encodeURIComponent(handle) + "/catalog",
+    {
+      cache: "no-store"
+    }
+  );
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error("public_catalog_unavailable");
+  }
+
+  return (await response.json()) as PublicStoreCatalogResponse;
+}
+
 export async function generateMetadata({
   params
 }: StorePageProps): Promise<Metadata> {
@@ -62,7 +87,10 @@ export async function generateMetadata({
 
 export default async function StorePage({ params }: StorePageProps) {
   const { handle } = await params;
-  const store = await getStore(handle);
+  const [store, catalog] = await Promise.all([
+    getStore(handle),
+    getCatalog(handle)
+  ]);
 
   if (!store) {
     notFound();
@@ -72,6 +100,8 @@ export default async function StorePage({ params }: StorePageProps) {
   const direction = getDirection(locale);
   const t = (key: Parameters<typeof translate>[1]) =>
     translate(locale, key);
+  const products = catalog?.products ?? [];
+  const categories = catalog?.categories ?? [];
 
   return (
     <main
@@ -137,13 +167,90 @@ export default async function StorePage({ params }: StorePageProps) {
         ) : null}
       </section>
 
-      <section className="storefront__empty">
-        <div className="storefront__empty-icon" aria-hidden="true">
-          BL
-        </div>
-        <h2>{t("storefront.emptyTitle")}</h2>
-        <p>{t("storefront.emptyMessage")}</p>
-      </section>
+      {products.length > 0 ? (
+        <section className="storefront__catalog">
+          <div className="storefront__catalog-heading">
+            <h2>{t("storefront.catalogTitle")}</h2>
+            {categories.length > 0 ? (
+              <div className="storefront__category-list">
+                {categories.map((category) => (
+                  <span key={category.id}>{category.name}</span>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="storefront__product-grid">
+            {products.map((product) => {
+              const variantPrices = product.variants
+                .map((variant) => variant.priceOverride)
+                .filter((price): price is number => price !== null);
+              const displayPrice =
+                variantPrices.length > 0
+                  ? Math.min(product.price, ...variantPrices)
+                  : product.price;
+              const hasPriceRange =
+                variantPrices.some((price) => price !== product.price);
+              const image = product.images[0];
+
+              return (
+                <article className="storefront__product-card" key={product.id}>
+                  <div className="storefront__product-media">
+                    {image ? (
+                      <img
+                        src={image.url}
+                        alt={image.altText ?? product.name}
+                      />
+                    ) : (
+                      <div
+                        className="storefront__product-placeholder"
+                        aria-hidden="true"
+                      >
+                        {product.name.slice(0, 1).toUpperCase()}
+                      </div>
+                    )}
+                    {product.status === "out_of_stock" ? (
+                      <span className="storefront__stock-badge">
+                        {t("storefront.outOfStock")}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="storefront__product-copy">
+                    {product.brand ? (
+                      <p className="storefront__product-brand">
+                        {product.brand}
+                      </p>
+                    ) : null}
+                    <h3>{product.name}</h3>
+                    {product.description ? (
+                      <p className="storefront__product-description">
+                        {product.description}
+                      </p>
+                    ) : null}
+                    <div className="storefront__price-row">
+                      <strong>
+                        {hasPriceRange ? t("storefront.fromPrice") + " " : ""}
+                        {formatAfn(displayPrice, locale)}
+                      </strong>
+                      {product.compareAtPrice ? (
+                        <span>{formatAfn(product.compareAtPrice, locale)}</span>
+                      ) : null}
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      ) : (
+        <section className="storefront__empty">
+          <div className="storefront__empty-icon" aria-hidden="true">
+            BL
+          </div>
+          <h2>{t("storefront.emptyTitle")}</h2>
+          <p>{t("storefront.emptyMessage")}</p>
+        </section>
+      )}
     </main>
   );
 }

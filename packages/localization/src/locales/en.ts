@@ -318,6 +318,8 @@ export const enMessages = {
   "catalog.inventory.stock": "Available stock",
   "catalog.inventory.available": "Available",
   "catalog.inventory.lowStock": "Low stock",
+  "catalog.inventory.lowStockList": "Low-stock list",
+  "catalog.inventory.noLowStock": "No low-stock items right now.",
   "catalog.inventory.lowStockThreshold": "Low-stock threshold",
   "catalog.inventory.variantCount": "Variants",
   "catalog.inventory.manage": "Manage inventory",

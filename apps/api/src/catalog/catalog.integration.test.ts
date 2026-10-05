@@ -404,5 +404,43 @@ describe.skipIf(!hasDatabase)("database-backed catalog and inventory lifecycle",
         code: "category_limit_reached"
       }
     });
+
+    for (let index = 0; index < 15; index += 1) {
+      const response = await app.inject({
+        method: "POST",
+        url: "/seller/stores/" + store.id + "/products",
+        headers: {
+          authorization: "Bearer " + owner.session.token
+        },
+        payload: {
+          name: "Product " + index,
+          categoryId: ids[1],
+          price: 100 + index,
+          availableQuantity: 0
+        }
+      });
+
+      expect(response.statusCode).toBe(201);
+    }
+
+    const productOverLimit = await app.inject({
+      method: "POST",
+      url: "/seller/stores/" + store.id + "/products",
+      headers: {
+        authorization: "Bearer " + owner.session.token
+      },
+      payload: {
+        name: "Product 16",
+        categoryId: ids[1],
+        price: 999,
+        availableQuantity: 0
+      }
+    });
+    expect(productOverLimit.statusCode).toBe(409);
+    expect(productOverLimit.json()).toEqual({
+      error: {
+        code: "product_limit_reached"
+      }
+    });
   });
 });

@@ -1,7 +1,8 @@
 import type {
   CatalogProductRecord,
   InventoryMovementRecord,
-  MarketplaceCategoryRecord
+  MarketplaceCategoryRecord,
+  ProductDeliveryProfile
 } from "@bazaarlink/contracts";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -169,6 +170,8 @@ export default function ProductManagementScreen() {
       current.compareAtPrice === null ? "" : String(current.compareAtPrice)
     );
     setLowStockThreshold(String(current.lowStockThreshold));
+    setDeliveryProfile(current.deliveryProfile);
+    setDeliverySurcharge(String(current.deliverySurcharge));
   }, [current?.id, current?.updatedAt]);
 
   const activeCategories = useMemo(
@@ -222,6 +225,7 @@ export default function ProductManagementScreen() {
       const parsedPrice = Number(price);
       const threshold = Number(lowStockThreshold);
       const oldPrice = parseOptionalNumber(compareAtPrice);
+      const parsedDeliverySurcharge = Number(deliverySurcharge);
 
       if (
         !name.trim() ||
@@ -230,7 +234,9 @@ export default function ProductManagementScreen() {
         parsedPrice < 0 ||
         !Number.isInteger(threshold) ||
         threshold < 0 ||
-        oldPrice === undefined
+        oldPrice === undefined ||
+        !Number.isFinite(parsedDeliverySurcharge) ||
+        parsedDeliverySurcharge < 0
       ) {
         throw new CatalogApiError("invalid_request");
       }
@@ -244,7 +250,9 @@ export default function ProductManagementScreen() {
         sku: sku.trim() || null,
         brand: brand.trim() || null,
         compareAtPrice: oldPrice,
-        lowStockThreshold: threshold
+        lowStockThreshold: threshold,
+        deliveryProfile,
+        deliverySurcharge: parsedDeliverySurcharge
       });
     });
 
@@ -422,6 +430,39 @@ export default function ProductManagementScreen() {
                 label={t("catalog.product.compareAtPrice")}
                 value={compareAtPrice}
                 onChangeText={setCompareAtPrice}
+                keyboardType="decimal-pad"
+              />
+              <View style={{ gap: theme.spacing.sm }}>
+                <AppText variant="label">
+                  {t("delivery.product.profile")}
+                </AppText>
+                {(
+                  [
+                    "normal",
+                    "bulky",
+                    "fragile",
+                    "pickup_only",
+                    "no_express",
+                    "seller_delivery_only",
+                    "digital_no_delivery"
+                  ] as ProductDeliveryProfile[]
+                ).map((profile) => (
+                  <Button
+                    key={profile}
+                    variant={
+                      deliveryProfile === profile ? "primary" : "secondary"
+                    }
+                    onPress={() => setDeliveryProfile(profile)}
+                  >
+                    {t(("delivery.product.profile." + profile) as never)}
+                  </Button>
+                ))}
+              </View>
+              <TextField
+                label={t("delivery.product.surcharge")}
+                helperText={t("delivery.product.surchargeHint")}
+                value={deliverySurcharge}
+                onChangeText={setDeliverySurcharge}
                 keyboardType="decimal-pad"
               />
               <TextField

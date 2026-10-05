@@ -785,7 +785,7 @@ export class CatalogService implements CatalogServiceContract {
     this.requireWritableSubscription(access);
     await this.requireProduct(storeId, productId);
 
-    await this.repository.addVariant(productId, normalizeVariant(input));
+    await this.repository.addVariant(storeId, productId, normalizeVariant(input));
     return this.syncPublishedStockStatus(storeId, productId);
   }
 

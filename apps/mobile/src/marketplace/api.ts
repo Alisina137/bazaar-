@@ -1,5 +1,6 @@
 import type {
   MarketplaceBrowseResponse,
+  MarketplaceCategoriesResponse,
   MarketplaceErrorCode,
   MarketplaceErrorResponse,
   MarketplaceHomeResponse,
@@ -90,6 +91,10 @@ function queryString(values: Record<string, string | number | boolean | undefine
       )
       .join("&")
   );
+}
+
+export function marketplaceCategories(): Promise<MarketplaceCategoriesResponse> {
+  return requestJson<MarketplaceCategoriesResponse>("/marketplace/categories");
 }
 
 export function marketplaceHome(input: {

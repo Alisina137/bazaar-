@@ -11,8 +11,8 @@
 - Repository: Alisina137/bazaar-
 - Local project root: existing user folder named `bazaar`
 - Default branch: main
-- Active product phase: Phase 3 — Catalog & Inventory
-- Phase branch: phase-03-catalog-inventory
+- Active product phase: Phase 4 — Marketplace
+- Phase branch: phase-04-marketplace
 - Initial repository state: empty before Phase 1 planning
 - Phase baseline commit: 536d7b575182988cfb31ee9c483fe5f50f19f228
 - Package manager: pnpm 12.6
@@ -550,7 +550,7 @@ Verified gates include:
 
 ### Status
 
-In progress on `phase-04-marketplace`.
+Complete and verified on `phase-04-marketplace`.
 
 ### Product outcomes
 
@@ -568,11 +568,35 @@ Customer can reliably discover active products from published stores.
 ### Task plan
 
 - [x] 4.1 Marketplace data model and public contracts
-- [ ] 4.2 Marketplace browse/search/filter/sort API
-- [ ] 4.3 Mobile marketplace home, categories, and discovery UX
-- [ ] 4.4 Customer product detail experience
-- [ ] 4.5 Customer store pages and public product sharing
-- [ ] 4.6 Low-connectivity, recently viewed, localization, and Phase 4 regression
+- [x] 4.2 Marketplace browse/search/filter/sort API
+- [x] 4.3 Mobile marketplace home, categories, and discovery UX
+- [x] 4.4 Customer product detail experience
+- [x] 4.5 Customer store pages and public product sharing
+- [x] 4.6 Low-connectivity, recently viewed, localization, and Phase 4 regression
+
+### Phase 4 delivered
+
+- platform-wide Dari/Pashto/English marketplace taxonomy with merchant-to-marketplace category mapping
+- central marketplace home with categories, recommended, nearby-by-province, popular, new, deals, featured stores, and recently viewed
+- public product discovery restricted to Active / Out of Stock products from published stores
+- search across product name, store, marketplace category, brand, tags, and description
+- autocomplete suggestions for products, stores, categories, and brands
+- category, price, province, store, brand, in-stock, and discount filtering
+- relevance, newest, price ascending/descending, and popularity sorting
+- explicit capability metadata for rating/verified/delivery/payment filters whose authoritative data belongs to later phases rather than fabricated Phase 4 values
+- paginated customer results and store catalog results
+- privacy-preserving aggregate product-view popularity metrics
+- customer product pages with images, prices/discounts, variants, stock, seller identity, descriptions, related products, public sharing, and future delivery/payment/review data boundaries
+- customer store pages with public identity, categories, and paginated active catalog
+- shareable public web product pages plus existing store pages
+- saved recently viewed products and cache-backed home/browse/product/store fallback for unreliable connections
+- seller product create/edit mapping to BazaarLink marketplace taxonomy
+- three-language localization with RTL/LTR behavior preserved
+- real PostgreSQL marketplace regression covering store visibility, product visibility, search, filtering, suggestions, details, nearby/home sections, recently viewed input, store pages, popularity views, and suspended-store hiding
+
+### Phase 4 verification
+
+GitHub Actions run `37291079686` passed the complete repository gate with the marketplace PostgreSQL integration suite enabled.
 
 ### Task 4.1 — Marketplace data model and public contracts
 
@@ -600,7 +624,7 @@ Deferred to later Phase 4 tasks:
 
 ## Current phase
 
-Phase 4 — Marketplace is in progress. Task 4.1 establishes the marketplace data model and public contracts; Task 4.2 is next after Task 4.1 verification.
+Phase 4 — Marketplace is complete and verified. Phase 5 — Cart & Pricing is the next product phase.
 
 ## Last known-good baseline
 

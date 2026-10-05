@@ -42,6 +42,7 @@ function product(
     id: "00000000-0000-4000-8000-000000000301",
     storeId: storeAccess.storeId,
     categoryId: category.id,
+    marketplaceCategoryId: null,
     name: "Phone",
     description: null,
     price: 100,

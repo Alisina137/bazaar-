@@ -68,6 +68,39 @@ export default function SellerMoreScreen() {
           >
             {t("seller.more.subscription")}
           </Button>
+          <Button
+            variant="secondary"
+            onPress={() => {
+              router.push("/seller/reviews");
+            }}
+          >
+            {t("seller.more.reviews")}
+          </Button>
+          <Button
+            variant="secondary"
+            onPress={() => {
+              router.push("/seller/trust");
+            }}
+          >
+            {t("seller.more.trust")}
+          </Button>
+          <Button
+            variant="secondary"
+            onPress={() => {
+              router.push("/notifications");
+            }}
+          >
+            {t("seller.more.notifications")}
+          </Button>
+          <Button
+            variant="secondary"
+            onPress={() => {
+              router.push("/support");
+            }}
+          >
+            {t("seller.more.support")}
+          </Button>
+
         </View>
       </Card>
 

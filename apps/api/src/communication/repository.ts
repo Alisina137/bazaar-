@@ -34,8 +34,7 @@ import {
   eq,
   inArray,
   isNull,
-  or,
-  sql
+  or
 } from "drizzle-orm";
 
 function toNotification(row: Notification): NotificationRecord {

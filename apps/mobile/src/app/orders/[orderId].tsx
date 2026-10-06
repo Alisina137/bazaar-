@@ -378,6 +378,17 @@ export default function CustomerOrderDetailScreen() {
           <AppText variant="title">{t("order.customer.support")}</AppText>
           <AppText>{order.storeName}</AppText>
           <AppText tone="muted">{order.storePhone}</AppText>
+          <Button
+            variant="secondary"
+            onPress={() =>
+              router.push({
+                pathname: "/support",
+                params: { orderId: order.id }
+              })
+            }
+          >
+            {t("account.support")}
+          </Button>
         </View>
       </Card>
 

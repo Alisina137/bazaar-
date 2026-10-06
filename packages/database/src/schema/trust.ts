@@ -64,6 +64,15 @@ export const productReviews = pgTable(
       .default([])
       .notNull(),
     status: reviewStatus("status").default("published").notNull(),
+    merchantResponse: text("merchant_response"),
+    merchantRespondedByUserId: uuid("merchant_responded_by_user_id").references(
+      () => users.id,
+      { onDelete: "set null" }
+    ),
+    merchantRespondedAt: timestamp("merchant_responded_at", {
+      withTimezone: true,
+      mode: "date"
+    }),
     moderatedByUserId: uuid("moderated_by_user_id").references(
       () => users.id,
       { onDelete: "set null" }

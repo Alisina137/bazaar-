@@ -119,7 +119,10 @@ export interface CommunicationRepository {
     platform: PushPlatform,
     deviceId: string | null
   ): Promise<void>;
-  activePushTokens(userId: string): Promise<PushTokenRecord[]>;
+  claimPushTokens(
+    userId: string,
+    notificationId: string
+  ): Promise<PushTokenRecord[]>;
   recordPushResult(input: {
     notificationId: string;
     tokenId: string;
@@ -285,8 +288,11 @@ export class DatabaseCommunicationRepository
       });
   }
 
-  async activePushTokens(userId: string): Promise<PushTokenRecord[]> {
-    return this.db
+  async claimPushTokens(
+    userId: string,
+    notificationId: string
+  ): Promise<PushTokenRecord[]> {
+    const tokens = await this.db
       .select({
         id: pushDeviceTokens.id,
         token: pushDeviceTokens.token,
@@ -299,6 +305,28 @@ export class DatabaseCommunicationRepository
           eq(pushDeviceTokens.active, true)
         )
       );
+
+    const claimed: PushTokenRecord[] = [];
+    for (const token of tokens) {
+      const [row] = await this.db
+        .insert(pushDeliveries)
+        .values({
+          notificationId,
+          deviceTokenId: token.id,
+          state: "queued"
+        })
+        .onConflictDoNothing({
+          target: [
+            pushDeliveries.notificationId,
+            pushDeliveries.deviceTokenId
+          ]
+        })
+        .returning({ id: pushDeliveries.id });
+
+      if (row) claimed.push(token);
+    }
+
+    return claimed;
   }
 
   async recordPushResult(input: {

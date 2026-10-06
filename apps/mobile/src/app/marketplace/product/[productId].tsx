@@ -1,6 +1,7 @@
 import type {
   MarketplaceProductDetailResponse,
-  MarketplaceVariantSummary
+  MarketplaceVariantSummary,
+  ProductReviewsResponse
 } from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
 import {
@@ -48,6 +49,7 @@ import {
   writeProductCache
 } from "@/marketplace/cache";
 import { marketplaceErrorKey } from "@/marketplace/messages";
+import { productReviews } from "@/trust/api";
 
 function storefrontBaseUrl() {
   return (
@@ -60,7 +62,7 @@ export default function MarketplaceProductScreen() {
   const { productId } = useLocalSearchParams<{ productId: string }>();
   const router = useRouter();
   const theme = useAppTheme();
-  const { status: authStatus, sessionToken } = useAuth();
+  const { status: authStatus, sessionToken, user } = useAuth();
   const { formatAfn, t } = useLocalization();
 
   const [data, setData] = useState<MarketplaceProductDetailResponse | null>(
@@ -77,6 +79,7 @@ export default function MarketplaceProductScreen() {
     null
   );
   const [addedToCart, setAddedToCart] = useState(false);
+  const [reviews, setReviews] = useState<ProductReviewsResponse | null>(null);
 
   useEffect(() => {
     if (!productId) {
@@ -128,6 +131,19 @@ export default function MarketplaceProductScreen() {
       }
     })();
 
+    return () => {
+      active = false;
+    };
+  }, [productId]);
+
+  useEffect(() => {
+    if (!productId) return;
+    let active = true;
+    void productReviews(productId)
+      .then((result) => {
+        if (active) setReviews(result);
+      })
+      .catch(() => undefined);
     return () => {
       active = false;
     };
@@ -400,6 +416,17 @@ export default function MarketplaceProductScreen() {
           <AppText tone="muted">
             {product.store.province} · {product.store.cityDistrict}
           </AppText>
+          <Badge
+            label={t(
+              product.store.trust.phoneVerified
+                ? "trust.phoneVerified"
+                : "trust.phoneNotVerified"
+            )}
+            tone={product.store.trust.phoneVerified ? "success" : "neutral"}
+          />
+          <AppText variant="caption" tone="muted">
+            {t("trust.planNotVerification")}
+          </AppText>
           <Button
             variant="secondary"
             onPress={() =>
@@ -511,14 +538,83 @@ export default function MarketplaceProductScreen() {
         </View>
       ) : null}
 
-      <Card muted>
-        <View style={{ gap: theme.spacing.sm }}>
-          <AppText variant="heading">
-            {t("marketplace.product.reviews")}
-          </AppText>
-          <AppText tone="muted">
-            {t("marketplace.product.reviewsPending")}
-          </AppText>
+      <Card>
+        <View style={{ gap: theme.spacing.md }}>
+          <AppText variant="heading">{t("review.summary")}</AppText>
+          {reviews?.summary.averageRating !== null &&
+          reviews?.summary.averageRating !== undefined ? (
+            <Badge
+              label={
+                "★ " +
+                reviews.summary.averageRating +
+                " · " +
+                reviews.summary.reviewCount +
+                " " +
+                t("marketplace.reviewsCount")
+              }
+              tone="primary"
+            />
+          ) : null}
+          {!reviews || reviews.reviews.length === 0 ? (
+            <AppText tone="muted">{t("review.noReviews")}</AppText>
+          ) : (
+            reviews.reviews.map((review) => (
+              <View
+                key={review.id}
+                style={{
+                  gap: theme.spacing.sm,
+                  paddingVertical: theme.spacing.sm
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    gap: theme.spacing.sm,
+                    flexWrap: "wrap"
+                  }}
+                >
+                  <Badge label={"★ " + review.rating} tone="primary" />
+                  <Badge
+                    label={t("trust.verifiedPurchase")}
+                    tone="success"
+                  />
+                </View>
+                {review.customerDisplayName ? (
+                  <AppText variant="bodyStrong">
+                    {review.customerDisplayName}
+                  </AppText>
+                ) : null}
+                {review.text ? <AppText>{review.text}</AppText> : null}
+                {review.imageUrls.map((uri) => (
+                  <Image
+                    key={uri}
+                    source={{ uri }}
+                    style={{
+                      width: "100%",
+                      height: 180,
+                      borderRadius: theme.radii.md,
+                      backgroundColor: theme.colors.surfaceMuted
+                    }}
+                    resizeMode="cover"
+                  />
+                ))}
+                {authStatus === "signedIn" &&
+                user?.id !== review.customerUserId ? (
+                  <Button
+                    variant="ghost"
+                    onPress={() =>
+                      router.push({
+                        pathname: "/reviews/[reviewId]/report",
+                        params: { reviewId: review.id }
+                      })
+                    }
+                  >
+                    {t("review.report")}
+                  </Button>
+                ) : null}
+              </View>
+            ))
+          )}
         </View>
       </Card>
     </Screen>

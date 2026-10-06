@@ -170,3 +170,20 @@ export function moderateReview(
     token
   );
 }
+
+export function respondToReview(
+  token: string,
+  storeId: string,
+  reviewId: string,
+  response: string
+): Promise<ProductReviewRecord> {
+  return requestJson(
+    "/seller/stores/" +
+      encodeURIComponent(storeId) +
+      "/reviews/" +
+      encodeURIComponent(reviewId) +
+      "/respond",
+    { method: "POST", body: JSON.stringify({ response }) },
+    token
+  );
+}

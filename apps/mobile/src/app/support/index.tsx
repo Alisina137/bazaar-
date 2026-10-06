@@ -3,7 +3,7 @@ import type {
   SupportTicketRecord
 } from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 
@@ -41,12 +41,18 @@ const categories: SupportTicketCategory[] = [
 ];
 
 export default function SupportScreen() {
+  const { orderId, storeId } = useLocalSearchParams<{
+    orderId?: string;
+    storeId?: string;
+  }>();
   const router = useRouter();
   const theme = useAppTheme();
   const { sessionToken } = useAuth();
   const { t } = useLocalization();
   const [tickets, setTickets] = useState<SupportTicketRecord[]>([]);
-  const [category, setCategory] = useState<SupportTicketCategory>("other");
+  const [category, setCategory] = useState<SupportTicketCategory>(
+    orderId ? "order" : storeId ? "merchant" : "other"
+  );
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -78,7 +84,9 @@ export default function SupportScreen() {
       await createSupportTicket(sessionToken, {
         category,
         subject: subject.trim(),
-        message: message.trim()
+        message: message.trim(),
+        ...(orderId ? { orderId } : {}),
+        ...(storeId ? { storeId } : {})
       });
       setSubject("");
       setMessage("");

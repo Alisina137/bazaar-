@@ -21,6 +21,13 @@ import { registerPaymentRoutes } from "./payment/routes.js";
 import type { PaymentServiceContract } from "./payment/service.js";
 import { registerOrderRoutes } from "./order/routes.js";
 import type { OrderServiceContract } from "./order/service.js";
+import {
+  registerPublicTrustRoutes,
+  registerTrustRoutes
+} from "./trust/routes.js";
+import type { TrustServiceContract } from "./trust/service.js";
+import { registerCommunicationRoutes } from "./communication/routes.js";
+import type { CommunicationService } from "./communication/service.js";
 
 export interface AppDependencies {
   databaseHealthCheck?: () => Promise<void>;
@@ -32,6 +39,8 @@ export interface AppDependencies {
   deliveryService?: DeliveryServiceContract;
   paymentService?: PaymentServiceContract;
   orderService?: OrderServiceContract;
+  trustService?: TrustServiceContract;
+  communicationService?: CommunicationService;
 }
 
 export function buildApp(
@@ -69,16 +78,25 @@ export function buildApp(
     }
   });
 
-  if (dependencies.marketplaceService) {
-    app.register(async (publicMarketplaceApp) => {
-      await publicMarketplaceApp.register(rateLimit, {
+  if (dependencies.marketplaceService || dependencies.trustService) {
+    app.register(async (publicApp) => {
+      await publicApp.register(rateLimit, {
         global: false
       });
 
-      registerMarketplaceRoutes(
-        publicMarketplaceApp,
-        dependencies.marketplaceService!
-      );
+      if (dependencies.marketplaceService) {
+        registerMarketplaceRoutes(
+          publicApp,
+          dependencies.marketplaceService
+        );
+      }
+
+      if (dependencies.trustService) {
+        registerPublicTrustRoutes(
+          publicApp,
+          dependencies.trustService
+        );
+      }
     });
   }
 
@@ -161,6 +179,22 @@ export function buildApp(
           securedApp,
           dependencies.authService!,
           dependencies.orderService
+        );
+      }
+
+      if (dependencies.trustService) {
+        registerTrustRoutes(
+          securedApp,
+          dependencies.authService!,
+          dependencies.trustService
+        );
+      }
+
+      if (dependencies.communicationService) {
+        registerCommunicationRoutes(
+          securedApp,
+          dependencies.authService!,
+          dependencies.communicationService
         );
       }
     });

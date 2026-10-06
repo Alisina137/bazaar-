@@ -209,6 +209,21 @@ export default function MarketplaceStoreScreen() {
             </View>
           </View>
 
+          <View style={{ gap: theme.spacing.xs }}>
+            <AppText variant="heading">{t("trust.sellerTrust")}</AppText>
+            <Badge
+              label={t(
+                data.trust.phoneVerified
+                  ? "trust.phoneVerified"
+                  : "trust.phoneNotVerified"
+              )}
+              tone={data.trust.phoneVerified ? "success" : "neutral"}
+            />
+            <AppText variant="caption" tone="muted">
+              {t("trust.planNotVerification")}
+            </AppText>
+          </View>
+
           {store.description ? (
             <AppText>{store.description}</AppText>
           ) : null}

@@ -48,6 +48,8 @@ export interface ProductReviewRecord {
   imageUrls: string[];
   status: ReviewStatus;
   verifiedPurchase: true;
+  merchantResponse: string | null;
+  merchantRespondedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -105,6 +107,10 @@ export interface UpdateProductReviewInput {
   rating?: number | undefined;
   text?: string | null | undefined;
   imageUrls?: string[] | undefined;
+}
+
+export interface MerchantReviewResponseInput {
+  response: string;
 }
 
 export interface ReportReviewInput {

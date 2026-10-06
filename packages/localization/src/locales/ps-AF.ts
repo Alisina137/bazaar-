@@ -971,6 +971,8 @@ export const psAfMessages = {
   "review.reason.inappropriate": "نامناسب",
   "review.reason.other": "نور",
   "review.sellerTitle": "د پلورنځي کتنې",
+  "review.merchantResponse": "د پلورونکي ځواب",
+  "review.respond": "کتنې ته ځواب",
   "review.moderationTitle": "د کتنو راپورونه",
   "review.moderationEmpty": "د کتنو خلاص راپور نشته.",
   "review.action.publish": "خپورول",

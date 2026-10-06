@@ -23,7 +23,7 @@ export function MarketplaceProductCard({
 }) {
   const router = useRouter();
   const theme = useAppTheme();
-  const { formatAfn, t } = useLocalization();
+  const { formatAfn, formatNumber, t } = useLocalization();
 
   return (
     <Pressable
@@ -99,6 +99,24 @@ export function MarketplaceProductCard({
           <AppText variant="caption" tone="muted" numberOfLines={1}>
             {product.store.name} · {product.store.province}
           </AppText>
+          <View style={{ flexDirection: "row", gap: theme.spacing.sm, flexWrap: "wrap" }}>
+            {product.reviewCount > 0 && product.averageRating !== null ? (
+              <Badge
+                label={
+                  "★ " +
+                  formatNumber(product.averageRating) +
+                  " · " +
+                  formatNumber(product.reviewCount) +
+                  " " +
+                  t("marketplace.reviewsCount")
+                }
+                tone="primary"
+              />
+            ) : null}
+            {product.store.trust.phoneVerified ? (
+              <Badge label={t("trust.phoneVerified")} tone="success" />
+            ) : null}
+          </View>
 
           <View
             style={{

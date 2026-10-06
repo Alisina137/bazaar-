@@ -971,6 +971,8 @@ export const faAfMessages = {
   "review.reason.inappropriate": "نامناسب",
   "review.reason.other": "سایر",
   "review.sellerTitle": "دیدگاه‌های فروشگاه",
+  "review.merchantResponse": "پاسخ فروشنده",
+  "review.respond": "پاسخ به دیدگاه",
   "review.moderationTitle": "گزارش‌های دیدگاه",
   "review.moderationEmpty": "گزارش باز دیدگاه وجود ندارد.",
   "review.action.publish": "نشر",

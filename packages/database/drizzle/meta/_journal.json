@@ -71,6 +71,13 @@
       "when": 1791251407586,
       "tag": "0009_yummy_eternals",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791253347802,
+      "tag": "0010_stale_firestar",
+      "breakpoints": true
     }
   ]
 }

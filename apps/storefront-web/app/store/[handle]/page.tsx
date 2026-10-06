@@ -1,6 +1,7 @@
 import type {
   PublicStoreCatalogResponse,
-  PublicStoreRecord
+  PublicStoreRecord,
+  SellerTrustRecord
 } from "@bazaarlink/contracts";
 import {
   formatAfn,
@@ -43,6 +44,15 @@ async function getStore(handle: string): Promise<PublicStoreRecord | null> {
   }
 
   return (await response.json()) as PublicStoreRecord;
+}
+
+async function getTrust(storeId: string): Promise<SellerTrustRecord | null> {
+  const response = await fetch(
+    apiBaseUrl() + "/trust/stores/" + encodeURIComponent(storeId),
+    { cache: "no-store" }
+  );
+  if (!response.ok) return null;
+  return (await response.json()) as SellerTrustRecord;
 }
 
 async function getCatalog(
@@ -88,14 +98,16 @@ export async function generateMetadata({
 
 export default async function StorePage({ params }: StorePageProps) {
   const { handle } = await params;
-  const [store, catalog] = await Promise.all([
-    getStore(handle),
-    getCatalog(handle)
-  ]);
+  const store = await getStore(handle);
 
   if (!store) {
     notFound();
   }
+
+  const [catalog, trust] = await Promise.all([
+    getCatalog(handle),
+    getTrust(store.id)
+  ]);
 
   const locale = store.preferredLocale as SupportedLocale;
   const direction = getDirection(locale);
@@ -159,6 +171,15 @@ export default async function StorePage({ params }: StorePageProps) {
         <div>
           <span>{t("storefront.contactLabel")}</span>
           <strong>{store.phone}</strong>
+        </div>
+        <div>
+          <span>{t("trust.sellerTrust")}</span>
+          <strong>
+            {trust?.phoneVerified
+              ? t("trust.phoneVerified")
+              : t("trust.phoneNotVerified")}
+          </strong>
+          <small>{t("trust.planNotVerification")}</small>
         </div>
         {store.businessHours ? (
           <div>

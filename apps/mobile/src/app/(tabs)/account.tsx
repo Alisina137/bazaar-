@@ -176,6 +176,45 @@ export default function AccountScreen() {
             >
               {t("address.manage")}
             </Button>
+            <Button
+              variant="secondary"
+              onPress={() => {
+                router.push("/notifications");
+              }}
+            >
+              {t("account.notifications")}
+            </Button>
+            <Button
+              variant="secondary"
+              onPress={() => {
+                router.push("/support");
+              }}
+            >
+              {t("account.support")}
+            </Button>
+            {user.roles.some((role) =>
+              ["platform_support", "platform_admin", "super_admin"].includes(role)
+            ) ? (
+              <>
+                <AppText variant="heading">{t("account.platformTools")}</AppText>
+                <Button
+                  variant="secondary"
+                  onPress={() => {
+                    router.push("/platform/reviews");
+                  }}
+                >
+                  {t("review.moderationTitle")}
+                </Button>
+                <Button
+                  variant="secondary"
+                  onPress={() => {
+                    router.push("/platform/support");
+                  }}
+                >
+                  {t("support.platformTitle")}
+                </Button>
+              </>
+            ) : null}
             <AppText tone="muted">{t("auth.sessionProtected")}</AppText>
             <Button
               variant="secondary"

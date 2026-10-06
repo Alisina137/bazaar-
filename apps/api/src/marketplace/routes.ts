@@ -55,6 +55,8 @@ const browseQuerySchema = z
     brand: z.string().trim().min(1).max(120).optional(),
     inStock: optionalBoolean,
     discount: optionalBoolean,
+    minRating: z.coerce.number().min(1).max(5).optional(),
+    verifiedStore: optionalBoolean,
     sort: sortSchema.default("relevance"),
     offset: z.coerce.number().int().min(0).default(0),
     limit: z.coerce.number().int().min(1).max(50).default(20)
@@ -184,6 +186,12 @@ export function registerMarketplaceRoutes(
         : {}),
       ...(query.data.discount !== undefined
         ? { discount: query.data.discount }
+        : {}),
+      ...(query.data.minRating !== undefined
+        ? { minRating: query.data.minRating }
+        : {}),
+      ...(query.data.verifiedStore !== undefined
+        ? { verifiedStore: query.data.verifiedStore }
         : {})
     };
 

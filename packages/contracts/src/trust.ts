@@ -29,6 +29,12 @@ export const reviewReportReasons = [
 export type ReviewReportReason =
   (typeof reviewReportReasons)[number];
 
+export interface SellerTrustRecord {
+  storeId: string;
+  phoneVerified: boolean;
+  verificationLevel: "unverified" | "phone_verified";
+}
+
 export interface ProductReviewRecord {
   id: string;
   customerUserId: string;
@@ -75,11 +81,17 @@ export interface ReviewEligibilityRecord {
   imageUrl: string | null;
   eligible: boolean;
   alreadyReviewed: boolean;
+  reviewId: string | null;
   completedAt: string | null;
 }
 
 export interface ReviewEligibilityResponse {
   items: ReviewEligibilityRecord[];
+}
+
+export interface CustomerReviewEditorResponse {
+  eligibility: ReviewEligibilityRecord;
+  review: ProductReviewRecord | null;
 }
 
 export interface CreateProductReviewInput {
@@ -113,6 +125,15 @@ export interface ReviewReportRecord {
   updatedAt: string;
 }
 
+export interface ReviewModerationItem {
+  report: ReviewReportRecord;
+  review: ProductReviewRecord;
+}
+
+export interface ReviewModerationQueueResponse {
+  items: ReviewModerationItem[];
+}
+
 export interface ModerateReviewInput {
   action: "publish" | "hide" | "remove" | "dismiss_reports";
   reason?: string | null | undefined;
@@ -129,6 +150,7 @@ export const trustErrorCodes = [
   "review_already_exists",
   "review_report_already_exists",
   "review_moderation_conflict",
+  "store_not_found",
   "rate_limited",
   "service_unavailable"
 ] as const;

@@ -41,6 +41,16 @@ function latestByStore(attempts: PaymentAttemptRecord[]) {
   return map;
 }
 
+export interface PaymentNotificationEmitter {
+  paymentResult(input: {
+    attemptId: string;
+    userId: string;
+    storeId: string;
+    checkoutSessionId: string;
+    result: "paid" | "failed";
+  }): Promise<void>;
+}
+
 export interface PaymentServiceContract {
   getMerchantConfiguration(
     ownerUserId: string,
@@ -82,7 +92,8 @@ export class PaymentService implements PaymentServiceContract {
   constructor(
     private readonly repository: PaymentRepository,
     private readonly deliveryService: DeliveryServiceContract,
-    private readonly gateway: PaymentGateway
+    private readonly gateway: PaymentGateway,
+    private readonly notifier?: PaymentNotificationEmitter
   ) {}
 
   private providerReadiness() {
@@ -478,6 +489,15 @@ export class PaymentService implements PaymentServiceContract {
               details: { reason }
             });
             attempt = failed ?? attempt;
+            if (failed) {
+              await this.notifier?.paymentResult({
+                attemptId: failed.id,
+                userId: failed.userId,
+                storeId: failed.storeId,
+                checkoutSessionId: failed.checkoutSessionId,
+                result: "failed"
+              });
+            }
           }
         }
       }
@@ -689,7 +709,16 @@ export class PaymentService implements PaymentServiceContract {
     }
 
     const target = successful ? "paid" : "failed";
-    if (attempt.state === target) return attempt;
+    if (attempt.state === target) {
+      await this.notifier?.paymentResult({
+        attemptId: attempt.id,
+        userId: attempt.userId,
+        storeId: attempt.storeId,
+        checkoutSessionId: attempt.checkoutSessionId,
+        result: successful ? "paid" : "failed"
+      });
+      return attempt;
+    }
 
     const sanitized = { ...payload };
     delete sanitized.signature;
@@ -726,6 +755,14 @@ export class PaymentService implements PaymentServiceContract {
       if (current?.state === target) return current;
       throw new PaymentError("payment_state_conflict", 409);
     }
+
+    await this.notifier?.paymentResult({
+      attemptId: transitioned.id,
+      userId: transitioned.userId,
+      storeId: transitioned.storeId,
+      checkoutSessionId: transitioned.checkoutSessionId,
+      result: successful ? "paid" : "failed"
+    });
 
     return transitioned;
   }

@@ -38,6 +38,7 @@ export interface BusinessNotificationEmitter {
     storeId: string;
     state: string;
     paymentState: string;
+    paymentProvider: string;
   }): Promise<void>;
   newReview(review: ProductReviewRecord): Promise<void>;
 }
@@ -173,6 +174,7 @@ export class CommunicationService implements BusinessNotificationEmitter {
     storeId: string;
     state: string;
     paymentState: string;
+    paymentProvider: string;
   }): Promise<void> {
     const data = {
       orderId: input.id,
@@ -237,6 +239,7 @@ export class CommunicationService implements BusinessNotificationEmitter {
     }
 
     if (
+      input.paymentProvider === "manual" &&
       input.paymentState === "paid" &&
       (input.state === "delivered" || input.state === "picked_up")
     ) {

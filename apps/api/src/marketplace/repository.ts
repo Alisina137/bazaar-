@@ -10,6 +10,7 @@ import type {
   PublicStoreRecord
 } from "@bazaarlink/contracts";
 import {
+  authAccounts,
   categories,
   marketplaceProductMetrics,
   platformCategories,
@@ -55,6 +56,8 @@ export interface MarketplaceBrowseQuery {
     | "popularity";
   offset: number;
   limit: number;
+  minRating?: number | undefined;
+  verifiedStore?: boolean | undefined;
 }
 
 interface PublicProductBase {
@@ -88,6 +91,9 @@ interface PublicProductBase {
   marketplaceCategoryIcon: string | null;
   marketplaceCategorySortOrder: number | null;
   viewCount: number | null;
+  storePhoneVerified: boolean;
+  reviewCount: number;
+  averageRating: number | null;
 }
 
 function toStoreSummary(row: PublicProductBase): MarketplaceStoreSummary {
@@ -103,7 +109,14 @@ function toStoreSummary(row: PublicProductBase): MarketplaceStoreSummary {
     preferredLocale:
       row.storePreferredLocale === "ps-AF" || row.storePreferredLocale === "en"
         ? row.storePreferredLocale
-        : "fa-AF"
+        : "fa-AF",
+    trust: {
+      storeId: row.storeId,
+      phoneVerified: row.storePhoneVerified,
+      verificationLevel: row.storePhoneVerified
+        ? "phone_verified"
+        : "unverified"
+    }
   };
 }
 
@@ -284,7 +297,26 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
       marketplaceCategoryImageUrl: platformCategories.imageUrl,
       marketplaceCategoryIcon: platformCategories.icon,
       marketplaceCategorySortOrder: platformCategories.sortOrder,
-      viewCount: marketplaceProductMetrics.viewCount
+      viewCount: marketplaceProductMetrics.viewCount,
+      storePhoneVerified: sql<boolean>`exists (
+        select 1
+        from ${authAccounts}
+        where ${authAccounts.userId} = ${stores.ownerUserId}
+          and ${authAccounts.provider} = 'phone_password'
+          and ${authAccounts.verifiedAt} is not null
+      )`,
+      reviewCount: sql<number>`(
+        select count(*)::int
+        from "product_reviews" pr
+        where pr."product_id" = ${products.id}
+          and pr."status" in ('published', 'reported')
+      )`,
+      averageRating: sql<number | null>`(
+        select avg(pr."rating")::float8
+        from "product_reviews" pr
+        where pr."product_id" = ${products.id}
+          and pr."status" in ('published', 'reported')
+      )`
     };
   }
 
@@ -367,6 +399,11 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
         inStock,
         hasDiscount:
           compareAtPrice !== null && compareAtPrice > displayPrice,
+        averageRating:
+          row.averageRating === null
+            ? null
+            : Math.round(Number(row.averageRating) * 10) / 10,
+        reviewCount: Number(row.reviewCount ?? 0),
         publishedAt: row.publishedAt?.toISOString() ?? null,
         store: toStoreSummary(row),
         marketplaceCategory: toMarketplaceCategory(row)
@@ -446,6 +483,29 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
       );
     }
 
+    if (query.minRating !== undefined) {
+      conditions.push(
+        sql`coalesce((
+          select avg(pr."rating")::float8
+          from "product_reviews" pr
+          where pr."product_id" = ${products.id}
+            and pr."status" in ('published', 'reported')
+        ), 0) >= ${query.minRating}`
+      );
+    }
+
+    if (query.verifiedStore === true) {
+      conditions.push(
+        sql`exists (
+          select 1
+          from ${authAccounts}
+          where ${authAccounts.userId} = ${stores.ownerUserId}
+            and ${authAccounts.provider} = 'phone_password'
+            and ${authAccounts.verifiedAt} is not null
+        )`
+      );
+    }
+
     const searchRank = query.query
       ? sql<number>`case
           when lower(${products.name}) = lower(${query.query}) then 100
@@ -472,9 +532,21 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
             desc(products.publishedAt)
           ];
         case "rating":
-          // Reviews are introduced in the trust phase. Keep stable organic
-          // ordering until rating data exists instead of fabricating ratings.
-          return [desc(searchRank), desc(products.publishedAt)];
+          return [
+            desc(sql`coalesce((
+              select avg(pr."rating")::float8
+              from "product_reviews" pr
+              where pr."product_id" = ${products.id}
+                and pr."status" in ('published', 'reported')
+            ), 0)`),
+            desc(sql`(
+              select count(*)::int
+              from "product_reviews" pr
+              where pr."product_id" = ${products.id}
+                and pr."status" in ('published', 'reported')
+            )`),
+            desc(products.publishedAt)
+          ];
         case "relevance":
         default:
           return [desc(searchRank), desc(products.publishedAt)];
@@ -549,6 +621,33 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
     };
   }
 
+  private async trustForStore(storeId: string) {
+    const [row] = await this.db
+      .select({
+        phoneVerified: sql<boolean>`exists (
+          select 1
+          from ${authAccounts}
+          inner join ${stores} trust_store
+            on trust_store."owner_user_id" = ${authAccounts.userId}
+          where trust_store."id" = ${storeId}
+            and ${authAccounts.provider} = 'phone_password'
+            and ${authAccounts.verifiedAt} is not null
+        )`
+      })
+      .from(stores)
+      .where(eq(stores.id, storeId))
+      .limit(1);
+
+    const phoneVerified = Boolean(row?.phoneVerified);
+    return {
+      storeId,
+      phoneVerified,
+      verificationLevel: phoneVerified
+        ? "phone_verified" as const
+        : "unverified" as const
+    };
+  }
+
   async featuredStores(limit: number): Promise<MarketplaceFeaturedStore[]> {
     const rows = await this.db
       .select({
@@ -568,23 +667,26 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
       .orderBy(desc(count(products.id)), desc(stores.publishedAt))
       .limit(limit);
 
-    return rows.map(({ store, activeProductCount }) => ({
-      store: {
-        id: store.id,
-        name: store.name,
-        handle: store.handle,
-        province: store.province,
-        cityDistrict: store.cityDistrict,
-        logoUrl: store.logoUrl,
-        coverImageUrl: store.coverImageUrl,
-        description: store.description,
-        preferredLocale:
-          store.preferredLocale === "ps-AF" || store.preferredLocale === "en"
-            ? store.preferredLocale
-            : "fa-AF"
-      },
-      activeProductCount
-    }));
+    return Promise.all(
+      rows.map(async ({ store, activeProductCount }) => ({
+        store: {
+          id: store.id,
+          name: store.name,
+          handle: store.handle,
+          province: store.province,
+          cityDistrict: store.cityDistrict,
+          logoUrl: store.logoUrl,
+          coverImageUrl: store.coverImageUrl,
+          description: store.description,
+          preferredLocale:
+            store.preferredLocale === "ps-AF" || store.preferredLocale === "en"
+              ? store.preferredLocale
+              : "fa-AF",
+          trust: await this.trustForStore(store.id)
+        },
+        activeProductCount
+      }))
+    );
   }
 
   async suggestions(
@@ -843,7 +945,7 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
       return null;
     }
 
-    const [categoryRows, browseResult] = await Promise.all([
+    const [categoryRows, browseResult, trust] = await Promise.all([
       this.db
         .select()
         .from(categories)
@@ -859,11 +961,13 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
         sort: "newest",
         offset,
         limit
-      })
+      }),
+      this.trustForStore(store.id)
     ]);
 
     return {
       store: publicStoreRecord(store),
+      trust,
       categories: categoryRows.map((category) => ({
         id: category.id,
         parentId: category.parentId,

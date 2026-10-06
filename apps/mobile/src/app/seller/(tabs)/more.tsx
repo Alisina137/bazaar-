@@ -9,11 +9,13 @@ import {
 } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
+import { useStores } from "@/store/provider";
 
 export default function SellerMoreScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { t } = useLocalization();
+  const { currentStore } = useStores();
 
   const futureItems = [
     "seller.more.customers",
@@ -95,7 +97,14 @@ export default function SellerMoreScreen() {
           <Button
             variant="secondary"
             onPress={() => {
-              router.push("/support");
+              router.push(
+                currentStore
+                  ? {
+                      pathname: "/support",
+                      params: { storeId: currentStore.id }
+                    }
+                  : "/support"
+              );
             }}
           >
             {t("seller.more.support")}

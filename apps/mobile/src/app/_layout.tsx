@@ -7,6 +7,7 @@ import {
 
 import { AuthProvider } from "@/auth/provider";
 import { CatalogProvider } from "@/catalog/provider";
+import { NotificationProvider } from "@/communication/push-provider";
 import {
   AppThemeProvider,
   useAppTheme
@@ -37,6 +38,10 @@ function RootNavigator() {
         <Stack.Screen name="marketplace" />
         <Stack.Screen name="checkout" />
         <Stack.Screen name="seller" />
+        <Stack.Screen name="reviews" />
+        <Stack.Screen name="notifications" />
+        <Stack.Screen name="support" />
+        <Stack.Screen name="platform" />
       </Stack>
     </>
   );
@@ -48,11 +53,13 @@ export default function RootLayout() {
       <AppThemeProvider>
         <LocalizationProvider>
           <AuthProvider>
-            <StoreProvider>
-              <CatalogProvider>
-                <RootNavigator />
-              </CatalogProvider>
-            </StoreProvider>
+            <NotificationProvider>
+              <StoreProvider>
+                <CatalogProvider>
+                  <RootNavigator />
+                </CatalogProvider>
+              </StoreProvider>
+            </NotificationProvider>
           </AuthProvider>
         </LocalizationProvider>
       </AppThemeProvider>

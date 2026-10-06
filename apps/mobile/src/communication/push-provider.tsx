@@ -24,6 +24,15 @@ interface PushContextValue {
 
 const PushContext = createContext<PushContextValue | null>(null);
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true
+  })
+});
+
 function internalDeepLink(value: unknown): string | null {
   return typeof value === "string" &&
     value.startsWith("/") &&

@@ -1,6 +1,7 @@
 import type {
   OrderRecord,
-  PaymentMethod
+  PaymentMethod,
+  ReviewEligibilityRecord
 } from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -28,6 +29,7 @@ import {
   orderErrorKey,
   orderStateKey
 } from "@/order/messages";
+import { reviewEligibility } from "@/trust/api";
 
 function paymentMethodKey(method: PaymentMethod): TranslationKey {
   switch (method) {
@@ -54,6 +56,7 @@ export default function CustomerOrderDetailScreen() {
   const [busy, setBusy] = useState(false);
   const [reason, setReason] = useState("");
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
+  const [reviewItems, setReviewItems] = useState<ReviewEligibilityRecord[]>([]);
 
   const load = async () => {
     if (
@@ -68,7 +71,12 @@ export default function CustomerOrderDetailScreen() {
     setLoading(true);
     setErrorKey(null);
     try {
-      setOrder(await getCustomerOrder(sessionToken, orderId));
+      const [nextOrder, eligibility] = await Promise.all([
+        getCustomerOrder(sessionToken, orderId),
+        reviewEligibility(sessionToken, orderId).catch(() => ({ items: [] }))
+      ]);
+      setOrder(nextOrder);
+      setReviewItems(eligibility.items);
     } catch (error) {
       const safe =
         error instanceof OrderApiError
@@ -279,6 +287,40 @@ export default function CustomerOrderDetailScreen() {
           ))}
         </View>
       </Card>
+
+      {reviewItems.some((item) => item.eligible) ? (
+        <Card>
+          <View style={{ gap: theme.spacing.md }}>
+            <AppText variant="title">{t("review.summary")}</AppText>
+            {reviewItems
+              .filter((item) => item.eligible)
+              .map((item) => (
+                <View key={item.orderItemId} style={{ gap: theme.spacing.sm }}>
+                  <AppText variant="bodyStrong">{item.productName}</AppText>
+                  <Badge
+                    label={t("trust.verifiedPurchase")}
+                    tone="success"
+                  />
+                  <Button
+                    variant="secondary"
+                    onPress={() =>
+                      router.push({
+                        pathname: "/reviews/[orderItemId]",
+                        params: { orderItemId: item.orderItemId }
+                      })
+                    }
+                  >
+                    {t(
+                      item.alreadyReviewed
+                        ? "review.edit"
+                        : "review.write"
+                    )}
+                  </Button>
+                </View>
+              ))}
+          </View>
+        </Card>
+      ) : null}
 
       <Card>
         <View style={{ gap: theme.spacing.md }}>

@@ -123,6 +123,8 @@ export interface BrowseMarketplaceInput {
   brand?: string | undefined;
   inStock?: boolean | undefined;
   discount?: boolean | undefined;
+  minRating?: number | undefined;
+  verifiedStore?: boolean | undefined;
   sort?: MarketplaceSort | undefined;
   offset?: number | undefined;
   limit?: number | undefined;
@@ -143,6 +145,8 @@ export function browseMarketplace(
         brand: input.brand,
         inStock: input.inStock,
         discount: input.discount,
+        minRating: input.minRating,
+        verifiedStore: input.verifiedStore,
         sort: input.sort,
         offset: input.offset ?? 0,
         limit: input.limit ?? 20

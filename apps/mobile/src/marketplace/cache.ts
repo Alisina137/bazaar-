@@ -109,6 +109,8 @@ export function browseCacheKey(input: {
   brand?: string | undefined;
   inStock?: boolean | undefined;
   discount?: boolean | undefined;
+  minRating?: number | undefined;
+  verifiedStore?: boolean | undefined;
   sort?: string | undefined;
   offset?: number | undefined;
   limit?: number | undefined;

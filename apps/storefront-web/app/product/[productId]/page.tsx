@@ -1,4 +1,7 @@
-import type { MarketplaceProductDetailResponse } from "@bazaarlink/contracts";
+import type {
+  MarketplaceProductDetailResponse,
+  ProductReviewsResponse
+} from "@bazaarlink/contracts";
 import {
   formatAfn,
   getDirection,
@@ -21,6 +24,20 @@ function apiBaseUrl() {
     process.env.NEXT_PUBLIC_API_URL ??
     "http://localhost:4000"
   ).replace(/\/$/, "");
+}
+
+async function getReviews(
+  productId: string
+): Promise<ProductReviewsResponse | null> {
+  const response = await fetch(
+    apiBaseUrl() +
+      "/trust/products/" +
+      encodeURIComponent(productId) +
+      "/reviews",
+    { cache: "no-store" }
+  );
+  if (!response.ok) return null;
+  return (await response.json()) as ProductReviewsResponse;
 }
 
 async function getProduct(
@@ -81,7 +98,10 @@ export default async function ProductPage({
   params
 }: ProductPageProps) {
   const { productId } = await params;
-  const data = await getProduct(productId);
+  const [data, reviews] = await Promise.all([
+    getProduct(productId),
+    getReviews(productId)
+  ]);
 
   if (!data) {
     notFound();
@@ -184,6 +204,12 @@ export default async function ProductPage({
             <p>
               {product.store.cityDistrict}, {product.store.province}
             </p>
+            <p>
+              {product.store.trust.phoneVerified
+                ? t("trust.phoneVerified")
+                : t("trust.phoneNotVerified")}
+            </p>
+            <small>{t("trust.planNotVerification")}</small>
           </div>
 
           {product.description ? (
@@ -193,6 +219,53 @@ export default async function ProductPage({
             </div>
           ) : null}
         </div>
+      </section>
+
+      <section className="product-page__related">
+        <h2>{t("review.summary")}</h2>
+        {reviews && reviews.summary.averageRating !== null ? (
+          <p>
+            {"★ " +
+              reviews.summary.averageRating +
+              " · " +
+              reviews.summary.reviewCount +
+              " " +
+              t("marketplace.reviewsCount")}
+          </p>
+        ) : null}
+        {!reviews || reviews.reviews.length === 0 ? (
+          <p>{t("review.noReviews")}</p>
+        ) : (
+          <div className="storefront__product-grid">
+            {reviews.reviews.map((review) => (
+              <article className="storefront__product-card" key={review.id}>
+                <div className="storefront__product-copy">
+                  <strong>{"★ " + review.rating}</strong>
+                  <p>{t("trust.verifiedPurchase")}</p>
+                  {review.customerDisplayName ? (
+                    <h3>{review.customerDisplayName}</h3>
+                  ) : null}
+                  {review.text ? <p>{review.text}</p> : null}
+                  {review.imageUrls.map((url) => (
+                    <img
+                      key={url}
+                      src={url}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ))}
+                  {review.merchantResponse ? (
+                    <div>
+                      <strong>{t("review.merchantResponse")}</strong>
+                      <p>{review.merchantResponse}</p>
+                    </div>
+                  ) : null}
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
 
       {data.relatedProducts.length > 0 ? (

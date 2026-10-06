@@ -27,6 +27,11 @@ import { DatabasePaymentRepository } from "./payment/repository.js";
 import { PaymentService } from "./payment/service.js";
 import { DatabaseOrderRepository } from "./order/repository.js";
 import { OrderService } from "./order/service.js";
+import { DatabaseCommunicationRepository } from "./communication/repository.js";
+import { ExpoPushGateway } from "./communication/push.js";
+import { CommunicationService } from "./communication/service.js";
+import { DatabaseTrustRepository } from "./trust/repository.js";
+import { TrustService } from "./trust/service.js";
 
 loadEnv({
   path: resolve(process.cwd(), "../../.env"),
@@ -59,18 +64,32 @@ const deliveryService = new DeliveryService(
   deliveryRepository,
   cartPricingService
 );
+const communicationRepository = new DatabaseCommunicationRepository(
+  databaseClient.db
+);
+const communicationService = new CommunicationService(
+  communicationRepository,
+  new ExpoPushGateway()
+);
+const trustRepository = new DatabaseTrustRepository(databaseClient.db);
+const trustService = new TrustService(
+  trustRepository,
+  communicationService
+);
 const paymentRepository = new DatabasePaymentRepository(databaseClient.db);
 const paymentGateway = new HesabPayGateway(parsePaymentProviderConfig());
 const paymentService = new PaymentService(
   paymentRepository,
   deliveryService,
-  paymentGateway
+  paymentGateway,
+  communicationService
 );
 const orderRepository = new DatabaseOrderRepository(databaseClient.db);
 const orderService = new OrderService(
   orderRepository,
   deliveryService,
-  paymentService
+  paymentService,
+  communicationService
 );
 
 const app = buildApp({
@@ -82,7 +101,9 @@ const app = buildApp({
   cartPricingService,
   deliveryService,
   paymentService,
-  orderService
+  orderService,
+  trustService,
+  communicationService
 });
 
 app.addHook("onClose", async () => {

@@ -21,11 +21,11 @@ export const marketplaceFilterCapabilities: MarketplaceFilterCapabilities = {
   store: true,
   inStock: true,
   discount: true,
-  rating: false,
+  rating: true,
   deliveryAvailability: false,
   sameDayDelivery: false,
   paymentMethod: false,
-  verifiedStore: false
+  verifiedStore: true
 };
 
 export interface MarketplaceServiceContract {

@@ -88,6 +88,8 @@ export default function MarketplaceScreen() {
   const [maxPrice, setMaxPrice] = useState("");
   const [inStockOnly, setInStockOnly] = useState(false);
   const [dealsOnly, setDealsOnly] = useState(false);
+  const [minRating, setMinRating] = useState<number | undefined>();
+  const [verifiedStoreOnly, setVerifiedStoreOnly] = useState(false);
   const [sort, setSort] = useState<MarketplaceSort>("relevance");
   const [categoryId, setCategoryId] = useState<string | undefined>();
   const [storeId, setStoreId] = useState<string | undefined>();
@@ -278,6 +280,8 @@ export default function MarketplaceScreen() {
         ...(brand ? { brand } : {}),
         ...(inStockOnly ? { inStock: true } : {}),
         ...(dealsOnly ? { discount: true } : {}),
+        ...(minRating !== undefined ? { minRating } : {}),
+        ...(verifiedStoreOnly ? { verifiedStore: true } : {}),
         ...overrides
       };
 
@@ -294,12 +298,14 @@ export default function MarketplaceScreen() {
       executeBrowse,
       inStockOnly,
       loadHome,
+      minRating,
       maxPrice,
       minPrice,
       province,
       query,
       sort,
-      storeId
+      storeId,
+      verifiedStoreOnly
     ]
   );
 
@@ -310,6 +316,8 @@ export default function MarketplaceScreen() {
     setMaxPrice("");
     setInStockOnly(false);
     setDealsOnly(false);
+    setMinRating(undefined);
+    setVerifiedStoreOnly(false);
     setSort("relevance");
     setCategoryId(undefined);
     setStoreId(undefined);
@@ -466,6 +474,29 @@ export default function MarketplaceScreen() {
                 {t("marketplace.filter.deals")}
               </Button>
 
+              <AppText variant="label">{t("marketplace.filter.rating")}</AppText>
+              <View style={{ flexDirection: "row", gap: theme.spacing.sm, flexWrap: "wrap" }}>
+                {[3, 4, 5].map((value) => (
+                  <Button
+                    key={value}
+                    variant={minRating === value ? "primary" : "secondary"}
+                    onPress={() =>
+                      setMinRating((current) =>
+                        current === value ? undefined : value
+                      )
+                    }
+                  >
+                    {"★ " + value + "+"}
+                  </Button>
+                ))}
+              </View>
+              <Button
+                variant={verifiedStoreOnly ? "primary" : "secondary"}
+                onPress={() => setVerifiedStoreOnly((value) => !value)}
+              >
+                {t("marketplace.filter.verifiedStore")}
+              </Button>
+
               <AppText variant="label">{t("marketplace.sort.label")}</AppText>
               {(
                 [
@@ -473,6 +504,7 @@ export default function MarketplaceScreen() {
                   ["newest", "marketplace.sort.newest"],
                   ["price_asc", "marketplace.sort.priceLowHigh"],
                   ["price_desc", "marketplace.sort.priceHighLow"],
+                  ["rating", "marketplace.sort.rating"],
                   ["popularity", "marketplace.sort.popularity"]
                 ] as const
               ).map(([value, key]) => (

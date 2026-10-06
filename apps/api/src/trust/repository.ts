@@ -59,6 +59,8 @@ function toReview(
     imageUrls: row.imageUrls,
     status: row.status,
     verifiedPurchase: true,
+    merchantResponse: row.merchantResponse,
+    merchantRespondedAt: row.merchantRespondedAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString()
   };
@@ -115,6 +117,12 @@ export interface TrustRepository {
     ownerUserId: string,
     storeId: string
   ): Promise<ProductReviewRecord[] | null>;
+  respondStoreReview(
+    ownerUserId: string,
+    storeId: string,
+    reviewId: string,
+    response: string
+  ): Promise<ProductReviewRecord | null>;
 }
 
 export class DatabaseTrustRepository implements TrustRepository {
@@ -518,6 +526,35 @@ export class DatabaseTrustRepository implements TrustRepository {
     });
 
     return this.reviewRecord(reviewId);
+  }
+
+  async respondStoreReview(
+    ownerUserId: string,
+    storeId: string,
+    reviewId: string,
+    response: string
+  ): Promise<ProductReviewRecord | null> {
+    if (!(await this.listStoreReviews(ownerUserId, storeId))) return null;
+
+    const now = new Date();
+    const [updated] = await this.db
+      .update(productReviews)
+      .set({
+        merchantResponse: response.trim(),
+        merchantRespondedByUserId: ownerUserId,
+        merchantRespondedAt: now,
+        updatedAt: now
+      })
+      .where(
+        and(
+          eq(productReviews.id, reviewId),
+          eq(productReviews.storeId, storeId),
+          inArray(productReviews.status, ["published", "reported"])
+        )
+      )
+      .returning({ id: productReviews.id });
+
+    return updated ? this.reviewRecord(updated.id) : null;
   }
 
   async listStoreReviews(

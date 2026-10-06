@@ -16,7 +16,7 @@ describe("communication service", () => {
     });
     const repository = {
       createNotification,
-      activePushTokens: vi.fn().mockResolvedValue([]),
+      claimPushTokens: vi.fn().mockResolvedValue([]),
       storeOwner: vi.fn().mockResolvedValue("m")
     } as unknown as CommunicationRepository;
 
@@ -49,7 +49,7 @@ describe("communication service", () => {
         readAt: null,
         createdAt: new Date().toISOString()
       }),
-      activePushTokens: vi.fn().mockResolvedValue([])
+      claimPushTokens: vi.fn().mockResolvedValue([])
     } as unknown as CommunicationRepository;
     const push = { send: vi.fn() };
     const service = new CommunicationService(repository, push);

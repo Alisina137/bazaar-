@@ -973,6 +973,8 @@ export const enMessages = {
   "review.reason.inappropriate": "Inappropriate",
   "review.reason.other": "Other",
   "review.sellerTitle": "Store reviews",
+  "review.merchantResponse": "Seller response",
+  "review.respond": "Respond to review",
   "review.moderationTitle": "Review reports",
   "review.moderationEmpty": "No open review reports.",
   "review.action.publish": "Publish",

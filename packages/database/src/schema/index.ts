@@ -141,3 +141,16 @@ export {
   type PaymentStateEvent,
   type StorePaymentSettings
 } from "./payment.js";
+
+
+export {
+  productReviews,
+  reviewReportReason,
+  reviewReportStatus,
+  reviewReports,
+  reviewStatus,
+  type NewProductReview,
+  type NewReviewReport,
+  type ProductReview,
+  type ReviewReport
+} from "./trust.js";

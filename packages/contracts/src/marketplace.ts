@@ -1,4 +1,5 @@
 import type { PublicStoreRecord } from "./store.js";
+import type { SellerTrustRecord } from "./trust.js";
 
 export type MarketplaceSort =
   | "relevance"
@@ -30,6 +31,7 @@ export interface MarketplaceStoreSummary {
   coverImageUrl: string | null;
   description: string | null;
   preferredLocale: "fa-AF" | "ps-AF" | "en";
+  trust: SellerTrustRecord;
 }
 
 export interface MarketplaceVariantSummary {
@@ -53,6 +55,8 @@ export interface MarketplaceProductSummary {
   imageUrl: string | null;
   inStock: boolean;
   hasDiscount: boolean;
+  averageRating: number | null;
+  reviewCount: number;
   publishedAt: string | null;
   store: MarketplaceStoreSummary;
   marketplaceCategory: MarketplaceCategoryRecord | null;
@@ -76,11 +80,11 @@ export interface MarketplaceFilterCapabilities {
   store: true;
   inStock: true;
   discount: true;
-  rating: false;
+  rating: true;
   deliveryAvailability: false;
   sameDayDelivery: false;
   paymentMethod: false;
-  verifiedStore: false;
+  verifiedStore: true;
 }
 
 export interface MarketplaceBrowseResponse {
@@ -133,6 +137,7 @@ export interface MarketplaceProductDetailResponse {
 
 export interface MarketplaceStorePageResponse {
   store: PublicStoreRecord;
+  trust: SellerTrustRecord;
   categories: Array<{
     id: string;
     parentId: string | null;

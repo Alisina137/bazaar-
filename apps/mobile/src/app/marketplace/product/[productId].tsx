@@ -585,6 +585,14 @@ export default function MarketplaceProductScreen() {
                   </AppText>
                 ) : null}
                 {review.text ? <AppText>{review.text}</AppText> : null}
+                {review.merchantResponse ? (
+                  <Card muted>
+                    <AppText variant="bodyStrong">
+                      {t("review.merchantResponse")}
+                    </AppText>
+                    <AppText>{review.merchantResponse}</AppText>
+                  </Card>
+                ) : null}
                 {review.imageUrls.map((uri) => (
                   <Image
                     key={uri}

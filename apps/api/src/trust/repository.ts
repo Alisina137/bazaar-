@@ -14,6 +14,7 @@ import {
   authAccounts,
   orderItems,
   orders,
+  products,
   productReviews,
   reviewReports,
   stores,
@@ -160,9 +161,11 @@ export class DatabaseTrustRepository implements TrustRepository {
       .orderBy(desc(productReviews.createdAt));
 
     if (!exists && reviewRows.length === 0) {
-      const [product] = await this.db.execute(
-        sql`select id from products where id = ${productId} limit 1`
-      );
+      const [product] = await this.db
+        .select({ id: products.id })
+        .from(products)
+        .where(eq(products.id, productId))
+        .limit(1);
       if (!product) return null;
     }
 

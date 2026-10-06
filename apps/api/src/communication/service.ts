@@ -58,7 +58,10 @@ export class CommunicationService implements BusinessNotificationEmitter {
   }): Promise<NotificationRecord> {
     const notification = await this.repository.createNotification(input);
 
-    const tokens = await this.repository.activePushTokens(input.userId);
+    const tokens = await this.repository.claimPushTokens(
+      input.userId,
+      notification.id
+    );
     if (tokens.length > 0) {
       const locale = await this.repository.userLocale(input.userId);
       const results = await this.pushGateway.send(

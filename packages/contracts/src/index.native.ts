@@ -18,3 +18,5 @@ export * from "./payment";
 export * from "./order";
 
 export * from "./trust";
+
+export * from "./communication";

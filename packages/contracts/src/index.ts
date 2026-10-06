@@ -18,3 +18,5 @@ export * from "./payment.js";
 export * from "./order.js";
 
 export * from "./trust.js";
+
+export * from "./communication.js";

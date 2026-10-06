@@ -12,6 +12,24 @@ import type { PaymentServiceContract } from "../payment/service.js";
 import { OrderError } from "./errors.js";
 import type { OrderRepository } from "./repository.js";
 
+export interface OrderNotificationEmitter {
+  orderPlaced(input: {
+    id: string;
+    orderNumber: string;
+    customerUserId: string;
+    storeId: string;
+  }): Promise<void>;
+  orderAction(input: {
+    id: string;
+    orderNumber: string;
+    customerUserId: string;
+    storeId: string;
+    state: string;
+    paymentState: string;
+    paymentProvider: string;
+  }): Promise<void>;
+}
+
 export interface OrderServiceContract {
   placeOrder(
     userId: string,
@@ -48,7 +66,8 @@ export class OrderService implements OrderServiceContract {
   constructor(
     private readonly repository: OrderRepository,
     private readonly deliveryService: DeliveryServiceContract,
-    private readonly paymentService: PaymentServiceContract
+    private readonly paymentService: PaymentServiceContract,
+    private readonly notifier?: OrderNotificationEmitter
   ) {}
 
   async placeOrder(
@@ -100,12 +119,27 @@ export class OrderService implements OrderServiceContract {
       throw new OrderError("payment_not_ready", 409);
     }
 
-    return this.repository.placeOrders({
+    const result = await this.repository.placeOrders({
       userId,
       quote,
       attempts: payment.attempts,
       idempotencyKey: input.idempotencyKey
     });
+
+    if (!result.reused) {
+      await Promise.all(
+        result.orders.map((order) =>
+          this.notifier?.orderPlaced({
+            id: order.id,
+            orderNumber: order.orderNumber,
+            customerUserId: order.customerUserId,
+            storeId: order.storeId
+          })
+        )
+      );
+    }
+
+    return result;
   }
 
   async listCustomerOrders(userId: string): Promise<OrderListResponse> {
@@ -140,6 +174,15 @@ export class OrderService implements OrderServiceContract {
       reason
     );
     if (!order) throw new OrderError("order_not_found", 404);
+    await this.notifier?.orderAction({
+      id: order.id,
+      orderNumber: order.orderNumber,
+      customerUserId: order.customerUserId,
+      storeId: order.storeId,
+      state: order.state,
+      paymentState: order.payment.state,
+      paymentProvider: order.payment.provider
+    });
     return order;
   }
 
@@ -186,6 +229,15 @@ export class OrderService implements OrderServiceContract {
       input.reason?.trim() || null
     );
     if (!order) throw new OrderError("order_not_found", 404);
+    await this.notifier?.orderAction({
+      id: order.id,
+      orderNumber: order.orderNumber,
+      customerUserId: order.customerUserId,
+      storeId: order.storeId,
+      state: order.state,
+      paymentState: order.payment.state,
+      paymentProvider: order.payment.provider
+    });
     return order;
   }
 }

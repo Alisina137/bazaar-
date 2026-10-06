@@ -51,6 +51,12 @@ export interface TrustServiceContract {
     ownerUserId: string,
     storeId: string
   ): Promise<ProductReviewRecord[]>;
+  respondStoreReview(
+    ownerUserId: string,
+    storeId: string,
+    reviewId: string,
+    response: string
+  ): Promise<ProductReviewRecord>;
   moderationQueue(): Promise<ReviewModerationQueueResponse>;
   moderateReview(
     moderatorUserId: string,
@@ -193,6 +199,23 @@ export class TrustService implements TrustServiceContract {
     );
     if (!reviews) throw new TrustError("store_not_found", 404);
     return reviews;
+  }
+
+  async respondStoreReview(
+    ownerUserId: string,
+    storeId: string,
+    reviewId: string,
+    response: string
+  ): Promise<ProductReviewRecord> {
+    if (!response.trim()) throw new TrustError("invalid_request", 400);
+    const review = await this.repository.respondStoreReview(
+      ownerUserId,
+      storeId,
+      reviewId,
+      response
+    );
+    if (!review) throw new TrustError("review_not_found", 404);
+    return review;
   }
 
   async moderationQueue(): Promise<ReviewModerationQueueResponse> {

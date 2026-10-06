@@ -61,6 +61,12 @@ const reportSchema = z
   })
   .strict();
 
+const responseSchema = z
+  .object({
+    response: z.string().trim().min(1).max(4000)
+  })
+  .strict();
+
 const moderateSchema = z
   .object({
     action: z.enum([
@@ -268,6 +274,29 @@ export function registerTrustRoutes(
             params.data.storeId
           )
         };
+      } catch (error) {
+        return sendError(reply, error);
+      }
+    }
+  );
+
+  app.post(
+    "/seller/stores/:storeId/reviews/:reviewId/respond",
+    async (request, reply) => {
+      const store = storeParams.safeParse(request.params);
+      const review = reviewParams.safeParse(request.params);
+      const input = responseSchema.safeParse(request.body);
+      if (!store.success || !review.success || !input.success) {
+        return reply.code(400).send(errorBody("invalid_request"));
+      }
+      try {
+        const session = await authenticate(request, authService);
+        return await service.respondStoreReview(
+          session.user.id,
+          store.data.storeId,
+          review.data.reviewId,
+          input.data.response
+        );
       } catch (error) {
         return sendError(reply, error);
       }

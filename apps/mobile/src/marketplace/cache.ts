@@ -6,7 +6,7 @@ import type {
   MarketplaceStorePageResponse
 } from "@bazaarlink/contracts";
 
-const PREFIX = "bazaarlink.marketplace.";
+const PREFIX = "bazaarlink.marketplace.v9.";
 const RECENT_KEY = PREFIX + "recent-products";
 const MAX_RECENT = 12;
 const CACHE_TTL_MS = 15 * 60 * 1000;

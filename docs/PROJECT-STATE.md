@@ -1190,15 +1190,120 @@ Verified Phase 8 gates include:
 - a platform-owned courier fleet, external courier orchestration, and advanced logistics remain outside the approved Phase 8 scope
 
 
+## Phase 9 — Trust & Communication
+
+### Status
+
+In progress on `main`.
+
+### Product outcomes
+
+- reviews
+- Verified Purchase
+- notifications
+- reports
+- basic seller trust
+- support workflows
+
+### Acceptance
+
+Completed transactions must produce reliable trust signals and notifications.
+
+### Task plan
+
+- [x] 9.1 Review & Verified Purchase foundation
+- [ ] 9.2 Customer review experience
+- [ ] 9.3 Review reports & moderation
+- [ ] 9.4 Notifications & deep links
+- [ ] 9.5 Basic seller trust & support workflows
+- [ ] 9.6 Phase 9 integration/regression verification and close
+
+### Task 9.1 delivered
+
+- added shared trust/review contracts for:
+  - product reviews
+  - review summaries
+  - review eligibility
+  - review reports
+  - moderation actions
+  - stable trust error codes
+- added purchase-linked review persistence:
+  - every review references the customer, order, order item, store, and product
+  - one review is allowed per purchased order item
+  - review rating is constrained to 1–5 stars at the database layer
+  - review text is optional
+  - review images are stored as URL references with a maximum of five images
+- added moderation-ready review states:
+  - published
+  - reported
+  - hidden
+  - removed
+- added abuse-report persistence with:
+  - spam
+  - abuse
+  - misleading
+  - inappropriate
+  - other
+- one customer cannot submit duplicate reports for the same review
+- review reports support open/resolved/dismissed moderation states
+- Verified Purchase is not accepted from a client-supplied boolean
+- server eligibility rules allow reviews only after a BazaarLink order reaches:
+  - delivered
+  - picked up
+- pending, preparing, cancelled, failed, refund, and other incomplete order states are not review-eligible
+- this foundation preserves the product rule that payment tier alone must never be treated as seller or purchase verification
+
+### Database migration
+
+- `0009_yummy_eternals.sql`
+- adds enums:
+  - `review_status`
+  - `review_report_status`
+  - `review_report_reason`
+- adds tables:
+  - `product_reviews`
+  - `review_reports`
+- adds purchase, product, merchant, customer, rating, moderation, report, and chronology indexes/constraints
+- migration is additive and preserves all Phase 1–8 data
+
+### Task 9.1 verification
+
+GitHub Actions run `37401192216` passed on exact code baseline `b7dd6aaf0ce3b450a6e5f580fa11991c26e9c661`.
+
+Verified gates include:
+
+- valid Drizzle migration history
+- zero schema/migration drift
+- fresh Phase 1–9 migration application on PostgreSQL 17
+- database connectivity
+- Phase 9 review/report schema invariant tests
+- completed-purchase review eligibility tests
+- all workspace lint/typecheck/unit-test gates
+- three-language localization regression verification
+- Fastify production build
+- Expo mobile web export
+- Next.js admin/storefront production builds
+- complete existing serial PostgreSQL integration suite
+
+### Next task
+
+Task 9.2 — Customer review experience:
+- expose server-authoritative review eligibility from completed orders
+- create/edit eligible purchase reviews
+- show Verified Purchase on public reviews
+- add review summaries/listing to product detail
+- add review actions to completed customer orders
+- localize the experience in Dari, Pashto, and English
+
 ## Current phase
 
-Phase 8 — Orders & Fulfillment is complete and verified. Phase 9 — Trust & Communication is next.
+Phase 9 — Trust & Communication is in progress. Task 9.1 is complete and verified; Task 9.2 — Customer review experience is next.
 
 ## Last known-good baseline
 
 - Branch: `main`
-- Commit: `1944333944f23a400d69d39fc57fb4b0b15fd88c`
-- Verification run: `37343886343`
+- Commit: `b7dd6aaf0ce3b450a6e5f580fa11991c26e9c661`
+- Verification run: `37401192216`
 
 ## Verification workflow
 
@@ -1217,7 +1322,7 @@ Phase 8 — Orders & Fulfillment is complete and verified. Phase 9 — Trust & C
 
 ## Known external requirements
 
-CI verifies the current marketplace, cart/pricing, delivery, payment, and completed Phase 8 orders/fulfillment baseline against fresh PostgreSQL 17.
+CI verifies the current marketplace, cart/pricing, delivery, payment, completed Phase 8 orders/fulfillment baseline, and Phase 9 trust-schema foundation against fresh PostgreSQL 17.
 
 Local API/store execution requires a valid `DATABASE_URL` in the root `.env` file. Docker is optional when a hosted PostgreSQL database such as Neon is used.
 

@@ -15,6 +15,7 @@ import { AuthError } from "../auth/errors.js";
 import type { AuthServiceContract } from "../auth/service.js";
 import { DeliveryError } from "./errors.js";
 import type { DeliveryServiceContract } from "./service.js";
+import type { GrowthServiceContract } from "../growth/service.js";
 
 const uuidSchema = z.string().uuid();
 const moneySchema = z.number().min(0).max(999_999_999);
@@ -218,7 +219,8 @@ function sendError(reply: FastifyReply, error: unknown) {
 export function registerDeliveryRoutes(
   app: FastifyInstance,
   authService: AuthServiceContract,
-  service: DeliveryServiceContract
+  service: DeliveryServiceContract,
+  growthService?: GrowthServiceContract
 ) {
   app.get("/seller/stores/:storeId/delivery", async (request, reply) => {
     const params = storeParams.safeParse(request.params);
@@ -229,7 +231,15 @@ export function registerDeliveryRoutes(
     try {
       const session = await authenticate(request, authService);
       return await service.getConfiguration(
-        session.user.id,
+        growthService
+          ? (
+              await growthService.resolveAccess(
+                session.user.id,
+                params.data.storeId,
+                "delivery"
+              )
+            ).ownerUserId
+          : session.user.id,
         params.data.storeId
       );
     } catch (error) {
@@ -249,7 +259,15 @@ export function registerDeliveryRoutes(
       try {
         const session = await authenticate(request, authService);
         return await service.updateSettings(
-          session.user.id,
+          growthService
+          ? (
+              await growthService.resolveAccess(
+                session.user.id,
+                params.data.storeId,
+                "delivery"
+              )
+            ).ownerUserId
+          : session.user.id,
           params.data.storeId,
           input.data
         );
@@ -272,7 +290,15 @@ export function registerDeliveryRoutes(
         const session = await authenticate(request, authService);
         return reply.code(201).send(
           await service.createZone(
-            session.user.id,
+            growthService
+          ? (
+              await growthService.resolveAccess(
+                session.user.id,
+                params.data.storeId,
+                "delivery"
+              )
+            ).ownerUserId
+          : session.user.id,
             params.data.storeId,
             input.data
           )
@@ -295,7 +321,15 @@ export function registerDeliveryRoutes(
       try {
         const session = await authenticate(request, authService);
         return await service.updateZone(
-          session.user.id,
+          growthService
+          ? (
+              await growthService.resolveAccess(
+                session.user.id,
+                params.data.storeId,
+                "delivery"
+              )
+            ).ownerUserId
+          : session.user.id,
           params.data.storeId,
           params.data.zoneId,
           input.data
@@ -317,7 +351,15 @@ export function registerDeliveryRoutes(
       try {
         const session = await authenticate(request, authService);
         return await service.deleteZone(
-          session.user.id,
+          growthService
+          ? (
+              await growthService.resolveAccess(
+                session.user.id,
+                params.data.storeId,
+                "delivery"
+              )
+            ).ownerUserId
+          : session.user.id,
           params.data.storeId,
           params.data.zoneId
         );
@@ -340,7 +382,15 @@ export function registerDeliveryRoutes(
         const session = await authenticate(request, authService);
         return reply.code(201).send(
           await service.createDistanceRule(
-            session.user.id,
+            growthService
+          ? (
+              await growthService.resolveAccess(
+                session.user.id,
+                params.data.storeId,
+                "delivery"
+              )
+            ).ownerUserId
+          : session.user.id,
             params.data.storeId,
             input.data
           )
@@ -363,7 +413,15 @@ export function registerDeliveryRoutes(
       try {
         const session = await authenticate(request, authService);
         return await service.updateDistanceRule(
-          session.user.id,
+          growthService
+          ? (
+              await growthService.resolveAccess(
+                session.user.id,
+                params.data.storeId,
+                "delivery"
+              )
+            ).ownerUserId
+          : session.user.id,
           params.data.storeId,
           params.data.ruleId,
           input.data
@@ -385,7 +443,15 @@ export function registerDeliveryRoutes(
       try {
         const session = await authenticate(request, authService);
         return await service.deleteDistanceRule(
-          session.user.id,
+          growthService
+          ? (
+              await growthService.resolveAccess(
+                session.user.id,
+                params.data.storeId,
+                "delivery"
+              )
+            ).ownerUserId
+          : session.user.id,
           params.data.storeId,
           params.data.ruleId
         );
@@ -408,7 +474,15 @@ export function registerDeliveryRoutes(
         const session = await authenticate(request, authService);
         return reply.code(201).send(
           await service.createSpeed(
-            session.user.id,
+            growthService
+          ? (
+              await growthService.resolveAccess(
+                session.user.id,
+                params.data.storeId,
+                "delivery"
+              )
+            ).ownerUserId
+          : session.user.id,
             params.data.storeId,
             input.data
           )
@@ -431,7 +505,15 @@ export function registerDeliveryRoutes(
       try {
         const session = await authenticate(request, authService);
         return await service.updateSpeed(
-          session.user.id,
+          growthService
+          ? (
+              await growthService.resolveAccess(
+                session.user.id,
+                params.data.storeId,
+                "delivery"
+              )
+            ).ownerUserId
+          : session.user.id,
           params.data.storeId,
           params.data.speedId,
           input.data
@@ -453,7 +535,15 @@ export function registerDeliveryRoutes(
       try {
         const session = await authenticate(request, authService);
         return await service.deleteSpeed(
-          session.user.id,
+          growthService
+          ? (
+              await growthService.resolveAccess(
+                session.user.id,
+                params.data.storeId,
+                "delivery"
+              )
+            ).ownerUserId
+          : session.user.id,
           params.data.storeId,
           params.data.speedId
         );

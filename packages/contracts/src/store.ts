@@ -43,6 +43,7 @@ export interface StoreEntitlements {
   advancedDelivery: boolean;
   discounts: boolean;
   coupons: boolean;
+  promotions: boolean;
   advancedAnalytics: boolean;
   premiumStorefront: boolean;
   customDomain: boolean;
@@ -80,6 +81,9 @@ export interface StoreRecord {
   mapLatitude: number | null;
   mapLongitude: number | null;
   businessHours: string | null;
+  featuredCategoryIds: string[];
+  featuredProductIds: string[];
+  customDomain: string | null;
   theme: StoreTheme;
   accentColor: string;
   status: StoreStatus;
@@ -110,6 +114,9 @@ export interface CreateStoreInput {
   mapLatitude?: number | null | undefined;
   mapLongitude?: number | null | undefined;
   businessHours?: string | null | undefined;
+  featuredCategoryIds?: string[] | undefined;
+  featuredProductIds?: string[] | undefined;
+  customDomain?: string | null | undefined;
   theme?: StoreTheme | undefined;
   accentColor?: string | undefined;
 }
@@ -130,6 +137,9 @@ export interface UpdateStoreInput {
   mapLatitude?: number | null | undefined;
   mapLongitude?: number | null | undefined;
   businessHours?: string | null | undefined;
+  featuredCategoryIds?: string[] | undefined;
+  featuredProductIds?: string[] | undefined;
+  customDomain?: string | null | undefined;
   theme?: StoreTheme | undefined;
   accentColor?: string | undefined;
 }
@@ -145,6 +155,7 @@ export const storeErrorCodes = [
   "store_suspended",
   "store_not_ready",
   "subscription_unavailable",
+  "feature_not_available",
   "service_unavailable"
 ] as const;
 

@@ -17,6 +17,7 @@ import { AuthError } from "../auth/errors.js";
 import type { AuthServiceContract } from "../auth/service.js";
 import { StoreError } from "./errors.js";
 import type { StoreServiceContract } from "./service.js";
+import type { GrowthServiceContract } from "../growth/service.js";
 
 const localeSchema = z.enum(["fa-AF", "ps-AF", "en"]);
 const themeSchema = z.enum([
@@ -138,7 +139,8 @@ function sendStoreError(reply: FastifyReply, error: unknown) {
 export function registerStoreRoutes(
   app: FastifyInstance,
   authService: AuthServiceContract,
-  storeService: StoreServiceContract
+  storeService: StoreServiceContract,
+  growthService?: GrowthServiceContract
 ) {
   app.get("/seller/plans", async (request, reply) => {
     try {
@@ -152,7 +154,19 @@ export function registerStoreRoutes(
   app.get("/seller/stores", async (request, reply) => {
     try {
       const session = await authenticate(request, authService);
-      return await storeService.listOwnedStores(session.user.id);
+      const own = await storeService.listOwnedStores(session.user.id);
+      if (!growthService) return own;
+
+      const assigned = await growthService.assignedAccesses(session.user.id);
+      const staffStores = await Promise.all(
+        assigned.map((access) =>
+          storeService.getOwnedStore(access.ownerUserId, access.storeId)
+        )
+      );
+      const byId = new Map(
+        [...own.stores, ...staffStores].map((store) => [store.id, store])
+      );
+      return { stores: [...byId.values()] };
     } catch (error) {
       return sendStoreError(reply, error);
     }
@@ -198,8 +212,14 @@ export function registerStoreRoutes(
 
     try {
       const session = await authenticate(request, authService);
+      const actor = growthService
+        ? await growthService.resolveAccess(
+            session.user.id,
+            params.data.storeId
+          )
+        : { ownerUserId: session.user.id };
       return await storeService.getOwnedStore(
-        session.user.id,
+        actor.ownerUserId,
         params.data.storeId
       );
     } catch (error) {
@@ -217,8 +237,15 @@ export function registerStoreRoutes(
 
     try {
       const session = await authenticate(request, authService);
+      const actor = growthService
+        ? await growthService.resolveAccess(
+            session.user.id,
+            params.data.storeId,
+            "storefront"
+          )
+        : { ownerUserId: session.user.id };
       return await storeService.updateStore(
-        session.user.id,
+        actor.ownerUserId,
         params.data.storeId,
         input.data
       );
@@ -236,8 +263,15 @@ export function registerStoreRoutes(
 
     try {
       const session = await authenticate(request, authService);
+      const actor = growthService
+        ? await growthService.resolveAccess(
+            session.user.id,
+            params.data.storeId,
+            "storefront"
+          )
+        : { ownerUserId: session.user.id };
       return await storeService.publishStore(
-        session.user.id,
+        actor.ownerUserId,
         params.data.storeId
       );
     } catch (error) {

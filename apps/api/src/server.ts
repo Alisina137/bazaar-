@@ -32,6 +32,8 @@ import { ExpoPushGateway } from "./communication/push.js";
 import { CommunicationService } from "./communication/service.js";
 import { DatabaseTrustRepository } from "./trust/repository.js";
 import { TrustService } from "./trust/service.js";
+import { DatabaseGrowthRepository } from "./growth/repository.js";
+import { GrowthService } from "./growth/service.js";
 
 loadEnv({
   path: resolve(process.cwd(), "../../.env"),
@@ -76,6 +78,8 @@ const trustService = new TrustService(
   trustRepository,
   communicationService
 );
+const growthRepository = new DatabaseGrowthRepository(databaseClient.db);
+const growthService = new GrowthService(growthRepository);
 const paymentRepository = new DatabasePaymentRepository(databaseClient.db);
 const paymentGateway = new HesabPayGateway(parsePaymentProviderConfig());
 const paymentService = new PaymentService(
@@ -103,7 +107,8 @@ const app = buildApp({
   paymentService,
   orderService,
   trustService,
-  communicationService
+  communicationService,
+  growthService
 });
 
 app.addHook("onClose", async () => {

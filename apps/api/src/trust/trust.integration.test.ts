@@ -16,7 +16,7 @@ import {
   supportTickets,
   users
 } from "@bazaarlink/database";
-import { and, eq, inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import {
   afterAll,

@@ -20,3 +20,5 @@ export * from "./order";
 export * from "./trust";
 
 export * from "./communication";
+
+export * from "./growth";

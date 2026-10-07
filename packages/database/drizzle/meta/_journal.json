@@ -78,6 +78,13 @@
       "when": 1791253347802,
       "tag": "0010_stale_firestar",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791339015520,
+      "tag": "0011_eminent_magneto",
+      "breakpoints": true
     }
   ]
 }

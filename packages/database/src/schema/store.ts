@@ -1,6 +1,7 @@
 import {
   doublePrecision,
   index,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -63,6 +64,15 @@ export const stores = pgTable(
     mapLatitude: doublePrecision("map_latitude"),
     mapLongitude: doublePrecision("map_longitude"),
     businessHours: text("business_hours"),
+    featuredCategoryIds: jsonb("featured_category_ids")
+      .$type<string[]>()
+      .default([])
+      .notNull(),
+    featuredProductIds: jsonb("featured_product_ids")
+      .$type<string[]>()
+      .default([])
+      .notNull(),
+    customDomain: varchar("custom_domain", { length: 255 }),
     theme: storeTheme("theme").default("minimal").notNull(),
     accentColor: varchar("accent_color", { length: 7 })
       .default("#0F766E")
@@ -87,6 +97,7 @@ export const stores = pgTable(
   },
   (table) => [
     uniqueIndex("stores_handle_uidx").on(table.handle),
+    uniqueIndex("stores_custom_domain_uidx").on(table.customDomain),
     index("stores_owner_user_id_idx").on(table.ownerUserId),
     index("stores_status_idx").on(table.status),
     index("stores_province_idx").on(table.province),

@@ -17,6 +17,7 @@ const entitlementByPlan: Record<
     advancedDelivery: false,
     discounts: false,
     coupons: false,
+    promotions: false,
     advancedAnalytics: false,
     premiumStorefront: false,
     customDomain: false
@@ -29,6 +30,7 @@ const entitlementByPlan: Record<
     advancedDelivery: true,
     discounts: true,
     coupons: true,
+    promotions: true,
     advancedAnalytics: true,
     premiumStorefront: true,
     customDomain: true
@@ -41,6 +43,7 @@ const entitlementByPlan: Record<
     advancedDelivery: true,
     discounts: true,
     coupons: true,
+    promotions: true,
     advancedAnalytics: true,
     premiumStorefront: true,
     customDomain: true
@@ -59,7 +62,7 @@ export function getSubscriptionPlans(): StorePlansResponse {
   ).map((code) => ({
     code,
     entitlements: entitlementByPlan[code],
-    paidUpgradeAvailable: false
+    paidUpgradeAvailable: code !== "starter"
   }));
 
   return {

@@ -8,6 +8,7 @@ import type {
 } from "@bazaarlink/contracts";
 
 import {
+  getStoreEntitlements,
   getSubscriptionPlans
 } from "./entitlements.js";
 import {
@@ -70,7 +71,10 @@ function normalizeCreateInput(input: CreateStoreInput): CreateStoreInput {
     description: trimNullable(input.description),
     whatsappNumber: trimNullable(input.whatsappNumber),
     physicalAddress: trimNullable(input.physicalAddress),
-    businessHours: trimNullable(input.businessHours)
+    businessHours: trimNullable(input.businessHours),
+    featuredCategoryIds: [...new Set(input.featuredCategoryIds ?? [])],
+    featuredProductIds: [...new Set(input.featuredProductIds ?? [])],
+    customDomain: trimNullable(input.customDomain)
   };
 }
 
@@ -91,6 +95,15 @@ function normalizeUpdateInput(input: UpdateStoreInput): UpdateStoreInput {
   if (input.whatsappNumber !== undefined) result.whatsappNumber = trimNullable(input.whatsappNumber);
   if (input.physicalAddress !== undefined) result.physicalAddress = trimNullable(input.physicalAddress);
   if (input.businessHours !== undefined) result.businessHours = trimNullable(input.businessHours);
+  if (input.featuredCategoryIds !== undefined) {
+    result.featuredCategoryIds = [...new Set(input.featuredCategoryIds)];
+  }
+  if (input.featuredProductIds !== undefined) {
+    result.featuredProductIds = [...new Set(input.featuredProductIds)];
+  }
+  if (input.customDomain !== undefined) {
+    result.customDomain = trimNullable(input.customDomain);
+  }
 
   return result;
 }
@@ -103,9 +116,25 @@ function toPublicStore(store: StoreRecord): PublicStoreRecord {
   } = store;
 
   void ownerUserId;
-  void subscription;
+  const premium =
+    subscription.status === "active" ||
+    subscription.status === "grace_period"
+      ? subscription.entitlements.premiumStorefront
+      : false;
+  const customDomain =
+    subscription.status === "active" ||
+    subscription.status === "grace_period"
+      ? subscription.entitlements.customDomain
+      : false;
 
-  return publicStore;
+  return {
+    ...publicStore,
+    theme: premium ? publicStore.theme : "minimal",
+    accentColor: premium ? publicStore.accentColor : "#0F766E",
+    featuredCategoryIds: premium ? publicStore.featuredCategoryIds : [],
+    featuredProductIds: premium ? publicStore.featuredProductIds : [],
+    customDomain: customDomain ? publicStore.customDomain : null
+  };
 }
 
 export class StoreService implements StoreServiceContract {
@@ -134,6 +163,16 @@ export class StoreService implements StoreServiceContract {
     ownerUserId: string,
     input: CreateStoreInput
   ): Promise<StoreRecord> {
+    if (
+      (input.theme !== undefined && input.theme !== "minimal") ||
+      input.accentColor !== undefined ||
+      (input.featuredCategoryIds?.length ?? 0) > 0 ||
+      (input.featuredProductIds?.length ?? 0) > 0 ||
+      input.customDomain
+    ) {
+      throw new StoreError("feature_not_available", 409);
+    }
+
     try {
       return await this.repository.createStore(
         ownerUserId,
@@ -153,6 +192,24 @@ export class StoreService implements StoreServiceContract {
     storeId: string,
     input: UpdateStoreInput
   ): Promise<StoreRecord> {
+    const current = await this.repository.findOwnedStore(ownerUserId, storeId);
+    if (!current) {
+      throw new StoreError("store_not_found", 404);
+    }
+
+    const entitlements = getStoreEntitlements(current.subscription.plan);
+    const premiumRequested =
+      input.theme !== undefined ||
+      input.accentColor !== undefined ||
+      input.featuredCategoryIds !== undefined ||
+      input.featuredProductIds !== undefined;
+    if (premiumRequested && !entitlements.premiumStorefront) {
+      throw new StoreError("feature_not_available", 409);
+    }
+    if (input.customDomain !== undefined && !entitlements.customDomain) {
+      throw new StoreError("feature_not_available", 409);
+    }
+
     try {
       const store = await this.repository.updateStore(
         ownerUserId,

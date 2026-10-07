@@ -21,6 +21,7 @@ import {
   inventoryMovements,
   platformCategories,
   productImages,
+  productPromotions,
   products,
   productVariants,
   storeSubscriptions,
@@ -387,7 +388,8 @@ export class DatabaseCatalogRepository implements CatalogRepository {
       .where(
         and(
           eq(products.storeId, storeId),
-          ne(products.status, "archived")
+          ne(products.status, "archived"),
+          ne(products.status, "plan_restricted")
         )
       );
 
@@ -405,7 +407,8 @@ export class DatabaseCatalogRepository implements CatalogRepository {
         and(
           eq(products.storeId, storeId),
           eq(products.categoryId, categoryId),
-          ne(products.status, "archived")
+          ne(products.status, "archived"),
+          ne(products.status, "plan_restricted")
         )
       );
 
@@ -1426,8 +1429,16 @@ export class DatabaseCatalogRepository implements CatalogRepository {
     handle: string
   ): Promise<PublicStoreCatalogResponse | null> {
     const [store] = await this.db
-      .select({ id: stores.id })
+      .select({
+        id: stores.id,
+        plan: storeSubscriptions.plan,
+        subscriptionStatus: storeSubscriptions.status
+      })
       .from(stores)
+      .innerJoin(
+        storeSubscriptions,
+        eq(storeSubscriptions.storeId, stores.id)
+      )
       .where(
         and(
           eq(stores.handle, handle),
@@ -1468,6 +1479,37 @@ export class DatabaseCatalogRepository implements CatalogRepository {
     ]);
 
     const hydrated = await this.hydrateProducts(productRows);
+    const entitled =
+      store.plan !== "starter" &&
+      ["active", "grace_period"].includes(store.subscriptionStatus);
+    const promotionRows =
+      entitled && hydrated.length > 0
+        ? await this.db
+            .select({
+              productId: productPromotions.productId,
+              price: productPromotions.promotionalPrice
+            })
+            .from(productPromotions)
+            .where(
+              and(
+                inArray(
+                  productPromotions.productId,
+                  hydrated.map((product) => product.id)
+                ),
+                eq(productPromotions.active, true),
+                sql`${productPromotions.startsAt} <= now()`,
+                sql`${productPromotions.endsAt} >= now()`
+              )
+            )
+        : [];
+    const promoByProduct = new Map<string, number>();
+    for (const promotion of promotionRows) {
+      const value = Number(promotion.price);
+      const current = promoByProduct.get(promotion.productId);
+      if (current === undefined || value < current) {
+        promoByProduct.set(promotion.productId, value);
+      }
+    }
 
     return {
       categories: categoryRows.map((category) => ({
@@ -1478,13 +1520,26 @@ export class DatabaseCatalogRepository implements CatalogRepository {
         icon: category.icon,
         sortOrder: category.sortOrder
       })),
-      products: hydrated.map((product) => ({
+      products: hydrated.map((product) => {
+        const listPrice =
+          product.compareAtPrice !== null &&
+          product.compareAtPrice > product.price
+            ? product.compareAtPrice
+            : product.price;
+        const basePrice = entitled ? product.price : listPrice;
+        const promotion = entitled
+          ? promoByProduct.get(product.id) ?? null
+          : null;
+        const effectivePrice =
+          promotion === null ? basePrice : Math.min(basePrice, promotion);
+
+        return {
         id: product.id,
         categoryId: product.categoryId,
         name: product.name,
         description: product.description,
-        price: product.price,
-        compareAtPrice: product.compareAtPrice,
+        price: effectivePrice,
+        compareAtPrice: listPrice > effectivePrice ? listPrice : null,
         brand: product.brand,
         status:
           product.status === "out_of_stock"
@@ -1504,7 +1559,8 @@ export class DatabaseCatalogRepository implements CatalogRepository {
           imageUrl: variant.imageUrl,
           available: variant.available
         }))
-      }))
+      };
+      })
     };
   }
 }

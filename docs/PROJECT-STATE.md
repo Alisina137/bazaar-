@@ -1194,7 +1194,7 @@ Verified Phase 8 gates include:
 
 ### Status
 
-In progress on `main`.
+Complete and verified on `main`.
 
 ### Product outcomes
 
@@ -1207,68 +1207,127 @@ In progress on `main`.
 
 ### Acceptance
 
-Completed transactions must produce reliable trust signals and notifications.
+Passed: completed BazaarLink transactions now produce server-authoritative trust signals and communication. Reviews are purchase-linked, notifications are persisted and deep-linkable, seller trust is earned from verified phone identity rather than subscription tier, abuse is moderatable, and users can communicate with platform support.
 
 ### Task plan
 
 - [x] 9.1 Review & Verified Purchase foundation
-- [ ] 9.2 Customer review experience
-- [ ] 9.3 Review reports & moderation
-- [ ] 9.4 Notifications & deep links
-- [ ] 9.5 Basic seller trust & support workflows
-- [ ] 9.6 Phase 9 integration/regression verification and close
+- [x] 9.2 Customer review experience
+- [x] 9.3 Review reports & moderation
+- [x] 9.4 Notifications & deep links
+- [x] 9.5 Basic seller trust & support workflows
+- [x] 9.6 Phase 9 integration/regression verification and close
 
-### Task 9.1 delivered
+### Task 9.1 — Review & Verified Purchase foundation
 
-- added shared trust/review contracts for:
-  - product reviews
-  - review summaries
-  - review eligibility
-  - review reports
-  - moderation actions
-  - stable trust error codes
-- added purchase-linked review persistence:
-  - every review references the customer, order, order item, store, and product
-  - one review is allowed per purchased order item
-  - review rating is constrained to 1–5 stars at the database layer
-  - review text is optional
-  - review images are stored as URL references with a maximum of five images
-- added moderation-ready review states:
-  - published
-  - reported
-  - hidden
-  - removed
-- added abuse-report persistence with:
-  - spam
-  - abuse
-  - misleading
-  - inappropriate
-  - other
-- one customer cannot submit duplicate reports for the same review
-- review reports support open/resolved/dismissed moderation states
-- Verified Purchase is not accepted from a client-supplied boolean
-- server eligibility rules allow reviews only after a BazaarLink order reaches:
-  - delivered
-  - picked up
-- pending, preparing, cancelled, failed, refund, and other incomplete order states are not review-eligible
-- this foundation preserves the product rule that payment tier alone must never be treated as seller or purchase verification
+- added purchase-linked review persistence and shared contracts
+- every review references the customer, completed order, order item, store, and product
+- one review is allowed per purchased order item
+- rating is constrained to 1–5 stars
+- review text is optional and up to five image URL references are supported
+- review states support published, reported, hidden, and removed
+- abuse reports support spam, abuse, misleading, inappropriate, and other
+- duplicate reports by the same customer are prevented
+- Verified Purchase is calculated by the server and cannot be forged by a client flag
+- only delivered and picked-up purchases are review-eligible
 
-### Database migration
+### Task 9.2 — Customer review experience
+
+- completed customer orders expose review eligibility and Write/Edit Review actions
+- customers can create and edit eligible reviews
+- product detail shows:
+  - average rating
+  - review count
+  - 1–5 star reviews
+  - Verified Purchase
+  - optional review images
+  - seller responses
+- public storefront product pages expose the same purchase-linked review information
+- rating data is now active in marketplace discovery instead of a future placeholder
+- marketplace supports minimum-rating filtering and rating sorting
+- old marketplace cache entries are versioned out so pre-Phase-9 cached response shapes cannot crash the new UI
+- review flows are localized in Dari, Pashto, and English
+
+### Task 9.3 — Review reports & moderation
+
+- customers can report review abuse with structured reasons and optional details
+- seller review inbox exposes reviews for the owned store only
+- merchants can respond publicly to eligible published/reported reviews
+- platform review-report queue is restricted to:
+  - platform support
+  - platform admin
+  - super admin
+- moderation supports:
+  - publish
+  - hide
+  - remove
+  - dismiss reports
+- moderation state and resolution metadata are persisted
+- hidden/removed reviews are excluded from public rating/review surfaces as appropriate
+
+### Task 9.4 — Notifications & deep links
+
+- added persisted in-app notification records with per-user event idempotency
+- added push-device registration for Android/iOS Expo tokens
+- added Expo-compatible push delivery with three-language notification copy
+- push delivery is claimed at the database boundary before send so a repeated server event cannot dispatch the same notification/device pair twice
+- notification inbox supports:
+  - list
+  - unread count
+  - mark read
+  - mark all read
+  - push opt-in
+  - safe internal deep links
+- authoritative server transitions emit notifications for:
+  - order placed — customer and merchant
+  - payment successful — customer and merchant
+  - payment failed — customer
+  - order confirmed — customer
+  - order cancelled — customer and merchant
+  - order preparing — customer
+  - out for delivery — customer
+  - delivered/picked up — customer and merchant
+  - review available — customer
+  - low stock — merchant
+  - new review — merchant
+  - subscription issue — merchant
+  - support reply — user
+  - delivery failure — customer
+- mobile account/seller navigation exposes the notification inbox
+
+### Task 9.5 — Basic seller trust & support workflows
+
+- seller trust is derived from an actually verified `phone_password` auth identity
+- a paid subscription never creates verification
+- marketplace product/store responses expose:
+  - phone verified / unverified
+  - verification level
+- marketplace supports filtering to phone-verified sellers
+- product cards, product detail, mobile store pages, and public storefront pages display the earned trust signal
+- cart merchant summaries propagate the same server-authoritative trust record
+- later identity/business/address/history trust levels remain intentionally deferred
+- added customer/merchant support tickets with:
+  - category
+  - subject
+  - conversation messages
+  - open/waiting-support/waiting-customer/closed states
+- users can create, list, read, reply to, and close their own support tickets
+- platform support/admin roles can list, inspect, reply to, and change ticket status without granting ordinary support staff unrestricted super-admin access
+- platform replies create user notifications with deep links
+
+### Database migrations
 
 - `0009_yummy_eternals.sql`
-- adds enums:
-  - `review_status`
-  - `review_report_status`
-  - `review_report_reason`
-- adds tables:
-  - `product_reviews`
-  - `review_reports`
-- adds purchase, product, merchant, customer, rating, moderation, report, and chronology indexes/constraints
-- migration is additive and preserves all Phase 1–8 data
+  - review/report enums and persistence
+- `0010_stale_firestar.sql`
+  - notification, push-device, push-delivery, support-ticket, and support-message persistence
+- `0011_eminent_magneto.sql`
+  - merchant review-response persistence
+- all Phase 9 migrations are additive and preserve Phase 1–8 data
 
-### Task 9.1 verification
+### Task 9.6 — Integration/regression verification
 
-GitHub Actions run `37401192216` passed on exact code baseline `b7dd6aaf0ce3b450a6e5f580fa11991c26e9c661`.
+GitHub Actions run `37561917026` passed on exact Phase 9 code baseline `383ff96c36f438b67960607392f5f70d4feed3af`.
 
 Verified gates include:
 
@@ -1276,34 +1335,37 @@ Verified gates include:
 - zero schema/migration drift
 - fresh Phase 1–9 migration application on PostgreSQL 17
 - database connectivity
-- Phase 9 review/report schema invariant tests
-- completed-purchase review eligibility tests
 - all workspace lint/typecheck/unit-test gates
-- three-language localization regression verification
+- three-language localization verification
 - Fastify production build
-- Expo mobile web export
-- Next.js admin/storefront production builds
-- complete existing serial PostgreSQL integration suite
-
-### Next task
-
-Task 9.2 — Customer review experience:
-- expose server-authoritative review eligibility from completed orders
-- create/edit eligible purchase reviews
-- show Verified Purchase on public reviews
-- add review summaries/listing to product detail
-- add review actions to completed customer orders
-- localize the experience in Dari, Pashto, and English
+- Expo mobile web export with Expo Notifications
+- Next.js admin production build
+- Next.js public storefront production build
+- existing auth/store/catalog/marketplace/cart/delivery/payment/order PostgreSQL integration suites
+- Phase 9 PostgreSQL trust/communication integration coverage for:
+  - completed-purchase review eligibility
+  - server-issued Verified Purchase
+  - duplicate-review prevention
+  - public rating summaries
+  - merchant review response
+  - abuse reporting
+  - platform moderation
+  - phone-verified seller trust
+  - idempotent customer/merchant notifications
+  - new-review notification
+  - support ticket creation
+  - platform support reply
+  - support-reply notification
 
 ## Current phase
 
-Phase 9 — Trust & Communication is in progress. Task 9.1 is complete and verified; Task 9.2 — Customer review experience is next.
+Phase 9 — Trust & Communication is complete and verified. No later implementation phase is currently recorded in this project-state roadmap.
 
 ## Last known-good baseline
 
 - Branch: `main`
-- Commit: `b7dd6aaf0ce3b450a6e5f580fa11991c26e9c661`
-- Verification run: `37401192216`
+- Phase 9 code commit: `383ff96c36f438b67960607392f5f70d4feed3af`
+- Verification run: `37561917026`
 
 ## Verification workflow
 

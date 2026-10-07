@@ -248,6 +248,25 @@ export interface SubscriptionChangeRecord {
   entitlements: StoreEntitlements;
 }
 
+export type SubscriptionResourceType = "products" | "categories" | "staff";
+
+export interface SubscriptionResourceItem {
+  id: string;
+  label: string;
+  status: string;
+}
+
+export interface SubscriptionResourcePage {
+  type: SubscriptionResourceType;
+  items: SubscriptionResourceItem[];
+  pageInfo: {
+    offset: number;
+    limit: number;
+    total: number;
+    hasMore: boolean;
+  };
+}
+
 export interface SubscriptionPlanUsage {
   productCount: number;
   productLimit: number;

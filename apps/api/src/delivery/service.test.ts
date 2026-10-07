@@ -127,7 +127,12 @@ const cart: CartResponse = {
         logoUrl: null,
         coverImageUrl: null,
         description: null,
-        preferredLocale: "fa-AF"
+        preferredLocale: "fa-AF",
+        trust: {
+          storeId: STORE_ID,
+          phoneVerified: false,
+          verificationLevel: "unverified"
+        }
       },
       items: [
         {

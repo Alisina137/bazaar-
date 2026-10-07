@@ -50,7 +50,7 @@ export function NotificationProvider({ children }: PropsWithChildren) {
     const subscription =
       Notifications.addNotificationResponseReceivedListener((response) => {
         const deepLink = internalDeepLink(
-          response.notification.request.content.data.deepLink
+          response.notification.request.content.data?.deepLink
         );
         if (deepLink) router.push(deepLink as never);
       });

@@ -94,6 +94,40 @@ interface PublicProductBase {
   storePhoneVerified: boolean;
   reviewCount: number;
   averageRating: number | null;
+  subscriptionPlan: "starter" | "pro" | "business";
+  subscriptionStatus: "active" | "grace_period" | "expired" | "canceled";
+  promotionPrice: number | null;
+}
+
+
+function effectiveMarketplacePrice() {
+  return sql<number>`case
+    when exists (
+      select 1 from "store_subscriptions" ss
+      where ss."store_id" = ${stores.id}
+        and ss."plan" in ('pro','business')
+        and ss."status" in ('active','grace_period')
+    )
+    then least(
+      ${products.price},
+      coalesce((
+        select pp."promotional_price"
+        from "product_promotions" pp
+        where pp."product_id" = ${products.id}
+          and pp."active" = true
+          and pp."starts_at" <= now()
+          and pp."ends_at" >= now()
+        order by pp."promotional_price" asc
+        limit 1
+      ), ${products.price})
+    )
+    else case
+      when ${products.compareAtPrice} is not null
+        and ${products.compareAtPrice} > ${products.price}
+      then ${products.compareAtPrice}
+      else ${products.price}
+    end
+  end`;
 }
 
 function toStoreSummary(row: PublicProductBase): MarketplaceStoreSummary {
@@ -316,6 +350,26 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
         from "product_reviews" pr
         where pr."product_id" = ${products.id}
           and pr."status" in ('published', 'reported')
+      )`,
+      subscriptionPlan: sql<"starter" | "pro" | "business">`(
+        select ss."plan" from "store_subscriptions" ss
+        where ss."store_id" = ${stores.id}
+        limit 1
+      )`,
+      subscriptionStatus: sql<"active" | "grace_period" | "expired" | "canceled">`(
+        select ss."status" from "store_subscriptions" ss
+        where ss."store_id" = ${stores.id}
+        limit 1
+      )`,
+      promotionPrice: sql<number | null>`(
+        select pp."promotional_price"::float8
+        from "product_promotions" pp
+        where pp."product_id" = ${products.id}
+          and pp."active" = true
+          and pp."starts_at" <= now()
+          and pp."ends_at" >= now()
+        order by pp."promotional_price" asc
+        limit 1
       )`
     };
   }
@@ -381,10 +435,22 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
     const summaries = rows.map((row) => {
       const detail = detailMap.get(row.id);
       const productVariants = detail?.variants ?? [];
-      const basePrice = Number(row.price);
+      const storedPrice = Number(row.price);
+      const storedCompareAt =
+        row.compareAtPrice === null ? null : Number(row.compareAtPrice);
+      const entitled =
+        row.subscriptionPlan !== "starter" &&
+        ["active", "grace_period"].includes(row.subscriptionStatus);
+      const listPrice =
+        storedCompareAt !== null && storedCompareAt > storedPrice
+          ? storedCompareAt
+          : storedPrice;
+      const basePrice = entitled
+        ? Math.min(storedPrice, row.promotionPrice ?? storedPrice)
+        : listPrice;
       const displayPrice = lowestSellPrice(basePrice, productVariants);
       const compareAtPrice =
-        row.compareAtPrice === null ? null : Number(row.compareAtPrice);
+        listPrice > displayPrice ? listPrice : null;
       const inStock = productInStock(row, productVariants);
 
       return {
@@ -449,11 +515,11 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
     }
 
     if (query.minPrice !== undefined) {
-      conditions.push(gte(products.price, query.minPrice.toFixed(2)));
+      conditions.push(gte(effectiveMarketplacePrice(), query.minPrice));
     }
 
     if (query.maxPrice !== undefined) {
-      conditions.push(lte(products.price, query.maxPrice.toFixed(2)));
+      conditions.push(lte(effectiveMarketplacePrice(), query.maxPrice));
     }
 
     if (query.province) {
@@ -476,10 +542,12 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
 
     if (query.discount === true) {
       conditions.push(
-        and(
-          isNotNull(products.compareAtPrice),
-          sql`${products.compareAtPrice} > ${products.price}`
-        )!
+        sql`${effectiveMarketplacePrice()} < case
+          when ${products.compareAtPrice} is not null
+            and ${products.compareAtPrice} > ${products.price}
+          then ${products.compareAtPrice}
+          else ${products.price}
+        end`
       );
     }
 
@@ -521,9 +589,9 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
     const orderBy = (() => {
       switch (query.sort) {
         case "price_asc":
-          return [asc(products.price), desc(products.publishedAt)];
+          return [asc(effectiveMarketplacePrice()), desc(products.publishedAt)];
         case "price_desc":
-          return [desc(products.price), desc(products.publishedAt)];
+          return [desc(effectiveMarketplacePrice()), desc(products.publishedAt)];
         case "newest":
           return [desc(products.publishedAt), desc(products.createdAt)];
         case "popularity":

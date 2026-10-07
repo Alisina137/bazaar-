@@ -23,6 +23,8 @@ import {
   type Database,
   type StoreCoupon
 } from "@bazaarlink/database";
+import { getStoreEntitlements } from "../store/entitlements.js";
+
 import {
   and,
   asc,
@@ -240,6 +242,16 @@ export class DatabaseCartPricingRepository
         name: products.name,
         price: products.price,
         compareAtPrice: products.compareAtPrice,
+        promotionPrice: sql<string | null>`(
+          select pp."promotional_price"
+          from "product_promotions" pp
+          where pp."product_id" = ${products.id}
+            and pp."active" = true
+            and pp."starts_at" <= now()
+            and pp."ends_at" >= now()
+          order by pp."promotional_price" asc
+          limit 1
+        )`,
         status: products.status,
         availableQuantity: products.availableQuantity,
         reservedQuantity: products.reservedQuantity
@@ -265,24 +277,52 @@ export class DatabaseCartPricingRepository
         .orderBy(asc(productVariants.createdAt))
     ]);
 
-    return rows.map((row) => ({
-      ...row,
-      price: Number(row.price),
-      compareAtPrice: money(row.compareAtPrice),
-      imageUrl:
-        images.find((image) => image.productId === row.id)?.url ?? null,
-      variants: variants
-        .filter((variant) => variant.productId === row.id)
-        .map((variant) => ({
-          id: variant.id,
-          title: variant.title,
-          priceOverride: money(variant.priceOverride),
-          imageUrl: variant.imageUrl,
-          available: variant.available,
-          availableQuantity: variant.availableQuantity,
-          reservedQuantity: variant.reservedQuantity
-        }))
-    }));
+    return rows.map((row) => {
+      const entitlements = getStoreEntitlements(row.subscriptionPlan);
+      const subscriptionEligible = ["active", "grace_period"].includes(
+        row.subscriptionStatus
+      );
+      const storedPrice = Number(row.price);
+      const storedCompareAt = money(row.compareAtPrice);
+      const listPrice =
+        storedCompareAt !== null && storedCompareAt > storedPrice
+          ? storedCompareAt
+          : storedPrice;
+      const discountedPrice =
+        subscriptionEligible && entitlements.discounts
+          ? storedPrice
+          : listPrice;
+      const scheduledPromotion =
+        subscriptionEligible &&
+        entitlements.promotions &&
+        row.promotionPrice !== null
+          ? Number(row.promotionPrice)
+          : null;
+      const effectivePrice =
+        scheduledPromotion !== null
+          ? Math.min(discountedPrice, scheduledPromotion)
+          : discountedPrice;
+
+      return {
+        ...row,
+        price: effectivePrice,
+        compareAtPrice:
+          listPrice > effectivePrice ? listPrice : null,
+        imageUrl:
+          images.find((image) => image.productId === row.id)?.url ?? null,
+        variants: variants
+          .filter((variant) => variant.productId === row.id)
+          .map((variant) => ({
+            id: variant.id,
+            title: variant.title,
+            priceOverride: money(variant.priceOverride),
+            imageUrl: variant.imageUrl,
+            available: variant.available,
+            availableQuantity: variant.availableQuantity,
+            reservedQuantity: variant.reservedQuantity
+          }))
+      };
+    });
   }
 
   async getBundle(userId: string): Promise<CartBundle> {

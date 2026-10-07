@@ -22,6 +22,17 @@ export interface MerchantStoreAccess {
   permissions: MerchantStaffPermission[];
 }
 
+export interface ResolvedGrowthAccess extends MerchantStoreAccess {
+  storeId: string;
+  ownerUserId: string;
+  plan: SubscriptionPlanCode;
+  subscriptionStatus:
+    | "active"
+    | "grace_period"
+    | "expired"
+    | "canceled";
+}
+
 export const growthAnalyticsEvents = [
   "signup_completed",
   "merchant_onboarding_started",

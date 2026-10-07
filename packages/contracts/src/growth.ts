@@ -219,6 +219,9 @@ export interface MerchantStaffResponse {
 
 export interface SubscriptionChangeInput {
   plan: SubscriptionPlanCode;
+  keepProductIds?: string[] | undefined;
+  keepCategoryIds?: string[] | undefined;
+  keepStaffIds?: string[] | undefined;
 }
 
 export interface SubscriptionChangeRecord {

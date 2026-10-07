@@ -137,7 +137,9 @@ export interface GrowthRepository {
     actorUserId: string;
     tokenHash: string;
     now: Date;
-  }): Promise<MerchantStaffRecord | "email_mismatch" | "expired" | null>;
+  }): Promise<
+    MerchantStaffRecord | "email_mismatch" | "expired" | "limit" | null
+  >;
   updateStaff(
     storeId: string,
     staffId: string,
@@ -1036,7 +1038,9 @@ export class DatabaseGrowthRepository implements GrowthRepository {
     actorUserId: string;
     tokenHash: string;
     now: Date;
-  }): Promise<MerchantStaffRecord | "email_mismatch" | "expired" | null> {
+  }): Promise<
+    MerchantStaffRecord | "email_mismatch" | "expired" | "limit" | null
+  > {
     return this.db.transaction(async (tx) => {
       const [invite] = await tx
         .select()
@@ -1066,6 +1070,27 @@ export class DatabaseGrowthRepository implements GrowthRepository {
 
       if (!email || email.identifier.toLowerCase() !== invite.email.toLowerCase()) {
         return "email_mismatch";
+      }
+
+      const [subscription] = await tx
+        .select({ plan: storeSubscriptions.plan })
+        .from(storeSubscriptions)
+        .where(eq(storeSubscriptions.storeId, invite.storeId))
+        .limit(1);
+      const entitlements = getStoreEntitlements(
+        subscription?.plan ?? "starter"
+      );
+      const [activeStaff] = await tx
+        .select({ value: count() })
+        .from(storeStaff)
+        .where(
+          and(
+            eq(storeStaff.storeId, invite.storeId),
+            eq(storeStaff.status, "active")
+          )
+        );
+      if ((activeStaff?.value ?? 0) >= entitlements.staffLimit) {
+        return "limit";
       }
 
       const [staff] = await tx

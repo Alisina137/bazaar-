@@ -28,6 +28,8 @@ import {
 import type { TrustServiceContract } from "./trust/service.js";
 import { registerCommunicationRoutes } from "./communication/routes.js";
 import type { CommunicationService } from "./communication/service.js";
+import { registerGrowthRoutes } from "./growth/routes.js";
+import type { GrowthServiceContract } from "./growth/service.js";
 
 export interface AppDependencies {
   databaseHealthCheck?: () => Promise<void>;
@@ -41,6 +43,7 @@ export interface AppDependencies {
   orderService?: OrderServiceContract;
   trustService?: TrustServiceContract;
   communicationService?: CommunicationService;
+  growthService?: GrowthServiceContract;
 }
 
 export function buildApp(
@@ -195,6 +198,14 @@ export function buildApp(
           securedApp,
           dependencies.authService!,
           dependencies.communicationService
+        );
+      }
+
+      if (dependencies.growthService) {
+        registerGrowthRoutes(
+          securedApp,
+          dependencies.authService!,
+          dependencies.growthService
         );
       }
     });

@@ -3,6 +3,7 @@ import {
   boolean,
   check,
   index,
+  integer,
   jsonb,
   numeric,
   pgEnum,
@@ -14,7 +15,7 @@ import {
   varchar
 } from "drizzle-orm/pg-core";
 
-import { authAccounts, users } from "./auth.js";
+import { users } from "./auth.js";
 import { products } from "./catalog.js";
 import { stores, subscriptionPlan } from "./store.js";
 
@@ -244,14 +245,12 @@ export const subscriptionChanges = pgTable(
       withTimezone: true,
       mode: "date"
     }),
-    restrictedProductCount: numeric("restricted_product_count", {
-      precision: 10,
-      scale: 0
-    }).default("0").notNull(),
-    restoredProductCount: numeric("restored_product_count", {
-      precision: 10,
-      scale: 0
-    }).default("0").notNull(),
+    restrictedProductCount: integer("restricted_product_count")
+      .default(0)
+      .notNull(),
+    restoredProductCount: integer("restored_product_count")
+      .default(0)
+      .notNull(),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "date"

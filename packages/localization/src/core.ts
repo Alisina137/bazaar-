@@ -1,6 +1,6 @@
-import { enMessages, type TranslationKey } from "./locales/en.js";
-import { faAfMessages } from "./locales/fa-AF.js";
-import { psAfMessages } from "./locales/ps-AF.js";
+import { enMessages, type TranslationKey } from "./locales/en";
+import { faAfMessages } from "./locales/fa-AF";
+import { psAfMessages } from "./locales/ps-AF";
 
 export const supportedLocales = ["fa-AF", "ps-AF", "en"] as const;
 

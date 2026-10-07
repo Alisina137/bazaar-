@@ -151,6 +151,9 @@ export const products = pgTable(
       .default("0")
       .notNull(),
     status: productStatus("status").default("draft").notNull(),
+    planRestrictionPreviousStatus: productStatus(
+      "plan_restriction_previous_status"
+    ),
     availableQuantity: integer("available_quantity").default(0).notNull(),
     reservedQuantity: integer("reserved_quantity").default(0).notNull(),
     lowStockThreshold: integer("low_stock_threshold").default(0).notNull(),

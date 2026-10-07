@@ -2,7 +2,8 @@ import type {
   AuthSessionResponse,
   CatalogErrorCode,
   CatalogErrorResponse,
-  ProductStatus
+  ProductStatus,
+  type MerchantStaffPermission
 } from "@bazaarlink/contracts";
 import type {
   FastifyInstance,
@@ -16,6 +17,7 @@ import { AuthError } from "../auth/errors.js";
 import type { AuthServiceContract } from "../auth/service.js";
 import { CatalogError } from "./errors.js";
 import type { CatalogServiceContract } from "./service.js";
+import type { GrowthServiceContract } from "../growth/service.js";
 
 const uuidSchema = z.string().uuid();
 const nullableText = (max: number) =>
@@ -217,6 +219,18 @@ async function authenticate(
   }
 }
 
+async function merchantOwner(
+  actorUserId: string,
+  storeId: string,
+  permission: MerchantStaffPermission,
+  growthService?: GrowthServiceContract
+): Promise<string> {
+  if (!growthService) return actorUserId;
+  return (
+    await growthService.resolveAccess(actorUserId, storeId, permission)
+  ).ownerUserId;
+}
+
 function sendCatalogError(reply: FastifyReply, error: unknown) {
   if (error instanceof CatalogError) {
     return reply.code(error.statusCode).send(catalogErrorBody(error.code));
@@ -233,7 +247,8 @@ function sendCatalogError(reply: FastifyReply, error: unknown) {
 export function registerCatalogRoutes(
   app: FastifyInstance,
   authService: AuthServiceContract,
-  catalogService: CatalogServiceContract
+  catalogService: CatalogServiceContract,
+  growthService?: GrowthServiceContract
 ) {
   app.get("/seller/stores/:storeId/categories", async (request, reply) => {
     const params = storeParamsSchema.safeParse(request.params);
@@ -244,7 +259,12 @@ export function registerCatalogRoutes(
     try {
       const session = await authenticate(request, authService);
       return await catalogService.listCategories(
-        session.user.id,
+        await merchantOwner(
+          session.user.id,
+          params.data.storeId,
+          "products",
+          growthService
+        ),
         params.data.storeId
       );
     } catch (error) {
@@ -273,7 +293,12 @@ export function registerCatalogRoutes(
       try {
         const session = await authenticate(request, authService);
         const category = await catalogService.createCategory(
+          await merchantOwner(
           session.user.id,
+          params.data.storeId,
+          "products",
+          growthService
+        ),
           params.data.storeId,
           input.data
         );
@@ -302,7 +327,12 @@ export function registerCatalogRoutes(
       try {
         const session = await authenticate(request, authService);
         return await catalogService.updateCategory(
+          await merchantOwner(
           session.user.id,
+          params.data.storeId,
+          "products",
+          growthService
+        ),
           params.data.storeId,
           params.data.categoryId,
           input.data
@@ -324,7 +354,12 @@ export function registerCatalogRoutes(
       try {
         const session = await authenticate(request, authService);
         return await catalogService.archiveCategory(
+          await merchantOwner(
           session.user.id,
+          params.data.storeId,
+          "products",
+          growthService
+        ),
           params.data.storeId,
           params.data.categoryId
         );
@@ -345,7 +380,12 @@ export function registerCatalogRoutes(
       try {
         const session = await authenticate(request, authService);
         return await catalogService.restoreCategory(
+          await merchantOwner(
           session.user.id,
+          params.data.storeId,
+          "products",
+          growthService
+        ),
           params.data.storeId,
           params.data.categoryId
         );
@@ -373,7 +413,12 @@ export function registerCatalogRoutes(
       } = query.data;
 
       return await catalogService.listProducts(
-        session.user.id,
+        await merchantOwner(
+          session.user.id,
+          params.data.storeId,
+          "products",
+          growthService
+        ),
         params.data.storeId,
         listQuery
       );
@@ -403,7 +448,12 @@ export function registerCatalogRoutes(
       try {
         const session = await authenticate(request, authService);
         const product = await catalogService.createProduct(
+          await merchantOwner(
           session.user.id,
+          params.data.storeId,
+          "products",
+          growthService
+        ),
           params.data.storeId,
           input.data
         );
@@ -426,7 +476,12 @@ export function registerCatalogRoutes(
       try {
         const session = await authenticate(request, authService);
         return await catalogService.getProduct(
+          await merchantOwner(
           session.user.id,
+          params.data.storeId,
+          "products",
+          growthService
+        ),
           params.data.storeId,
           params.data.productId
         );
@@ -453,7 +508,12 @@ export function registerCatalogRoutes(
       try {
         const session = await authenticate(request, authService);
         return await catalogService.updateProduct(
+          await merchantOwner(
           session.user.id,
+          params.data.storeId,
+          "products",
+          growthService
+        ),
           params.data.storeId,
           params.data.productId,
           input.data
@@ -476,7 +536,12 @@ export function registerCatalogRoutes(
         try {
           const session = await authenticate(request, authService);
           const args = [
-            session.user.id,
+            await merchantOwner(
+          session.user.id,
+          params.data.storeId,
+          "products",
+          growthService
+        ),
             params.data.storeId,
             params.data.productId
           ] as const;
@@ -510,7 +575,12 @@ export function registerCatalogRoutes(
       try {
         const session = await authenticate(request, authService);
         return await catalogService.addImage(
+          await merchantOwner(
           session.user.id,
+          params.data.storeId,
+          "products",
+          growthService
+        ),
           params.data.storeId,
           params.data.productId,
           input.data
@@ -532,7 +602,12 @@ export function registerCatalogRoutes(
       try {
         const session = await authenticate(request, authService);
         return await catalogService.deleteImage(
+          await merchantOwner(
           session.user.id,
+          params.data.storeId,
+          "products",
+          growthService
+        ),
           params.data.storeId,
           params.data.productId,
           params.data.imageId
@@ -556,7 +631,12 @@ export function registerCatalogRoutes(
       try {
         const session = await authenticate(request, authService);
         return await catalogService.addVariant(
+          await merchantOwner(
           session.user.id,
+          params.data.storeId,
+          "products",
+          growthService
+        ),
           params.data.storeId,
           params.data.productId,
           input.data
@@ -584,7 +664,12 @@ export function registerCatalogRoutes(
       try {
         const session = await authenticate(request, authService);
         return await catalogService.updateVariant(
+          await merchantOwner(
           session.user.id,
+          params.data.storeId,
+          "products",
+          growthService
+        ),
           params.data.storeId,
           params.data.productId,
           params.data.variantId,
@@ -607,7 +692,12 @@ export function registerCatalogRoutes(
       try {
         const session = await authenticate(request, authService);
         return await catalogService.deleteVariant(
+          await merchantOwner(
           session.user.id,
+          params.data.storeId,
+          "products",
+          growthService
+        ),
           params.data.storeId,
           params.data.productId,
           params.data.variantId
@@ -631,7 +721,12 @@ export function registerCatalogRoutes(
       try {
         const session = await authenticate(request, authService);
         return await catalogService.adjustInventory(
+          await merchantOwner(
           session.user.id,
+          params.data.storeId,
+          "inventory",
+          growthService
+        ),
           params.data.storeId,
           params.data.productId,
           input.data
@@ -657,13 +752,23 @@ export function registerCatalogRoutes(
           const session = await authenticate(request, authService);
           return action === "reserve"
             ? await catalogService.reserveInventory(
-                session.user.id,
+                await merchantOwner(
+          session.user.id,
+          params.data.storeId,
+          "inventory",
+          growthService
+        ),
                 params.data.storeId,
                 params.data.productId,
                 input.data
               )
             : await catalogService.releaseInventory(
-                session.user.id,
+                await merchantOwner(
+          session.user.id,
+          params.data.storeId,
+          "products",
+          growthService
+        ),
                 params.data.storeId,
                 params.data.productId,
                 input.data
@@ -686,7 +791,12 @@ export function registerCatalogRoutes(
       try {
         const session = await authenticate(request, authService);
         return await catalogService.inventoryHistory(
+          await merchantOwner(
           session.user.id,
+          params.data.storeId,
+          "inventory",
+          growthService
+        ),
           params.data.storeId,
           params.data.productId
         );
@@ -707,7 +817,12 @@ export function registerCatalogRoutes(
       try {
         const session = await authenticate(request, authService);
         return await catalogService.lowStock(
+          await merchantOwner(
           session.user.id,
+          params.data.storeId,
+          "inventory",
+          growthService
+        ),
           params.data.storeId
         );
       } catch (error) {

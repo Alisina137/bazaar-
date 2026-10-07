@@ -141,7 +141,8 @@ export function buildApp(
         registerStoreRoutes(
           securedApp,
           dependencies.authService!,
-          dependencies.storeService
+          dependencies.storeService,
+          dependencies.growthService
         );
       }
 
@@ -149,7 +150,8 @@ export function buildApp(
         registerCatalogRoutes(
           securedApp,
           dependencies.authService!,
-          dependencies.catalogService
+          dependencies.catalogService,
+          dependencies.growthService
         );
       }
 
@@ -165,7 +167,8 @@ export function buildApp(
         registerDeliveryRoutes(
           securedApp,
           dependencies.authService!,
-          dependencies.deliveryService
+          dependencies.deliveryService,
+          dependencies.growthService
         );
       }
 
@@ -181,7 +184,8 @@ export function buildApp(
         registerOrderRoutes(
           securedApp,
           dependencies.authService!,
-          dependencies.orderService
+          dependencies.orderService,
+          dependencies.growthService
         );
       }
 

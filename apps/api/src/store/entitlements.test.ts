@@ -12,7 +12,12 @@ describe("store subscription entitlements", () => {
       categoryLimit: 5,
       staffLimit: 0,
       advancedInventory: false,
-      advancedDelivery: false
+      advancedDelivery: false,
+      discounts: false,
+      coupons: false,
+      promotions: false,
+      advancedAnalytics: false,
+      premiumStorefront: false
     });
   });
 
@@ -22,13 +27,18 @@ describe("store subscription entitlements", () => {
       categoryLimit: null,
       staffLimit: 3,
       advancedInventory: true,
-      advancedDelivery: true
+      advancedDelivery: true,
+      discounts: true,
+      coupons: true,
+      promotions: true,
+      advancedAnalytics: true,
+      premiumStorefront: true
     });
 
     expect(
       getSubscriptionPlans().plans.find((plan) => plan.code === "pro")
     ).toMatchObject({
-      paidUpgradeAvailable: false
+      paidUpgradeAvailable: true
     });
   });
 
@@ -38,7 +48,12 @@ describe("store subscription entitlements", () => {
       categoryLimit: null,
       staffLimit: 10,
       advancedInventory: true,
-      advancedDelivery: true
+      advancedDelivery: true,
+      discounts: true,
+      coupons: true,
+      promotions: true,
+      advancedAnalytics: true,
+      premiumStorefront: true
     });
   });
 });

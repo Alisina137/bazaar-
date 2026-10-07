@@ -645,6 +645,13 @@ export class CatalogService implements CatalogServiceContract {
     await this.requireMarketplaceCategory(input.marketplaceCategoryId);
 
     const normalized = normalizeProductInput(input);
+    if (
+      normalized.compareAtPrice !== null &&
+      normalized.compareAtPrice !== undefined &&
+      !getStoreEntitlements(access.plan).discounts
+    ) {
+      throw new CatalogError("feature_not_available", 409);
+    }
     validateCompareAt(normalized.price, normalized.compareAtPrice);
 
     try {
@@ -683,6 +690,13 @@ export class CatalogService implements CatalogServiceContract {
     }
 
     const normalized = normalizeProductUpdate(input);
+    if (
+      normalized.compareAtPrice !== undefined &&
+      normalized.compareAtPrice !== null &&
+      !getStoreEntitlements(access.plan).discounts
+    ) {
+      throw new CatalogError("feature_not_available", 409);
+    }
     validateCompareAt(
       normalized.price ?? existing.price,
       normalized.compareAtPrice === undefined

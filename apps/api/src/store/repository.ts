@@ -37,6 +37,9 @@ interface StoreRow {
   mapLatitude: number | null;
   mapLongitude: number | null;
   businessHours: string | null;
+  featuredCategoryIds: string[];
+  featuredProductIds: string[];
+  customDomain: string | null;
   theme: "minimal" | "modern" | "fashion" | "electronics" | "food";
   accentColor: string;
   status: "draft" | "published" | "suspended";
@@ -107,6 +110,9 @@ function toStoreRecord(row: StoreRow): StoreRecord {
     mapLatitude: row.mapLatitude,
     mapLongitude: row.mapLongitude,
     businessHours: row.businessHours,
+    featuredCategoryIds: row.featuredCategoryIds,
+    featuredProductIds: row.featuredProductIds,
+    customDomain: row.customDomain,
     theme: row.theme,
     accentColor: row.accentColor,
     status: row.status,
@@ -142,6 +148,9 @@ function selection() {
     mapLatitude: stores.mapLatitude,
     mapLongitude: stores.mapLongitude,
     businessHours: stores.businessHours,
+    featuredCategoryIds: stores.featuredCategoryIds,
+    featuredProductIds: stores.featuredProductIds,
+    customDomain: stores.customDomain,
     theme: stores.theme,
     accentColor: stores.accentColor,
     status: stores.status,
@@ -237,6 +246,9 @@ export class DatabaseStoreRepository implements StoreRepository {
             mapLatitude: input.mapLatitude ?? null,
             mapLongitude: input.mapLongitude ?? null,
             businessHours: input.businessHours ?? null,
+            featuredCategoryIds: input.featuredCategoryIds ?? [],
+            featuredProductIds: input.featuredProductIds ?? [],
+            customDomain: input.customDomain ?? null,
             theme: input.theme ?? "minimal",
             accentColor: input.accentColor ?? "#0F766E"
           })

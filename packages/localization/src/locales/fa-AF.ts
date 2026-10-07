@@ -1,4 +1,4 @@
-import type { TranslationKey } from "./en.js";
+import type { TranslationKey } from "./en";
 
 export const faAfMessages = {
   "nav.home": "خانه",

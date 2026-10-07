@@ -431,7 +431,14 @@ export class CartPricingService implements CartPricingServiceContract {
           description: group.product.storeDescription,
           preferredLocale: storeLocale(
             group.product.storePreferredLocale
-          )
+          ),
+          trust: {
+            storeId: group.product.storeId,
+            phoneVerified: group.product.storePhoneVerified,
+            verificationLevel: group.product.storePhoneVerified
+              ? "phone_verified"
+              : "unverified"
+          }
         },
         items: group.items,
         itemsSubtotal,

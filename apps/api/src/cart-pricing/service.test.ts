@@ -26,6 +26,7 @@ const product: CartProductState = {
   storeCoverImageUrl: null,
   storeDescription: null,
   storePreferredLocale: "fa-AF",
+  storePhoneVerified: false,
   storeStatus: "published",
   subscriptionPlan: "pro",
   subscriptionStatus: "active",

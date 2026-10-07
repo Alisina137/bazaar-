@@ -12,6 +12,8 @@ import type {
   SubscriptionChangeRecord,
   SubscriptionPlanCode,
   SubscriptionPlanUsage,
+  SubscriptionResourcePage,
+  SubscriptionResourceType,
   SubscriptionStatus,
   UpdateMerchantCouponInput,
   UpdateMerchantPromotionInput,
@@ -147,6 +149,17 @@ export interface GrowthRepository {
   ): Promise<MerchantStaffRecord | null>;
   removeStaff(storeId: string, staffId: string): Promise<boolean>;
   subscriptionResources(storeId: string): Promise<SubscriptionResources>;
+  subscriptionResourcePage(
+    storeId: string,
+    type: SubscriptionResourceType,
+    offset: number,
+    limit: number
+  ): Promise<SubscriptionResourcePage>;
+  validateSubscriptionResourceIds(
+    storeId: string,
+    type: SubscriptionResourceType,
+    ids: string[]
+  ): Promise<boolean>;
   applySubscriptionChange(input: {
     ownerUserId: string;
     storeId: string;
@@ -1222,6 +1235,183 @@ export class DatabaseGrowthRepository implements GrowthRepository {
     };
   }
 
+  async subscriptionResourcePage(
+    storeId: string,
+    type: SubscriptionResourceType,
+    offset: number,
+    limit: number
+  ): Promise<SubscriptionResourcePage> {
+    if (type === "products") {
+      const [items, total] = await Promise.all([
+        this.db
+          .select({
+            id: products.id,
+            label: products.name,
+            status: products.status
+          })
+          .from(products)
+          .where(
+            and(
+              eq(products.storeId, storeId),
+              ne(products.status, "archived"),
+              ne(products.status, "plan_restricted")
+            )
+          )
+          .orderBy(asc(products.createdAt))
+          .limit(limit)
+          .offset(offset),
+        this.db
+          .select({ value: count() })
+          .from(products)
+          .where(
+            and(
+              eq(products.storeId, storeId),
+              ne(products.status, "archived"),
+              ne(products.status, "plan_restricted")
+            )
+          )
+      ]);
+      const value = total[0]?.value ?? 0;
+      return {
+        type,
+        items,
+        pageInfo: {
+          offset,
+          limit,
+          total: value,
+          hasMore: offset + items.length < value
+        }
+      };
+    }
+
+    if (type === "categories") {
+      const [items, total] = await Promise.all([
+        this.db
+          .select({
+            id: categories.id,
+            label: categories.name,
+            status: categories.status
+          })
+          .from(categories)
+          .where(
+            and(
+              eq(categories.storeId, storeId),
+              eq(categories.status, "active")
+            )
+          )
+          .orderBy(asc(categories.createdAt))
+          .limit(limit)
+          .offset(offset),
+        this.db
+          .select({ value: count() })
+          .from(categories)
+          .where(
+            and(
+              eq(categories.storeId, storeId),
+              eq(categories.status, "active")
+            )
+          )
+      ]);
+      const value = total[0]?.value ?? 0;
+      return {
+        type,
+        items,
+        pageInfo: {
+          offset,
+          limit,
+          total: value,
+          hasMore: offset + items.length < value
+        }
+      };
+    }
+
+    const [staffRows, total] = await Promise.all([
+      this.db
+        .select({
+          id: storeStaff.id,
+          label: sql<string>`coalesce(${users.displayName}, 'Staff')`,
+          status: storeStaff.status
+        })
+        .from(storeStaff)
+        .innerJoin(users, eq(users.id, storeStaff.userId))
+        .where(
+          and(
+            eq(storeStaff.storeId, storeId),
+            eq(storeStaff.status, "active")
+          )
+        )
+        .orderBy(asc(storeStaff.createdAt))
+        .limit(limit)
+        .offset(offset),
+      this.db
+        .select({ value: count() })
+        .from(storeStaff)
+        .where(
+          and(
+            eq(storeStaff.storeId, storeId),
+            eq(storeStaff.status, "active")
+          )
+        )
+    ]);
+    const value = total[0]?.value ?? 0;
+    return {
+      type,
+      items: staffRows,
+      pageInfo: {
+        offset,
+        limit,
+        total: value,
+        hasMore: offset + staffRows.length < value
+      }
+    };
+  }
+
+  async validateSubscriptionResourceIds(
+    storeId: string,
+    type: SubscriptionResourceType,
+    ids: string[]
+  ): Promise<boolean> {
+    if (ids.length === 0) return true;
+    if (type === "products") {
+      const [row] = await this.db
+        .select({ value: count() })
+        .from(products)
+        .where(
+          and(
+            eq(products.storeId, storeId),
+            inArray(products.id, ids),
+            ne(products.status, "archived"),
+            ne(products.status, "plan_restricted")
+          )
+        );
+      return (row?.value ?? 0) === ids.length;
+    }
+    if (type === "categories") {
+      const [row] = await this.db
+        .select({ value: count() })
+        .from(categories)
+        .where(
+          and(
+            eq(categories.storeId, storeId),
+            inArray(categories.id, ids),
+            eq(categories.status, "active")
+          )
+        );
+      return (row?.value ?? 0) === ids.length;
+    }
+    const [row] = await this.db
+      .select({ value: count() })
+      .from(storeStaff)
+      .where(
+        and(
+          eq(storeStaff.storeId, storeId),
+          inArray(storeStaff.id, ids),
+          eq(storeStaff.status, "active")
+        )
+      );
+    return (row?.value ?? 0) === ids.length;
+  }
+
   async applySubscriptionChange(input: {
     ownerUserId: string;
     storeId: string;
@@ -1262,35 +1452,28 @@ export class DatabaseGrowthRepository implements GrowthRepository {
       let restoredProductCount = 0;
 
       if (direction === "downgrade") {
-        const currentProducts = await tx
-          .select({
-            id: products.id,
-            status: products.status
+        const restricted = await tx
+          .update(products)
+          .set({
+            status: "plan_restricted",
+            planRestrictionPreviousStatus: sql`${products.status}`,
+            updatedAt: new Date()
           })
-          .from(products)
           .where(
             and(
               eq(products.storeId, input.storeId),
               ne(products.status, "archived"),
-              ne(products.status, "plan_restricted")
+              ne(products.status, "plan_restricted"),
+              input.keepProductIds.length > 0
+                ? sql`${products.id} not in (${sql.join(
+                    input.keepProductIds.map((id) => sql`${id}`),
+                    sql`, `
+                  )})`
+                : sql`true`
             )
           )
-          .orderBy(asc(products.createdAt));
-
-        const keepProducts = new Set(input.keepProductIds);
-        for (const product of currentProducts) {
-          if (!keepProducts.has(product.id)) {
-            await tx
-              .update(products)
-              .set({
-                status: "plan_restricted",
-                planRestrictionPreviousStatus: product.status,
-                updatedAt: new Date()
-              })
-              .where(eq(products.id, product.id));
-            restrictedProductCount += 1;
-          }
-        }
+          .returning({ id: products.id });
+        restrictedProductCount = restricted.length;
 
         if (target.categoryLimit !== null) {
           const keepCategories = new Set(input.keepCategoryIds);

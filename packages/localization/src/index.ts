@@ -8,13 +8,13 @@ export {
   translate,
   type SupportedLocale,
   type TextDirection
-} from "./core.js";
+} from "./core";
 
 export {
   formatAfn,
   formatNumber
-} from "./format.js";
+} from "./format";
 
 export {
   type TranslationKey
-} from "./locales/en.js";
+} from "./locales/en";

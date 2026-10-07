@@ -38,6 +38,8 @@ const summary: MarketplaceProductSummary = {
   imageUrl: null,
   inStock: true,
   hasDiscount: true,
+  averageRating: 4.5,
+  reviewCount: 2,
   publishedAt: new Date().toISOString(),
   store: {
     id: "30000000-0000-4000-8000-000000000001",
@@ -48,7 +50,12 @@ const summary: MarketplaceProductSummary = {
     logoUrl: null,
     coverImageUrl: null,
     description: null,
-    preferredLocale: "fa-AF"
+    preferredLocale: "fa-AF",
+    trust: {
+      storeId: "30000000-0000-4000-8000-000000000001",
+      phoneVerified: false,
+      verificationLevel: "unverified"
+    }
   },
   marketplaceCategory: category
 };
@@ -112,6 +119,7 @@ function repository(
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       },
+      trust: summary.store.trust,
       categories: [],
       products: [summary],
       pageInfo: {
@@ -139,7 +147,7 @@ describe("MarketplaceService", () => {
     expect(home.nearby).toEqual([summary]);
     expect(home.recentlyViewed).toEqual([summary]);
     expect(home.filterCapabilities).toEqual(marketplaceFilterCapabilities);
-    expect(home.filterCapabilities.rating).toBe(false);
+    expect(home.filterCapabilities.rating).toBe(true);
     expect(home.filterCapabilities.deliveryAvailability).toBe(false);
   });
 

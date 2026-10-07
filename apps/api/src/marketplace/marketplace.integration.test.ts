@@ -191,7 +191,8 @@ describe.skipIf(!hasDatabase)("database-backed public marketplace discovery", ()
           (product: { id: string }) => product.id === hiddenDraft.id
         )
     ).toBe(false);
-    expect(browse.json().filterCapabilities.rating).toBe(false);
+    expect(browse.json().filterCapabilities.rating).toBe(true);
+    expect(browse.json().filterCapabilities.verifiedStore).toBe(true);
 
     const suggestions = await app.inject({
       method: "GET",

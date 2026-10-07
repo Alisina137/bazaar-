@@ -15,6 +15,7 @@ import { AuthError } from "../auth/errors.js";
 import type { AuthServiceContract } from "../auth/service.js";
 import { OrderError } from "./errors.js";
 import type { OrderServiceContract } from "./service.js";
+import type { GrowthServiceContract } from "../growth/service.js";
 
 const uuidSchema = z.string().uuid();
 const orderParams = z.object({ orderId: uuidSchema });
@@ -93,7 +94,8 @@ function sendError(reply: FastifyReply, error: unknown) {
 export function registerOrderRoutes(
   app: FastifyInstance,
   authService: AuthServiceContract,
-  service: OrderServiceContract
+  service: OrderServiceContract,
+  growthService?: GrowthServiceContract
 ) {
   app.post(
     "/customer/orders/place",
@@ -179,7 +181,15 @@ export function registerOrderRoutes(
       try {
         const session = await authenticate(request, authService);
         return await service.listMerchantOrders(
-          session.user.id,
+          growthService
+            ? (
+                await growthService.resolveAccess(
+                  session.user.id,
+                  params.data.storeId,
+                  "orders"
+                )
+              ).ownerUserId
+            : session.user.id,
           params.data.storeId
         );
       } catch (error) {
@@ -199,7 +209,15 @@ export function registerOrderRoutes(
       try {
         const session = await authenticate(request, authService);
         return await service.getMerchantOrder(
-          session.user.id,
+          growthService
+            ? (
+                await growthService.resolveAccess(
+                  session.user.id,
+                  params.data.storeId,
+                  "orders"
+                )
+              ).ownerUserId
+            : session.user.id,
           params.data.storeId,
           params.data.orderId
         );
@@ -222,7 +240,15 @@ export function registerOrderRoutes(
       try {
         const session = await authenticate(request, authService);
         return await service.merchantAction(
-          session.user.id,
+          growthService
+            ? (
+                await growthService.resolveAccess(
+                  session.user.id,
+                  params.data.storeId,
+                  "orders"
+                )
+              ).ownerUserId
+            : session.user.id,
           params.data.storeId,
           params.data.orderId,
           input.data

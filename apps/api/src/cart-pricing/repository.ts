@@ -4,6 +4,7 @@ import type {
   UpdateCustomerAddressInput
 } from "@bazaarlink/contracts";
 import {
+  authAccounts,
   cartItems,
   carts,
   cartStoreCoupons,
@@ -42,6 +43,7 @@ export interface CartProductState {
   storeCoverImageUrl: string | null;
   storeDescription: string | null;
   storePreferredLocale: string;
+  storePhoneVerified: boolean;
   storeStatus: "draft" | "published" | "suspended";
   subscriptionPlan: "starter" | "pro" | "business";
   subscriptionStatus: "active" | "grace_period" | "expired" | "canceled";
@@ -225,6 +227,13 @@ export class DatabaseCartPricingRepository
         storeCoverImageUrl: stores.coverImageUrl,
         storeDescription: stores.description,
         storePreferredLocale: stores.preferredLocale,
+        storePhoneVerified: sql<boolean>`exists (
+          select 1
+          from ${authAccounts}
+          where ${authAccounts.userId} = ${stores.ownerUserId}
+            and ${authAccounts.provider} = 'phone_password'
+            and ${authAccounts.verifiedAt} is not null
+        )`,
         storeStatus: stores.status,
         subscriptionPlan: storeSubscriptions.plan,
         subscriptionStatus: storeSubscriptions.status,

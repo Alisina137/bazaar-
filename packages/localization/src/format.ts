@@ -1,4 +1,4 @@
-import type { SupportedLocale } from "./core";
+import type { SupportedLocale } from "./core.js";
 
 function getNumberFormatter(locale: SupportedLocale) {
   return new Intl.NumberFormat(locale, {

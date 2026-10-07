@@ -283,6 +283,7 @@ export const catalogErrorCodes = [
   "inventory_target_invalid",
   "inventory_would_be_negative",
   "subscription_unavailable",
+  "feature_not_available",
   "service_unavailable"
 ] as const;
 

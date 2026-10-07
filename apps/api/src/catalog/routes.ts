@@ -766,7 +766,7 @@ export function registerCatalogRoutes(
                 await merchantOwner(
           session.user.id,
           params.data.storeId,
-          "products",
+          "inventory",
           growthService
         ),
                 params.data.storeId,

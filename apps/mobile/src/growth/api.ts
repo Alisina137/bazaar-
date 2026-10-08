@@ -14,6 +14,8 @@ import type {
   ResolvedGrowthAccess,
   SubscriptionChangeInput,
   SubscriptionGrowthResponse,
+  SubscriptionResourcePage,
+  SubscriptionResourceType,
   UpdateMerchantCouponInput,
   UpdateMerchantPromotionInput,
   UpdateMerchantStaffInput
@@ -283,6 +285,26 @@ export function removeStaff(
       encodeURIComponent(staffId),
     token,
     { method: "DELETE" }
+  );
+}
+
+export function subscriptionResources(
+  token: string,
+  storeId: string,
+  type: SubscriptionResourceType,
+  offset = 0,
+  limit = 50
+): Promise<SubscriptionResourcePage> {
+  return requestJson(
+    "/seller/stores/" +
+      encodeURIComponent(storeId) +
+      "/subscription/resources/" +
+      encodeURIComponent(type) +
+      "?offset=" +
+      offset +
+      "&limit=" +
+      limit,
+    token
   );
 }
 

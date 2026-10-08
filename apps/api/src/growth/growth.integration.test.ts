@@ -72,8 +72,10 @@ describe.skipIf(!hasDatabase)(
           displayName: "Phase 10 Owner",
           preferredLocale: "fa-AF"
         });
+        const staffEmail =
+          "phase10-staff-" + randomUUID() + "@example.com";
         const staffUser = await authService.register({
-          email: "phase10-staff-" + randomUUID() + "@example.com",
+          email: staffEmail,
           password: "phase10-password",
           displayName: "Phase 10 Staff",
           preferredLocale: "en"
@@ -165,7 +167,7 @@ describe.skipIf(!hasDatabase)(
             authorization: "Bearer " + owner.session.token
           },
           payload: {
-            email: staffUser.user.email,
+            email: staffEmail,
             permissions: ["analytics", "products"]
           }
         });

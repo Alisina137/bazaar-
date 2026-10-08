@@ -18,6 +18,7 @@ export function storeErrorKey(code: StoreErrorCode): TranslationKey {
     store_not_ready: "store.error.storeNotReady",
     subscription_unavailable: "store.error.subscriptionUnavailable",
   feature_not_available: "growth.error.featureNotAvailable",
+  feature_not_available: "growth.error.featureNotAvailable",
     service_unavailable: "store.error.serviceUnavailable"
   };
 

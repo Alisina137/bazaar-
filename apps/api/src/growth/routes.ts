@@ -2,7 +2,8 @@ import type {
   AuthSessionResponse,
   GrowthErrorCode,
   GrowthErrorResponse,
-  MerchantStaffPermission
+  MerchantStaffPermission,
+  UpdateMerchantCouponInput
 } from "@bazaarlink/contracts";
 import type {
   FastifyInstance,
@@ -282,7 +283,7 @@ export function registerGrowthRoutes(
           session.user.id,
           params.data.storeId,
           params.data.couponId,
-          input.data
+          input.data as UpdateMerchantCouponInput
         );
       } catch (error) {
         return sendError(reply, error);

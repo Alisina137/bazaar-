@@ -120,6 +120,11 @@ describe.skipIf(!hasDatabase)(
           preferredLocale: "ps-AF"
         });
 
+        await client.db
+          .update(storeSubscriptions)
+          .set({ plan: "pro", updatedAt: new Date() })
+          .where(eq(storeSubscriptions.storeId, storeA.id));
+
         const [categoryA, categoryB] = await Promise.all([
           catalogService.createCategory(ownerA.user.id, storeA.id, {
             name: "Phones",
@@ -165,11 +170,6 @@ describe.skipIf(!hasDatabase)(
           storeService.publishStore(ownerA.user.id, storeA.id),
           storeService.publishStore(ownerB.user.id, storeB.id)
         ]);
-
-        await client.db
-          .update(storeSubscriptions)
-          .set({ plan: "pro", updatedAt: new Date() })
-          .where(eq(storeSubscriptions.storeId, storeA.id));
 
         await client.db.insert(storeCoupons).values({
           storeId: storeA.id,

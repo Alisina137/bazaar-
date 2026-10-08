@@ -63,6 +63,16 @@ const createStoreSchema = z
     mapLatitude: z.number().min(-90).max(90).nullable().optional(),
     mapLongitude: z.number().min(-180).max(180).nullable().optional(),
     businessHours: optionalText(1000),
+    featuredCategoryIds: z.array(z.string().uuid()).max(30).optional(),
+    featuredProductIds: z.array(z.string().uuid()).max(30).optional(),
+    customDomain: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .regex(/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/)
+      .max(255)
+      .nullable()
+      .optional(),
     theme: themeSchema.optional(),
     accentColor: z
       .string()

@@ -16,6 +16,7 @@ import type { AuthServiceContract } from "../auth/service.js";
 import { OrderError } from "./errors.js";
 import type { OrderServiceContract } from "./service.js";
 import type { GrowthServiceContract } from "../growth/service.js";
+import { GrowthError } from "../growth/errors.js";
 
 const uuidSchema = z.string().uuid();
 const orderParams = z.object({ orderId: uuidSchema });
@@ -85,6 +86,12 @@ async function authenticate(
 }
 
 function sendError(reply: FastifyReply, error: unknown) {
+  if (error instanceof GrowthError) {
+    return reply.code(error.statusCode).send({
+      error: { code: error.code }
+    });
+  }
+
   if (error instanceof OrderError) {
     return reply.code(error.statusCode).send(errorBody(error.code));
   }

@@ -11,6 +11,7 @@ import {
   View
 } from "react-native";
 
+import { useCatalog } from "@/catalog/provider";
 import {
   AppText,
   Button,
@@ -42,6 +43,13 @@ export default function SellerSettingsScreen() {
   const theme = useAppTheme();
   const { isRTL, t } = useLocalization();
   const { currentStore, updateStore } = useStores();
+  const {
+    categories,
+    products,
+    hasMore,
+    loadingMore,
+    loadMore
+  } = useCatalog();
 
   const [name, setName] = useState("");
   const [handle, setHandle] = useState("");
@@ -57,6 +65,9 @@ export default function SellerSettingsScreen() {
   const [businessHours, setBusinessHours] = useState("");
   const [storeTheme, setStoreTheme] = useState<StoreTheme>("minimal");
   const [accentColor, setAccentColor] = useState("#0F766E");
+  const [featuredCategoryIds, setFeaturedCategoryIds] = useState<string[]>([]);
+  const [featuredProductIds, setFeaturedProductIds] = useState<string[]>([]);
+  const [customDomain, setCustomDomain] = useState("");
   const [busy, setBusy] = useState(false);
   const [errorKey, setErrorKey] = useState<ReturnType<typeof storeErrorKey> | null>(null);
   const [saved, setSaved] = useState(false);
@@ -79,6 +90,9 @@ export default function SellerSettingsScreen() {
     setBusinessHours(currentStore.businessHours ?? "");
     setStoreTheme(currentStore.theme);
     setAccentColor(currentStore.accentColor);
+    setFeaturedCategoryIds(currentStore.featuredCategoryIds);
+    setFeaturedProductIds(currentStore.featuredProductIds);
+    setCustomDomain(currentStore.customDomain ?? "");
   }, [currentStore]);
 
   if (!currentStore) {
@@ -93,12 +107,42 @@ export default function SellerSettingsScreen() {
     );
   }
 
+  const premium =
+    currentStore.subscription.entitlements.premiumStorefront;
+  const customDomainEnabled =
+    currentStore.subscription.entitlements.customDomain;
+
+  const toggleCategory = (id: string) => {
+    setFeaturedCategoryIds((current) =>
+      current.includes(id)
+        ? current.filter((item) => item !== id)
+        : current.length < 30
+          ? [...current, id]
+          : current
+    );
+  };
+
+  const toggleProduct = (id: string) => {
+    setFeaturedProductIds((current) =>
+      current.includes(id)
+        ? current.filter((item) => item !== id)
+        : current.length < 30
+          ? [...current, id]
+          : current
+    );
+  };
+
   const save = async () => {
     setBusy(true);
     setSaved(false);
     setErrorKey(null);
 
     try {
+      const premium =
+        currentStore.subscription.entitlements.premiumStorefront;
+      const customDomainEnabled =
+        currentStore.subscription.entitlements.customDomain;
+
       await updateStore(currentStore.id, {
         name,
         handle,
@@ -111,8 +155,17 @@ export default function SellerSettingsScreen() {
         whatsappNumber: whatsappNumber || null,
         physicalAddress: physicalAddress || null,
         businessHours: businessHours || null,
-        theme: storeTheme,
-        accentColor
+        ...(premium
+          ? {
+              theme: storeTheme,
+              accentColor,
+              featuredCategoryIds,
+              featuredProductIds
+            }
+          : {}),
+        ...(customDomainEnabled
+          ? { customDomain: customDomain.trim() || null }
+          : {})
       });
       setSaved(true);
     } catch (error) {
@@ -241,59 +294,153 @@ export default function SellerSettingsScreen() {
             value={businessHours}
             onChangeText={setBusinessHours}
           />
-          <TextField
-            label={t("seller.onboarding.accent")}
-            value={accentColor}
-            onChangeText={setAccentColor}
-            autoCapitalize="characters"
-            autoCorrect={false}
-          />
+          {premium ? (
+            <>
+              <AppText variant="heading">{t("growth.storefront.premium")}</AppText>
+              <TextField
+                label={t("seller.onboarding.accent")}
+                value={accentColor}
+                onChangeText={setAccentColor}
+                autoCapitalize="characters"
+                autoCorrect={false}
+              />
 
-          <View style={{ gap: theme.spacing.sm }}>
-            <AppText variant="label">{t("seller.onboarding.theme")}</AppText>
-            <View
-              style={[
-                styles.wrap,
-                {
-                  flexDirection: isRTL ? "row-reverse" : "row",
-                  gap: theme.spacing.sm
-                }
-              ]}
-            >
-              {themes.map((item) => (
-                <Pressable
-                  key={item}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: storeTheme === item }}
-                  onPress={() => setStoreTheme(item)}
-                  style={({ pressed }) => [
-                    styles.option,
+              <View style={{ gap: theme.spacing.sm }}>
+                <AppText variant="label">{t("seller.onboarding.theme")}</AppText>
+                <View
+                  style={[
+                    styles.wrap,
                     {
-                      minHeight: theme.sizes.touchTarget,
-                      borderRadius: theme.radii.md,
-                      borderColor:
-                        storeTheme === item
-                          ? theme.colors.primary
-                          : theme.colors.borderStrong,
-                      backgroundColor:
-                        storeTheme === item
-                          ? theme.colors.primarySoft
-                          : theme.colors.surface,
-                      opacity: pressed ? theme.opacity.pressed : 1,
-                      paddingHorizontal: theme.spacing.md
+                      flexDirection: isRTL ? "row-reverse" : "row",
+                      gap: theme.spacing.sm
                     }
                   ]}
                 >
-                  <AppText
-                    variant="label"
-                    tone={storeTheme === item ? "primary" : "default"}
+                  {themes.map((item) => (
+                    <Pressable
+                      key={item}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: storeTheme === item }}
+                      onPress={() => setStoreTheme(item)}
+                      style={({ pressed }) => [
+                        styles.option,
+                        {
+                          minHeight: theme.sizes.touchTarget,
+                          borderRadius: theme.radii.md,
+                          borderColor:
+                            storeTheme === item
+                              ? theme.colors.primary
+                              : theme.colors.borderStrong,
+                          backgroundColor:
+                            storeTheme === item
+                              ? theme.colors.primarySoft
+                              : theme.colors.surface,
+                          opacity: pressed ? theme.opacity.pressed : 1,
+                          paddingHorizontal: theme.spacing.md
+                        }
+                      ]}
+                    >
+                      <AppText
+                        variant="label"
+                        tone={storeTheme === item ? "primary" : "default"}
+                      >
+                        {t(storeThemeKey(item))}
+                      </AppText>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+
+              <View style={{ gap: theme.spacing.sm }}>
+                <AppText variant="label">
+                  {t("growth.storefront.featuredCategories")}
+                </AppText>
+                {categories
+                  .filter((item) => item.status === "active")
+                  .map((item) => {
+                    const selected = featuredCategoryIds.includes(item.id);
+                    return (
+                      <Pressable
+                        key={item.id}
+                        onPress={() => toggleCategory(item.id)}
+                        style={[
+                          styles.selectionRow,
+                          {
+                            borderRadius: theme.radii.md,
+                            borderColor: selected
+                              ? theme.colors.primary
+                              : theme.colors.borderStrong,
+                            backgroundColor: selected
+                              ? theme.colors.primarySoft
+                              : theme.colors.surface,
+                            padding: theme.spacing.md
+                          }
+                        ]}
+                      >
+                        <AppText variant="bodyStrong">{item.name}</AppText>
+                      </Pressable>
+                    );
+                  })}
+              </View>
+
+              <View style={{ gap: theme.spacing.sm }}>
+                <AppText variant="label">
+                  {t("growth.storefront.featuredProducts")}
+                </AppText>
+                {products
+                  .filter((item) => item.status !== "archived")
+                  .map((item) => {
+                    const selected = featuredProductIds.includes(item.id);
+                    return (
+                      <Pressable
+                        key={item.id}
+                        onPress={() => toggleProduct(item.id)}
+                        style={[
+                          styles.selectionRow,
+                          {
+                            borderRadius: theme.radii.md,
+                            borderColor: selected
+                              ? theme.colors.primary
+                              : theme.colors.borderStrong,
+                            backgroundColor: selected
+                              ? theme.colors.primarySoft
+                              : theme.colors.surface,
+                            padding: theme.spacing.md
+                          }
+                        ]}
+                      >
+                        <AppText variant="bodyStrong">{item.name}</AppText>
+                      </Pressable>
+                    );
+                  })}
+                {hasMore ? (
+                  <Button
+                    variant="secondary"
+                    loading={loadingMore}
+                    onPress={() => void loadMore()}
                   >
-                    {t(storeThemeKey(item))}
-                  </AppText>
-                </Pressable>
-              ))}
-            </View>
-          </View>
+                    +
+                  </Button>
+                ) : null}
+              </View>
+
+              {customDomainEnabled ? (
+                <TextField
+                  label={t("growth.storefront.customDomain")}
+                  value={customDomain}
+                  onChangeText={setCustomDomain}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              ) : null}
+            </>
+          ) : (
+            <Card muted>
+              <AppText tone="muted">
+                {t("growth.storefront.locked")}
+              </AppText>
+            </Card>
+          )}
 
           {saved ? (
             <AppText tone="success">{t("seller.settings.saved")}</AppText>
@@ -324,6 +471,9 @@ const styles = StyleSheet.create({
   option: {
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: StyleSheet.hairlineWidth
+  },
+  selectionRow: {
     borderWidth: StyleSheet.hairlineWidth
   }
 });

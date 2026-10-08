@@ -38,6 +38,7 @@ for (const lang of ["fa-AF","ps-AF","en"]) {
   const file="packages/localization/src/locales/"+lang+".ts";
   assert.ok(source(file).length>1000,file+": missing locale dictionary");
 }
+assertMarkers("apps/mobile/app.config.ts",["EAS_BUILD_PROFILE", "EXPO_PUBLIC_API_URL", "https:"]);
 const mobile=JSON.parse(source("apps/mobile/app.json"));
 const build=JSON.parse(source("apps/mobile/eas.json"));
 assert.ok(mobile.expo.android.package && /^([a-z][a-z0-9_]*\.)+[a-z][a-z0-9_]*$/i.test(mobile.expo.android.package));

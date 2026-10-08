@@ -475,4 +475,19 @@ describe("DeliveryService", () => {
     expect(response.merchantGroups[0]?.unavailableReason).toBe("delivery_disabled");
   });
 
+  it("disables expired same-day delivery while preserving eligible standard delivery",async()=>{
+    const sameDay: DeliverySpeedRecord={
+      ...standardSpeed,id:"50000000-0000-4000-8000-000000000003",
+      name:"Same Day",kind:"same_day",cutoffTime:"00:00"
+    };
+    const service=new DeliveryService(repository({
+      getRuntimeConfiguration:async()=>runtime({speeds:[standardSpeed,sameDay]})
+    }),cartService());
+    const response=await service.options(USER_ID,ADDRESS_ID);
+    const options=response.merchantGroups[0]?.options??[];
+    expect(response.canContinue).toBe(true);
+    expect(options.some(option=>option.optionId===sameDay.id)).toBe(false);
+    expect(options.some(option=>option.optionId===standardSpeed.id)).toBe(true);
+  });
+
 });

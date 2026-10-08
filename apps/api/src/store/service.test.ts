@@ -32,6 +32,9 @@ function sampleStore(
     mapLatitude: null,
     mapLongitude: null,
     businessHours: null,
+    featuredCategoryIds: [],
+    featuredProductIds: [],
+    customDomain: null,
     theme: "minimal",
     accentColor: "#0F766E",
     status: "draft",
@@ -51,6 +54,7 @@ function sampleStore(
         advancedDelivery: false,
         discounts: false,
         coupons: false,
+        promotions: false,
         advancedAnalytics: false,
         premiumStorefront: false,
         customDomain: false

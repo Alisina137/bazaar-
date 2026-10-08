@@ -614,18 +614,23 @@ export class DatabaseGrowthRepository implements GrowthRepository {
     const summary = summaryRows[0];
     let repeatCustomers: number | null = null;
     if (advanced) {
-      const repeat = await this.db.execute(sql`
-        select count(*)::int as "value"
-        from (
-          select ${orders.customerUserId}
-          from ${orders}
-          where ${orders.storeId} = ${storeId}
-            and ${orders.placedAt} >= ${cutoff}
-          group by ${orders.customerUserId}
-          having count(*) > 1
-        ) repeat_customers
-      `);
-      repeatCustomers = Number((repeat[0] as { value?: number } | undefined)?.value ?? 0);
+      const customerOrderCounts = await this.db
+        .select({
+          customerUserId: orders.customerUserId,
+          orderCount: sql<number>`count(*)::int`
+        })
+        .from(orders)
+        .where(
+          and(
+            eq(orders.storeId, storeId),
+            gte(orders.placedAt, cutoff)
+          )
+        )
+        .groupBy(orders.customerUserId);
+
+      repeatCustomers = customerOrderCounts.filter(
+        (row) => row.orderCount > 1
+      ).length;
     }
 
     const totalCustomers = summary?.totalCustomers ?? 0;

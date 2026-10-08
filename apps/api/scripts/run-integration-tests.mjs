@@ -18,6 +18,7 @@ const result = spawnSync(
     "src/payment/payment.integration.test.ts",
     "src/order/order.integration.test.ts",
     "src/trust/trust.integration.test.ts",
+    "src/growth/growth.integration.test.ts",
     "--no-file-parallelism"
   ],
   {

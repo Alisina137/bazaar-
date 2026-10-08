@@ -108,7 +108,8 @@ const app = buildApp({
   orderService,
   trustService,
   communicationService,
-  growthService
+  growthService,
+  platformDatabase: databaseClient.db
 });
 
 app.addHook("onClose", async () => {

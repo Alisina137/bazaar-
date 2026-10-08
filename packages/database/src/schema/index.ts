@@ -200,3 +200,5 @@ export {
   type StoreStaffInvite,
   type SubscriptionChange
 } from "./growth.js";
+
+export { platformAuditLogs, platformSettings, platformPlanPrices } from "./platform.js";

@@ -30,6 +30,8 @@ import { registerCommunicationRoutes } from "./communication/routes.js";
 import type { CommunicationService } from "./communication/service.js";
 import { registerGrowthRoutes } from "./growth/routes.js";
 import type { GrowthServiceContract } from "./growth/service.js";
+import { registerPlatformRoutes } from "./platform/routes.js";
+import type { Database } from "@bazaarlink/database";
 
 export interface AppDependencies {
   databaseHealthCheck?: () => Promise<void>;
@@ -44,6 +46,7 @@ export interface AppDependencies {
   trustService?: TrustServiceContract;
   communicationService?: CommunicationService;
   growthService?: GrowthServiceContract;
+  platformDatabase?: Database;
 }
 
 export function buildApp(
@@ -136,6 +139,9 @@ export function buildApp(
       });
 
       registerAuthRoutes(securedApp, dependencies.authService!);
+      if (dependencies.platformDatabase) {
+        registerPlatformRoutes(securedApp, dependencies.authService!, dependencies.platformDatabase);
+      }
 
       if (dependencies.storeService) {
         registerStoreRoutes(

@@ -23,7 +23,8 @@
     "db:check": "drizzle-kit check --config drizzle.config.ts",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:health": "tsx scripts/health.ts",
-    "db:studio": "drizzle-kit studio --config drizzle.config.ts"
+    "db:studio": "drizzle-kit studio --config drizzle.config.ts",
+    "admin:bootstrap": "tsx scripts/bootstrap-admin.ts"
   },
   "dependencies": {
     "drizzle-orm": "0.45.3",

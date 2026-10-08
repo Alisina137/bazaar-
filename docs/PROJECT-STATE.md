@@ -11,7 +11,7 @@
 - Repository: Alisina137/bazaar-
 - Local project root: existing user folder named `bazaar`
 - Default branch: main
-- Active product phase: Phase 10 — Merchant Growth (complete; next Phase 11 — Administration)
+- Active product phase: Phase 11 — Administration (verification pending)
 - Phase branch: main
 - Initial repository state: empty before Phase 1 planning
 - Phase 10 verified code baseline: e79827a983180cfe49c30f1c06ec290330fa7c31
@@ -1563,7 +1563,7 @@ Verified gates include:
 
 ## Current phase
 
-Phase 10 — Merchant Growth is complete and verified. Next implementation phase: Phase 11 — Administration.
+Phase 11 — Administration implementation in verification.
 
 ## Last known-good baseline
 
@@ -1595,3 +1595,26 @@ Local API/store execution requires a valid `DATABASE_URL` in the root `.env` fil
 Physical-device seller testing requires `EXPO_PUBLIC_API_URL` to point to an API URL reachable from the phone.
 
 The public storefront runtime requires `API_URL` or `NEXT_PUBLIC_API_URL` to point to the BazaarLink API.
+
+## Phase 11 — Administration (implementation baseline)
+
+### Task plan
+
+- [x] 11.1 Secured web console, operator login, scoped privileges and first-super-admin bootstrap
+- [x] 11.2 User/store/product/order management and platform overview
+- [x] 11.3 Review-report moderation, support, catalog and promotion visibility
+- [x] 11.4 Subscription status operations, payment/refund visibility and administrator-configurable plan prices
+- [x] 11.5 Approved platform configuration, role assignment, transactionally recorded audit trail
+- [ ] 11.6 Fresh PostgreSQL verification, TypeScript/lint/build, integrated regression and phase close
+
+### Operational and security notes
+
+- Administrative web application is served on port 3001 and calls the API through Next.js same-origin route handlers using HttpOnly, SameSite=Strict session cookies. Configure server-side `API_URL` (default local 4000); it is not a browser-side secret.
+- Initial setup requires an existing active email/password account. With PostgreSQL configured, set `ADMIN_BOOTSTRAP_EMAIL` and run `pnpm --filter @bazaarlink/database admin:bootstrap`. This intentionally refuses once a super-admin exists, to prevent silent subsequent elevation. Further support/admin roles are managed by a signed-in super administrator.
+- Support operators can read operational data and moderate reviews/reports. Platform administrators can additionally manage customer, merchant, product, subscription status and pricing. Super administrators additionally control operator roles, settings, and audit access. No role can suspend itself; operator accounts cannot be suspended through the generic user action.
+- All new mutation endpoints require validated inputs; status changes and settings/price/role changes are written with transactional audit records; no physical deletes. User suspension invalidates all active sessions. Reinstating a suspended store intentionally returns it to `draft` (merchant must re-publish).
+- Config keys support_email, moderation_policy and maintenance_message are informational: they are not advertised as toggles for systems not yet wired to them.
+- Payment refunds are view-only in the platform console; existing seller refund workflow remains the authoritative processor. No administrator can arbitrarily mark payment attempts as refunded. Plan pricing is administration metadata, not an automatic subscription purchase or settlement system. The Phase 10 direct owner-initiated upgrade path still requires a verified billing solution before paid production launch.
+- Advanced operations on support tickets and review queues already exist under platform routes in Phase 9; Phase 11 adds their cross-platform listing and audited report/review status operations.
+- All platform lists use bounded pagination; audit records contain no raw session tokens or provider secrets.
+- Verify via GitHub Actions migration generation, fresh database migrations, `pnpm verify` and `pnpm test:integration`. Local database must be configured before `pnpm db:migrate`.

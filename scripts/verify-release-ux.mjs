@@ -1,3 +1,4 @@
+import process from "node:process";
 import { readFileSync } from "node:fs";
 import { strict as assert } from "node:assert";
 function source(file){return readFileSync(file,"utf8");}

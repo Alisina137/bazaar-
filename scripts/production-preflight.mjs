@@ -1,3 +1,5 @@
+import console from "node:console";
+import process from "node:process";
 import { readFileSync } from "node:fs";
 const env=process.env;
 const blockers=[];

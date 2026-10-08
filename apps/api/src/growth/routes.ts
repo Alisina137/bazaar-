@@ -110,6 +110,18 @@ const analyticsQuery = z
   })
   .strict();
 
+const resourceParams = z.object({
+  storeId: uuid,
+  type: z.enum(["products", "categories", "staff"])
+});
+
+const resourceQuery = z
+  .object({
+    offset: z.coerce.number().int().min(0).default(0),
+    limit: z.coerce.number().int().min(1).max(100).default(50)
+  })
+  .strict();
+
 function errorBody(code: GrowthErrorCode): GrowthErrorResponse {
   return { error: { code } };
 }
@@ -509,6 +521,29 @@ export function registerGrowthRoutes(
           params.data.staffId
         );
         return reply.code(204).send();
+      } catch (error) {
+        return sendError(reply, error);
+      }
+    }
+  );
+
+  app.get(
+    "/seller/stores/:storeId/subscription/resources/:type",
+    async (request, reply) => {
+      const params = resourceParams.safeParse(request.params);
+      const query = resourceQuery.safeParse(request.query);
+      if (!params.success || !query.success) {
+        return reply.code(400).send(errorBody("invalid_request"));
+      }
+      try {
+        const session = await authenticate(request, authService);
+        return await service.subscriptionResources(
+          session.user.id,
+          params.data.storeId,
+          params.data.type,
+          query.data.offset,
+          query.data.limit
+        );
       } catch (error) {
         return sendError(reply, error);
       }

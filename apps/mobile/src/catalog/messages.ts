@@ -26,7 +26,6 @@ export function catalogErrorKey(code: CatalogErrorCode): TranslationKey {
     inventory_would_be_negative: "catalog.error.inventoryWouldBeNegative",
     subscription_unavailable: "catalog.error.subscriptionUnavailable",
   feature_not_available: "growth.error.featureNotAvailable",
-  feature_not_available: "growth.error.featureNotAvailable",
     service_unavailable: "catalog.error.serviceUnavailable"
   };
 

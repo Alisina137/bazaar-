@@ -17,9 +17,12 @@ import {
   productImages,
   products,
   productVariants,
+  storeSubscriptions,
   stores,
   type Database
 } from "@bazaarlink/database";
+import { getStoreEntitlements } from "../store/entitlements.js";
+
 import {
   and,
   asc,
@@ -236,8 +239,19 @@ function productInStock(
 }
 
 function publicStoreRecord(
-  row: typeof stores.$inferSelect
+  row: typeof stores.$inferSelect,
+  plan: "starter" | "pro" | "business",
+  subscriptionStatus: "active" | "grace_period" | "expired" | "canceled"
 ): PublicStoreRecord {
+  const entitlements = getStoreEntitlements(plan);
+  const subscriptionEligible =
+    subscriptionStatus === "active" ||
+    subscriptionStatus === "grace_period";
+  const premium =
+    subscriptionEligible && entitlements.premiumStorefront;
+  const customDomain =
+    subscriptionEligible && entitlements.customDomain;
+
   return {
     id: row.id,
     name: row.name,
@@ -258,8 +272,11 @@ function publicStoreRecord(
     mapLatitude: row.mapLatitude,
     mapLongitude: row.mapLongitude,
     businessHours: row.businessHours,
-    theme: row.theme,
-    accentColor: row.accentColor,
+    featuredCategoryIds: premium ? row.featuredCategoryIds : [],
+    featuredProductIds: premium ? row.featuredProductIds : [],
+    customDomain: customDomain ? row.customDomain : null,
+    theme: premium ? row.theme : "minimal",
+    accentColor: premium ? row.accentColor : "#0F766E",
     status: row.status,
     publishedAt: row.publishedAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
@@ -998,9 +1015,17 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
     offset: number,
     limit: number
   ): Promise<MarketplaceStorePageResponse | null> {
-    const [store] = await this.db
-      .select()
+    const [storeRow] = await this.db
+      .select({
+        store: stores,
+        plan: storeSubscriptions.plan,
+        subscriptionStatus: storeSubscriptions.status
+      })
       .from(stores)
+      .innerJoin(
+        storeSubscriptions,
+        eq(storeSubscriptions.storeId, stores.id)
+      )
       .where(
         and(
           eq(stores.handle, handle),
@@ -1009,9 +1034,11 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
       )
       .limit(1);
 
-    if (!store) {
+    if (!storeRow) {
       return null;
     }
+
+    const store = storeRow.store;
 
     const [categoryRows, browseResult, trust] = await Promise.all([
       this.db
@@ -1034,7 +1061,11 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
     ]);
 
     return {
-      store: publicStoreRecord(store),
+      store: publicStoreRecord(
+        store,
+        storeRow.plan,
+        storeRow.subscriptionStatus
+      ),
       trust,
       categories: categoryRows.map((category) => ({
         id: category.id,

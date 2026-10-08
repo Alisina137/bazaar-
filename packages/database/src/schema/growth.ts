@@ -8,7 +8,6 @@ import {
   numeric,
   pgEnum,
   pgTable,
-  text,
   timestamp,
   uniqueIndex,
   uuid,

@@ -17,6 +17,8 @@ import type {
   MerchantStaffResponse,
   SubscriptionChangeInput,
   SubscriptionGrowthResponse,
+  SubscriptionResourcePage,
+  SubscriptionResourceType,
   UpdateMerchantCouponInput,
   UpdateMerchantPromotionInput,
   UpdateMerchantStaffInput
@@ -134,6 +136,13 @@ export interface GrowthServiceContract {
     storeId: string,
     staffId: string
   ): Promise<void>;
+  subscriptionResources(
+    actorUserId: string,
+    storeId: string,
+    type: SubscriptionResourceType,
+    offset: number,
+    limit: number
+  ): Promise<SubscriptionResourcePage>;
   changeSubscription(
     actorUserId: string,
     storeId: string,
@@ -590,6 +599,22 @@ export class GrowthService implements GrowthServiceContract {
     }
   }
 
+  async subscriptionResources(
+    actorUserId: string,
+    storeId: string,
+    type: SubscriptionResourceType,
+    offset: number,
+    limit: number
+  ): Promise<SubscriptionResourcePage> {
+    await this.owner(actorUserId, storeId);
+    return this.repository.subscriptionResourcePage(
+      storeId,
+      type,
+      Math.max(0, offset),
+      Math.min(100, Math.max(1, limit))
+    );
+  }
+
   async changeSubscription(
     actorUserId: string,
     storeId: string,
@@ -601,26 +626,26 @@ export class GrowthService implements GrowthServiceContract {
     }
 
     const target = getStoreEntitlements(input.plan);
-    const resources = await this.repository.subscriptionResources(storeId);
+    const usage = await this.repository.planUsage(storeId);
     const direction =
       PLAN_ORDER[input.plan] > PLAN_ORDER[access.plan]
         ? "upgrade"
         : "downgrade";
 
-    let keepProductIds = resources.products.map((item) => item.id);
-    let keepCategoryIds = resources.activeCategoryIds;
-    let keepStaffIds = resources.activeStaffIds;
+    let keepProductIds: string[] | null = null;
+    let keepCategoryIds: string[] | null = null;
+    let keepStaffIds: string[] | null = null;
 
     if (direction === "downgrade") {
-      if (resources.products.length > target.productLimit) {
+      if (usage.productCount > target.productLimit) {
         keepProductIds = unique(input.keepProductIds ?? []);
-        if (keepProductIds.length !== target.productLimit) {
-          throw new GrowthError("invalid_request", 400);
-        }
         if (
-          keepProductIds.some(
-            (id) => !resources.products.some((item) => item.id === id)
-          )
+          keepProductIds.length !== target.productLimit ||
+          !(await this.repository.validateSubscriptionResourceIds(
+            storeId,
+            "products",
+            keepProductIds
+          ))
         ) {
           throw new GrowthError("invalid_request", 400);
         }
@@ -628,30 +653,30 @@ export class GrowthService implements GrowthServiceContract {
 
       if (
         target.categoryLimit !== null &&
-        resources.activeCategoryIds.length > target.categoryLimit
+        usage.activeCategoryCount > target.categoryLimit
       ) {
         keepCategoryIds = unique(input.keepCategoryIds ?? []);
-        if (keepCategoryIds.length !== target.categoryLimit) {
-          throw new GrowthError("invalid_request", 400);
-        }
         if (
-          keepCategoryIds.some(
-            (id) => !resources.activeCategoryIds.includes(id)
-          )
+          keepCategoryIds.length !== target.categoryLimit ||
+          !(await this.repository.validateSubscriptionResourceIds(
+            storeId,
+            "categories",
+            keepCategoryIds
+          ))
         ) {
           throw new GrowthError("invalid_request", 400);
         }
       }
 
-      if (resources.activeStaffIds.length > target.staffLimit) {
+      if (usage.activeStaffCount > target.staffLimit) {
         keepStaffIds = unique(input.keepStaffIds ?? []);
-        if (keepStaffIds.length !== target.staffLimit) {
-          throw new GrowthError("invalid_request", 400);
-        }
         if (
-          keepStaffIds.some(
-            (id) => !resources.activeStaffIds.includes(id)
-          )
+          keepStaffIds.length !== target.staffLimit ||
+          !(await this.repository.validateSubscriptionResourceIds(
+            storeId,
+            "staff",
+            keepStaffIds
+          ))
         ) {
           throw new GrowthError("invalid_request", 400);
         }
@@ -659,10 +684,9 @@ export class GrowthService implements GrowthServiceContract {
     }
 
     const hasRestriction =
-      direction === "downgrade" &&
-      (keepProductIds.length < resources.products.length ||
-        keepCategoryIds.length < resources.activeCategoryIds.length ||
-        keepStaffIds.length < resources.activeStaffIds.length);
+      keepProductIds !== null ||
+      keepCategoryIds !== null ||
+      keepStaffIds !== null;
 
     await this.recordEvent({
       name: "upgrade_started",

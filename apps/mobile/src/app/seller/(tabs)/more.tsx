@@ -18,10 +18,7 @@ export default function SellerMoreScreen() {
   const { currentStore } = useStores();
 
   const futureItems = [
-    "seller.more.customers",
-    "seller.more.discounts",
-    "seller.more.analytics",
-    "seller.more.staff"
+    "seller.more.customers"
   ] as const;
 
   return (
@@ -61,6 +58,30 @@ export default function SellerMoreScreen() {
             }}
           >
             {t("seller.more.payments")}
+          </Button>
+          <Button
+            variant="secondary"
+            onPress={() => {
+              router.push("/seller/analytics");
+            }}
+          >
+            {t("seller.more.analytics")}
+          </Button>
+          <Button
+            variant="secondary"
+            onPress={() => {
+              router.push("/seller/discounts");
+            }}
+          >
+            {t("seller.more.discounts")}
+          </Button>
+          <Button
+            variant="secondary"
+            onPress={() => {
+              router.push("/seller/staff");
+            }}
+          >
+            {t("seller.more.staff")}
           </Button>
           <Button
             variant="secondary"

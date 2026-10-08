@@ -3,7 +3,7 @@ import type {
   CatalogErrorCode,
   CatalogErrorResponse,
   ProductStatus,
-  type MerchantStaffPermission
+  MerchantStaffPermission
 } from "@bazaarlink/contracts";
 import type {
   FastifyInstance,

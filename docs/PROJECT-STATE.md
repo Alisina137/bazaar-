@@ -11,7 +11,7 @@
 - Repository: Alisina137/bazaar-
 - Local project root: existing user folder named `bazaar`
 - Default branch: main
-- Active product phase: Phase 12 — Release Readiness (implementation ready for CI and manual go/no-go)
+- Active product phase: Phase 12 — Release Readiness (code verified; real-world release gates outstanding)
 - Phase branch: main
 - Initial repository state: empty before Phase 1 planning
 - Phase 10 verified code baseline: e79827a983180cfe49c30f1c06ec290330fa7c31
@@ -1563,7 +1563,7 @@ Verified gates include:
 
 ## Current phase
 
-Phase 12 — Release Readiness implemented; waiting for fresh verification and external production go/no-go.
+Phase 12 — Release Readiness automation verified; external production go/no-go outstanding.
 
 ## Last known-good baseline
 
@@ -1640,6 +1640,6 @@ Platform audit records cover all mutations through the newly introduced Phase 11
 - [x] 12.6 Missing-location, cutoff and suspended-merchant delivery edge tests
 - [x] 12.7 Production build profiles, readiness endpoint, preflight and runbook
 
-Automated implementation scope is committed as an integrated Phase 12 change. Final verification evidence to be recorded after CI.
+Automated implementation scope is committed as an integrated Phase 12 change. GitHub Actions run `37769585890` passed on commit `0f84bb9e79af1ee5c9b915d0c0b9df87cdd1b944`: migration history/diff, PostgreSQL 17 migrations/health, workspace ESLint, TypeScript, unit tests, localization/RTL static check, admin/storefront/mobile builds and serialized database integration suites.
 
 **Release gate:** passing CI alone does not mean public-launch approved. External live provider integration, full on-device E2E journeys, app signing, official artwork, deployed backups and recovery drill, accessibility/RTL device checks and production observability are manual requirements. Paid-plan self-service is disabled on production until verified payment or authorized activation is implemented. A COD-only Starter pilot is the safe available launch scope. Details: `docs/RELEASE-READINESS.md`.

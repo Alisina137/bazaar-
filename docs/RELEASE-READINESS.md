@@ -1,6 +1,6 @@
 # BazaarLink — Phase 12 Release-Readiness Runbook
 
-Status: Release-engineering implementation and automated regression gates complete **only after green CI**. A production deployment and public-store distribution are **NOT** implied by passing CI. A production go/no-go must be explicitly signed off after physical-device, payment-provider and operational checks.
+Status: Release-engineering implementation and automated regression gates verified by GitHub Actions run `37769585890` (commit `0f84bb9e79af1ee5c9b915d0c0b9df87cdd1b944`). A production deployment and public-store distribution are **NOT** implied by passing CI. A production go/no-go must be explicitly signed off after physical-device, payment-provider and operational checks.
 
 ## Seven workstreams
 

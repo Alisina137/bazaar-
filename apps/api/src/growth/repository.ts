@@ -164,9 +164,9 @@ export interface GrowthRepository {
     ownerUserId: string;
     storeId: string;
     toPlan: SubscriptionPlanCode;
-    keepProductIds: string[];
-    keepCategoryIds: string[];
-    keepStaffIds: string[];
+    keepProductIds: string[] | null;
+    keepCategoryIds: string[] | null;
+    keepStaffIds: string[] | null;
     gracePeriodEnd: Date | null;
   }): Promise<SubscriptionChangeRecord>;
   planUsage(storeId: string): Promise<SubscriptionPlanUsage>;
@@ -1416,9 +1416,9 @@ export class DatabaseGrowthRepository implements GrowthRepository {
     ownerUserId: string;
     storeId: string;
     toPlan: SubscriptionPlanCode;
-    keepProductIds: string[];
-    keepCategoryIds: string[];
-    keepStaffIds: string[];
+    keepProductIds: string[] | null;
+    keepCategoryIds: string[] | null;
+    keepStaffIds: string[] | null;
     gracePeriodEnd: Date | null;
   }): Promise<SubscriptionChangeRecord> {
     return this.db.transaction(async (tx) => {
@@ -1464,19 +1464,20 @@ export class DatabaseGrowthRepository implements GrowthRepository {
               eq(products.storeId, input.storeId),
               ne(products.status, "archived"),
               ne(products.status, "plan_restricted"),
-              input.keepProductIds.length > 0
-                ? sql`${products.id} not in (${sql.join(
-                    input.keepProductIds.map((id) => sql`${id}`),
-                    sql`, `
-                  )})`
-                : sql`true`
+              input.keepProductIds === null
+                ? sql`false`
+                : input.keepProductIds.length > 0
+                  ? sql`${products.id} not in (${sql.join(
+                      input.keepProductIds.map((id) => sql`${id}`),
+                      sql`, `
+                    )})`
+                  : sql`true`
             )
           )
           .returning({ id: products.id });
         restrictedProductCount = restricted.length;
 
-        if (target.categoryLimit !== null) {
-          const keepCategories = new Set(input.keepCategoryIds);
+        if (target.categoryLimit !== null && input.keepCategoryIds !== null) {
           await tx
             .update(categories)
             .set({ status: "archived", updatedAt: new Date() })
@@ -1492,10 +1493,10 @@ export class DatabaseGrowthRepository implements GrowthRepository {
                   : sql`true`
               )
             );
-          void keepCategories;
         }
 
-        await tx
+        if (input.keepStaffIds !== null) {
+          await tx
           .update(storeStaff)
           .set({ status: "suspended", updatedAt: new Date() })
           .where(
@@ -1510,6 +1511,7 @@ export class DatabaseGrowthRepository implements GrowthRepository {
                 : sql`true`
             )
           );
+        }
       } else {
         const currentlyAllowed = await tx
           .select({ value: count() })

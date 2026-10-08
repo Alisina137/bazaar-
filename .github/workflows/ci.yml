@@ -55,6 +55,15 @@ jobs:
           pnpm db:generate
           git diff --exit-code -- packages/database/drizzle
 
+      - name: Capture generated migration for review
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-drizzle-migration
+          path: packages/database/drizzle
+          include-hidden-files: true
+          retention-days: 1
+
       - name: Apply database migrations
         run: pnpm db:migrate
 

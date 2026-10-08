@@ -18,6 +18,7 @@ import type { AuthServiceContract } from "../auth/service.js";
 import { StoreError } from "./errors.js";
 import type { StoreServiceContract } from "./service.js";
 import type { GrowthServiceContract } from "../growth/service.js";
+import { GrowthError } from "../growth/errors.js";
 
 const localeSchema = z.enum(["fa-AF", "ps-AF", "en"]);
 const themeSchema = z.enum([
@@ -129,6 +130,12 @@ async function authenticate(
 }
 
 function sendStoreError(reply: FastifyReply, error: unknown) {
+  if (error instanceof GrowthError) {
+    return reply.code(error.statusCode).send({
+      error: { code: error.code }
+    });
+  }
+
   if (error instanceof StoreError) {
     return reply.code(error.statusCode).send(storeErrorBody(error.code));
   }

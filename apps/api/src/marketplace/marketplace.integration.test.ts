@@ -2,6 +2,7 @@ import {
   closeDatabaseClient,
   createDatabaseClient,
   parseDatabaseConfig,
+  storeSubscriptions,
   stores,
   users
 } from "@bazaarlink/database";
@@ -86,6 +87,11 @@ describe.skipIf(!hasDatabase)("database-backed public marketplace discovery", ()
       preferredLocale: "fa-AF",
       description: "Public marketplace integration store."
     });
+
+    await client.db
+      .update(storeSubscriptions)
+      .set({ plan: "pro", updatedAt: new Date() })
+      .where(eq(storeSubscriptions.storeId, store.id));
 
     const category = await catalogService.createCategory(
       owner.user.id,

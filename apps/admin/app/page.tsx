@@ -38,7 +38,7 @@ const headlines:Record<string,string> = {
   prices:"Subscription pricing",settings:"Platform configuration"
 };
 async function api(path:string, options:RequestInit={}) {
-  const response = await fetch(path,{...options,cache:"no-store",headers:options.body?{"content-type":"application/json"}:undefined});
+  const response = await fetch(path,{...options,cache:"no-store",...(options.body?{headers:{"content-type":"application/json"}}:{})});
   const data = await response.json().catch(()=>({}));
   if (!response.ok) throw new Error(data.error?.code ?? "Request failed");
   return data;

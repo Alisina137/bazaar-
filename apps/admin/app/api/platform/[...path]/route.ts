@@ -16,7 +16,7 @@ async function forward(request:NextRequest, context:Context) {
     const upstream = await fetch(url, {
       method:request.method,
       headers:{authorization:"Bearer "+token, ...(request.method==="GET"?{}:{"content-type":"application/json"})},
-      body:request.method==="GET"?undefined:await request.text(),
+      ...(request.method==="GET"?{}:{body:await request.text()}),
       cache:"no-store"
     });
     return new NextResponse(upstream.body, {status:upstream.status,headers:{"content-type":upstream.headers.get("content-type")??"application/json","cache-control":"no-store"}});

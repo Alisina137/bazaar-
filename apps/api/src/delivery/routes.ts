@@ -16,6 +16,7 @@ import type { AuthServiceContract } from "../auth/service.js";
 import { DeliveryError } from "./errors.js";
 import type { DeliveryServiceContract } from "./service.js";
 import type { GrowthServiceContract } from "../growth/service.js";
+import { GrowthError } from "../growth/errors.js";
 
 const uuidSchema = z.string().uuid();
 const moneySchema = z.number().min(0).max(999_999_999);
@@ -208,6 +209,12 @@ async function authenticate(
 }
 
 function sendError(reply: FastifyReply, error: unknown) {
+  if (error instanceof GrowthError) {
+    return reply.code(error.statusCode).send({
+      error: { code: error.code }
+    });
+  }
+
   if (error instanceof DeliveryError) {
     return reply.code(error.statusCode).send(errorBody(error.code));
   }

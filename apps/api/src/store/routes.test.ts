@@ -45,6 +45,9 @@ const store: StoreRecord = {
   mapLatitude: null,
   mapLongitude: null,
   businessHours: null,
+  featuredCategoryIds: [],
+  featuredProductIds: [],
+  customDomain: null,
   theme: "minimal",
   accentColor: "#0F766E",
   status: "draft",
@@ -64,6 +67,7 @@ const store: StoreRecord = {
       advancedDelivery: false,
       discounts: false,
       coupons: false,
+      promotions: false,
       advancedAnalytics: false,
       premiumStorefront: false,
       customDomain: false

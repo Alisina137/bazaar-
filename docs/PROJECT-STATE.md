@@ -11,10 +11,10 @@
 - Repository: Alisina137/bazaar-
 - Local project root: existing user folder named `bazaar`
 - Default branch: main
-- Active product phase: Phase 8 — Orders & Fulfillment
+- Active product phase: Phase 10 — Merchant Growth (complete; next Phase 11 — Administration)
 - Phase branch: main
 - Initial repository state: empty before Phase 1 planning
-- Phase baseline commit: 536d7b575182988cfb31ee9c483fe5f50f19f228
+- Phase 10 verified code baseline: e79827a983180cfe49c30f1c06ec290330fa7c31
 - Package manager: pnpm 12.6
 - Minimum Node.js: 22.13
 
@@ -1357,20 +1357,224 @@ Verified gates include:
   - platform support reply
   - support-reply notification
 
+## Phase 10 — Merchant Growth
+
+### Status
+
+Complete and verified on `main`.
+
+### Product outcomes
+
+- analytics
+- coupons
+- promotions
+- merchant staff
+- advanced storefront themes
+- subscription upgrades/downgrades
+
+### Acceptance
+
+Passed: Pro and Business entitlements now function server-side across catalog pricing, coupons, scheduled promotions, analytics, staff access, premium storefront customization, and plan transitions. Starter cannot bypass paid growth features through the mobile client or direct API calls.
+
+### Task plan
+
+- [x] 10.1 Analytics & seller dashboard
+- [x] 10.2 Coupons & promotions
+- [x] 10.3 Merchant staff & granular permissions
+- [x] 10.4 Advanced storefront themes
+- [x] 10.5 Subscription upgrade/downgrade enforcement
+- [x] 10.6 Phase 10 integration/regression verification and close
+
+### Task 10.1 — Analytics & seller dashboard
+
+- added a server-authoritative merchant dashboard with:
+  - today's orders
+  - today's sales
+  - today's customers
+  - new orders needing confirmation
+  - low-stock count
+  - failed-payment count
+  - delivery-issue count
+  - active product count
+  - plan usage
+  - recent order/review/inventory activity
+- added merchant analytics with:
+  - order count
+  - completed sales
+  - customer count
+  - product and coupon discount totals
+  - top products
+- Pro/Business advanced analytics additionally expose:
+  - revenue trend
+  - order trend
+  - repeat-customer count/rate
+  - delivery completion/failure counts
+- analytics remain privacy-light and do not fabricate unavailable traffic-source attribution
+- seller mobile dashboard and Analytics screen consume the server results
+- analytics access is available to owners and staff only when their store-scoped `analytics` permission allows it
+
+### Task 10.2 — Coupons & promotions
+
+- activated the existing seller-scoped coupon foundation as a real merchant management feature
+- coupon CRUD supports:
+  - percentage or fixed discount
+  - minimum order amount
+  - active/inactive state
+  - optional start/end schedule
+  - normalized unique code per store
+- coupon eligibility remains server-calculated in cart/checkout
+- Starter is blocked from coupon management and coupon application
+- added scheduled product promotions with:
+  - product
+  - promotion name
+  - promotional price
+  - start/end date-time
+  - active/inactive state
+  - overlap prevention
+- promotional price must be below the product base price
+- marketplace, public catalog, and cart pricing now calculate effective discounts server-side
+- downgrade removes the entitlement without deleting coupon/promotion data; paid-plan behavior resumes if entitlement is restored
+
+### Task 10.3 — Merchant staff & granular permissions
+
+- added store-scoped staff assignments and invitation persistence
+- staff invitation:
+  - uses a random invite code
+  - persists only a SHA-256 token hash
+  - expires after seven days
+  - is bound to the invited email identity
+- Pro supports up to 3 active staff; Business supports up to 10; Starter supports owner only
+- granular permissions:
+  - products
+  - inventory
+  - orders
+  - customers
+  - discounts
+  - analytics
+  - delivery
+  - storefront
+- server routes resolve staff permissions before invoking owner-scoped repositories
+- staff can see assigned stores in the seller store list
+- catalog, inventory, orders, delivery, analytics, discounts, and storefront operations enforce the relevant permission
+- subscription, payment configuration, and staff administration remain owner-controlled
+- downgrade suspends excess staff rather than deleting assignments
+
+### Task 10.4 — Advanced storefront themes
+
+- premium storefront configuration now supports:
+  - existing theme families: minimal, modern, fashion, electronics, food
+  - accent color
+  - featured categories
+  - featured products
+  - custom-domain field/capability
+- premium storefront/custom-domain controls are entitlement-gated
+- Starter public storefronts fall back safely to:
+  - minimal theme
+  - default accent
+  - no premium featured lists
+  - no custom domain
+- premium configuration is preserved on downgrade rather than deleted
+- restoring Pro/Business entitlement makes preserved customization usable again
+- public storefront data never uses subscription level as a seller-verification signal
+
+### Task 10.5 — Subscription upgrade/downgrade enforcement
+
+- plan entitlements now consistently define:
+  - Starter: 15 products, 5 active categories, 0 staff, basic growth capabilities
+  - Pro: 300 products, unlimited categories, up to 3 staff, growth features
+  - Business: 1,200 products, unlimited categories, up to 10 staff, growth features
+- plan pricing remains administrator-configurable by design and is not hardcoded into merchant application logic
+- added auditable subscription-change history
+- upgrade/downgrade events are recorded in the growth analytics event stream
+- large downgrade resource selection is paginated; the client does not load an entire large catalog into memory
+- when a downgrade exceeds target limits:
+  - merchant must select the permitted products/categories/staff to retain
+  - excess products become `plan_restricted`
+  - their previous product state is preserved for later restoration
+  - excess categories are archived
+  - excess staff are suspended
+  - merchant data is not deleted
+  - grace-period metadata is persisted
+- upgrading restores plan-restricted products up to the newly available product limit
+- product quota calculations exclude archived and plan-restricted products
+- Starter cannot create/update product discount pricing
+- public/cart pricing ignores paid-plan discounts/promotions when the store no longer has the required entitlement
+
+### Database migration
+
+- `0012_superb_roughhouse.sql`
+- adds:
+  - merchant staff and invitation persistence
+  - product promotion persistence
+  - growth analytics events
+  - subscription change history
+  - product previous-state metadata for plan restriction
+  - premium storefront featured-category/product and custom-domain fields
+- migration is additive and preserves all Phase 1–9 merchant, catalog, order, payment, and trust data
+
+### Task 10.6 — Integration/regression verification
+
+GitHub Actions run `37713609576` passed on exact Phase 10 code baseline `e79827a983180cfe49c30f1c06ec290330fa7c31`.
+
+Verified gates include:
+
+- valid Drizzle migration history
+- zero schema/migration drift
+- fresh Phase 1–10 migration application on PostgreSQL 17
+- database connectivity
+- all workspace ESLint checks
+- all workspace TypeScript checks
+- all unit tests
+- three-language localization verification
+- Fastify production build
+- Expo mobile web export
+- Next.js admin production build
+- Next.js public storefront production build
+- complete serial PostgreSQL integration suite for:
+  - auth
+  - store
+  - catalog
+  - marketplace
+  - cart/pricing
+  - delivery
+  - payment
+  - orders/fulfillment
+  - trust/communication
+  - Merchant Growth
+- Phase 10 PostgreSQL coverage verifies:
+  - Starter growth-feature denial
+  - Starter → Pro entitlement activation
+  - merchant coupon management
+  - staff invitation and email-bound acceptance
+  - assigned-store discovery for staff
+  - staff analytics permission
+  - Pro advanced analytics access
+  - Pro → Starter downgrade
+  - staff entitlement removal after downgrade
+  - coupon entitlement removal after downgrade
+- older catalog/cart/marketplace integration fixtures were updated to respect the new plan boundary instead of bypassing Phase 10 entitlements
+
+### Deferred by design
+
+- platform administration of subscription pricing/configuration remains Phase 11 — Administration
+- a paid subscription still never grants a verified-seller trust badge
+- custom-domain DNS/provisioning automation is outside the entitlement-layer work completed here
+- traffic-source analytics remain unavailable until BazaarLink has a trustworthy first-party attribution source
+
 ## Current phase
 
-Phase 9 — Trust & Communication is complete and verified. No later implementation phase is currently recorded in this project-state roadmap.
+Phase 10 — Merchant Growth is complete and verified. Next implementation phase: Phase 11 — Administration.
 
 ## Last known-good baseline
 
 - Branch: `main`
-- Phase 9 code commit: `383ff96c36f438b67960607392f5f70d4feed3af`
-- Verification run: `37561917026`
+- Phase 10 code commit: `e79827a983180cfe49c30f1c06ec290330fa7c31`
+- Verification run: `37713609576`
 
 ## Verification workflow
 
 - Local `pnpm verify` runs deterministic lint, typecheck, unit, localization, and build checks without invoking remote database integration suites.
-- `pnpm test:integration` explicitly runs the auth, store, catalog, marketplace, cart/pricing, delivery, payment, and order PostgreSQL integration suites serially against the configured root `.env` database.
+- `pnpm test:integration` explicitly runs the auth, store, catalog, marketplace, cart/pricing, delivery, payment, order, trust/communication, and Merchant Growth PostgreSQL integration suites serially against the configured root `.env` database.
 - GitHub Actions runs `pnpm verify` without database integration discovery, then runs `pnpm test:integration` as one explicit serial PostgreSQL gate against fresh PostgreSQL 17 on every push/PR. `dist/**` is excluded from Vitest discovery so compiled test copies cannot run a second time.
 - Unexpected catalog failures are logged server-side before returning the safe public `service_unavailable` response.
 
@@ -1384,7 +1588,7 @@ Phase 9 — Trust & Communication is complete and verified. No later implementat
 
 ## Known external requirements
 
-CI verifies the current marketplace, cart/pricing, delivery, payment, completed Phase 8 orders/fulfillment baseline, and Phase 9 trust-schema foundation against fresh PostgreSQL 17.
+CI verifies the current marketplace, cart/pricing, delivery, payment, orders/fulfillment, trust/communication, and Phase 10 Merchant Growth baseline against fresh PostgreSQL 17.
 
 Local API/store execution requires a valid `DATABASE_URL` in the root `.env` file. Docker is optional when a hosted PostgreSQL database such as Neon is used.
 

@@ -625,7 +625,7 @@ export class DatabaseGrowthRepository implements GrowthRepository {
           having count(*) > 1
         ) repeat_customers
       `);
-      repeatCustomers = Number((repeat.rows[0] as { value?: number } | undefined)?.value ?? 0);
+      repeatCustomers = Number((repeat[0] as { value?: number } | undefined)?.value ?? 0);
     }
 
     const totalCustomers = summary?.totalCustomers ?? 0;

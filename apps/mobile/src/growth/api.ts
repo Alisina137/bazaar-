@@ -59,7 +59,9 @@ async function requestJson<T>(
       try {
         const payload = (await response.json()) as Partial<GrowthErrorResponse>;
         if (payload.error?.code) code = payload.error.code;
-      } catch {}
+      } catch {
+        // Keep the safe generic error code when the response body is unavailable.
+      }
       throw new GrowthApiError(code);
     }
     if (response.status === 204) return undefined as T;

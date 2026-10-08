@@ -1514,7 +1514,7 @@ Passed: Pro and Business entitlements now function server-side across catalog pr
 
 ### Task 10.6 — Integration/regression verification
 
-GitHub Actions run `37713609576` passed on exact Phase 10 code baseline `e79827a983180cfe49c30f1c06ec290330fa7c31`.
+GitHub Actions run `37713854639` passed on final Phase 10 `main` baseline `8c73495dd2e479b31e3c98d69ad82c6467610b82`.
 
 Verified gates include:
 
@@ -1568,8 +1568,8 @@ Phase 10 — Merchant Growth is complete and verified. Next implementation phase
 ## Last known-good baseline
 
 - Branch: `main`
-- Phase 10 code commit: `e79827a983180cfe49c30f1c06ec290330fa7c31`
-- Verification run: `37713609576`
+- Phase 10 final baseline commit: `8c73495dd2e479b31e3c98d69ad82c6467610b82`
+- Verification run: `37713854639`
 
 ## Verification workflow
 

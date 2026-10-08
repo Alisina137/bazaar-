@@ -53,16 +53,10 @@ jobs:
       - name: Verify migration history
         run: pnpm db:check
 
-      - name: Generate and commit Phase 10 migration
+      - name: Verify schema migration drift
         run: |
           pnpm db:generate
-          if [ -n "$(git status --porcelain -- packages/database/drizzle)" ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add packages/database/drizzle
-            git commit -m "chore(db): generate Phase 10 migration"
-            git push origin HEAD:main
-          fi
+          test -z "$(git status --porcelain -- packages/database/drizzle)"
 
       - name: Apply database migrations
         run: pnpm db:migrate

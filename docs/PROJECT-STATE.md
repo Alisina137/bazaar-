@@ -11,7 +11,7 @@
 - Repository: Alisina137/bazaar-
 - Local project root: existing user folder named `bazaar`
 - Default branch: main
-- Active product phase: Phase 11 — Administration (verification pending)
+- Active product phase: Phase 11 — Administration (complete; next Phase 12 — Release Readiness)
 - Phase branch: main
 - Initial repository state: empty before Phase 1 planning
 - Phase 10 verified code baseline: e79827a983180cfe49c30f1c06ec290330fa7c31
@@ -1563,7 +1563,7 @@ Verified gates include:
 
 ## Current phase
 
-Phase 11 — Administration implementation in verification.
+Phase 11 — Administration complete and verified. Next Phase 12 — Release Readiness.
 
 ## Last known-good baseline
 
@@ -1605,7 +1605,7 @@ The public storefront runtime requires `API_URL` or `NEXT_PUBLIC_API_URL` to poi
 - [x] 11.3 Review-report moderation, support, catalog and promotion visibility
 - [x] 11.4 Subscription status operations, payment/refund visibility and administrator-configurable plan prices
 - [x] 11.5 Approved platform configuration, role assignment, transactionally recorded audit trail
-- [ ] 11.6 Fresh PostgreSQL verification, TypeScript/lint/build, integrated regression and phase close
+- [x] 11.6 Fresh PostgreSQL verification, TypeScript/lint/build, integrated regression and phase close
 
 ### Operational and security notes
 
@@ -1618,3 +1618,11 @@ The public storefront runtime requires `API_URL` or `NEXT_PUBLIC_API_URL` to poi
 - Advanced operations on support tickets and review queues already exist under platform routes in Phase 9; Phase 11 adds their cross-platform listing and audited report/review status operations.
 - All platform lists use bounded pagination; audit records contain no raw session tokens or provider secrets.
 - Verify via GitHub Actions migration generation, fresh database migrations, `pnpm verify` and `pnpm test:integration`. Local database must be configured before `pnpm db:migrate`.
+
+### Phase 11 verification
+
+GitHub Actions run `37765776025` passed after Phase 11 delivery: migration history, schema generation, fresh PostgreSQL 17 migrations, database connectivity, ESLint, TypeScript, unit tests, localization, production builds and all serial PostgreSQL integration tests including Phase 11. Migration `0013_smiling_anthem.sql` is committed.
+
+### Explicit limitations
+
+Platform audit records cover all mutations through the newly introduced Phase 11 endpoints. Previously implemented support-ticket and review-moderation endpoints have their own actor attribution but are not automatically written to the new platform audit table. Platform payment/refund views are read-only: actual refunds are processed through established seller payment workflows. Configured subscription prices are operational metadata, not merchant billing or settlement. Seller-paid-plan checkout enforcement remains necessary before a monetized release.

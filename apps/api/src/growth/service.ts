@@ -25,6 +25,7 @@ import type {
 } from "@bazaarlink/contracts";
 
 import { getStoreEntitlements } from "../store/entitlements.js";
+import { unpaidUpgradeBlocked } from "./paid-plan-policy.js";
 import {
   GrowthError,
   GrowthRepositoryConflictError
@@ -631,6 +632,10 @@ export class GrowthService implements GrowthServiceContract {
       PLAN_ORDER[input.plan] > PLAN_ORDER[access.plan]
         ? "upgrade"
         : "downgrade";
+
+    if (unpaidUpgradeBlocked(access.plan, input.plan)) {
+      throw new GrowthError("feature_not_available", 409);
+    }
 
     let keepProductIds: string[] | null = null;
     let keepCategoryIds: string[] | null = null;

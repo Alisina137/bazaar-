@@ -53,13 +53,38 @@ export function buildApp(
   dependencies: AppDependencies = {}
 ) {
   const app = Fastify({
-    logger: process.env.NODE_ENV !== "test"
+    logger: process.env.NODE_ENV !== "test",
+    bodyLimit: 1_048_576
+  });
+
+  app.addHook("onSend", async (request, reply, payload) => {
+    reply.header("X-Content-Type-Options", "nosniff");
+    reply.header("X-Frame-Options", "DENY");
+    reply.header("Referrer-Policy", "no-referrer");
+    const canCache = request.method === "GET" &&
+      request.url.startsWith("/marketplace/") &&
+      !request.headers.authorization &&
+      !request.url.includes("recentProductIds=") &&
+      reply.statusCode === 200;
+    reply.header("Cache-Control", canCache ? "public, max-age=15, stale-while-revalidate=30" : "no-store");
+    if (canCache) reply.header("Vary", "Accept-Language");
+    return payload;
   });
 
   app.get("/health", async () => ({
     service: "bazaarlink-api",
     status: "ok"
   }));
+
+  app.get("/ready", async (_request, reply) => {
+    try {
+      if (!dependencies.databaseHealthCheck) throw new Error("database check not configured");
+      await dependencies.databaseHealthCheck();
+      return { service: "bazaarlink-api", status: "ready" };
+    } catch {
+      return reply.code(503).send({service:"bazaarlink-api",status:"not_ready"});
+    }
+  });
 
   app.get("/health/database", async (_request, reply) => {
     if (!dependencies.databaseHealthCheck) {

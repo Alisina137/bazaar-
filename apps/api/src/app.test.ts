@@ -1,3 +1,4 @@
+import type { MarketplaceServiceContract } from "./marketplace/service.js";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { buildApp } from "./app.js";
@@ -62,4 +63,22 @@ describe("API foundation", () => {
       status: "unavailable"
     });
   });
+  it("caches public marketplace GETs briefly but never authenticated GETs", async () => {
+    const app=buildApp({
+      marketplaceService: {
+        categories: async () => ({categories:[]})
+      } as unknown as MarketplaceServiceContract
+    });
+    apps.push(app);
+    const shared=await app.inject({method:"GET",url:"/marketplace/categories"});
+    expect(shared.statusCode).toBe(200);
+    expect(shared.headers["cache-control"]).toContain("max-age=15");
+    const authenticated=await app.inject({
+      method:"GET",url:"/marketplace/categories",
+      headers:{authorization:"Bearer dummy"}
+    });
+    expect(authenticated.statusCode).toBe(200);
+    expect(authenticated.headers["cache-control"]).toBe("no-store");
+  });
+
 });

@@ -8,6 +8,7 @@ import { config as loadEnv } from "dotenv";
 import { resolve } from "node:path";
 
 import { buildApp } from "./app.js";
+import { validateProductionConfig } from "./release/config.js";
 import { DatabaseCatalogRepository } from "./catalog/repository.js";
 import { CatalogService } from "./catalog/service.js";
 import { parseAuthConfig } from "./auth/config.js";
@@ -39,6 +40,8 @@ loadEnv({
   path: resolve(process.cwd(), "../../.env"),
   quiet: true
 });
+
+validateProductionConfig();
 
 const port = Number(process.env.API_PORT ?? 4000);
 const host = process.env.API_HOST ?? "0.0.0.0";

@@ -112,4 +112,36 @@ describe("HesabPayGateway", () => {
 
     expect(gateway.ready).toBe(false);
   });
+
+  it("rejects gateway declines without leaking provider internals", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(JSON.stringify({error:"sensitive provider detail"}),{status:402}));
+    await expect(new HesabPayGateway(config()).createSession({
+      attemptId:"11111111-1111-4111-8111-111111111111",
+      method:"hesabpay",
+      items:[{id:"item",name:"Phone",price:100}]
+    })).rejects.toMatchObject({code:"provider_rejected",statusCode:502});
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects network failures and timed-out provider requests", async () => {
+    vi.spyOn(globalThis,"fetch").mockRejectedValue(new DOMException("Aborted", "AbortError"));
+    await expect(new HesabPayGateway(config()).createSession({
+      attemptId:"11111111-1111-4111-8111-111111111111",
+      method:"hesabpay",
+      items:[{id:"item",name:"Phone",price:100}]
+    })).rejects.toMatchObject({code:"provider_unavailable",statusCode:503});
+  });
+
+  it("never exposes an insecure HTTP checkout redirect to the buyer", async () => {
+    vi.spyOn(globalThis,"fetch").mockResolvedValue(
+      new Response(JSON.stringify({url:"http://fake-checkout.example.test"}),{status:200})
+    );
+    await expect(new HesabPayGateway(config()).createSession({
+      attemptId:"11111111-1111-4111-8111-111111111111",
+      method:"card",
+      items:[{id:"item",name:"Phone",price:100}]
+    })).rejects.toMatchObject({code:"provider_rejected",statusCode:502});
+  });
+
 });

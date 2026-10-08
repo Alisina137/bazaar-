@@ -80,7 +80,7 @@ export function Button({
       style={({ pressed }) => [
         styles.base,
         {
-          minHeight: theme.sizes.controlHeight,
+          minHeight: Math.max(48, theme.sizes.controlHeight),
           paddingHorizontal: theme.spacing.xl,
           borderRadius: theme.radii.md,
           opacity: isDisabled

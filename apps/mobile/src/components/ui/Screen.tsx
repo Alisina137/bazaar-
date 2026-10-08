@@ -27,6 +27,7 @@ export function Screen({
   const content = scrollable ? (
     <ScrollView
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={[
         styles.content,

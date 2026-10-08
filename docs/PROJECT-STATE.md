@@ -11,7 +11,7 @@
 - Repository: Alisina137/bazaar-
 - Local project root: existing user folder named `bazaar`
 - Default branch: main
-- Active product phase: Phase 11 — Administration (complete; next Phase 12 — Release Readiness)
+- Active product phase: Phase 12 — Release Readiness (implementation ready for CI and manual go/no-go)
 - Phase branch: main
 - Initial repository state: empty before Phase 1 planning
 - Phase 10 verified code baseline: e79827a983180cfe49c30f1c06ec290330fa7c31
@@ -1563,7 +1563,7 @@ Verified gates include:
 
 ## Current phase
 
-Phase 11 — Administration complete and verified. Next Phase 12 — Release Readiness.
+Phase 12 — Release Readiness implemented; waiting for fresh verification and external production go/no-go.
 
 ## Last known-good baseline
 
@@ -1626,3 +1626,20 @@ GitHub Actions run `37765776025` passed after Phase 11 delivery: migration histo
 ### Explicit limitations
 
 Platform audit records cover all mutations through the newly introduced Phase 11 endpoints. Previously implemented support-ticket and review-moderation endpoints have their own actor attribution but are not automatically written to the new platform audit table. Platform payment/refund views are read-only: actual refunds are processed through established seller payment workflows. Configured subscription prices are operational metadata, not merchant billing or settlement. Seller-paid-plan checkout enforcement remains necessary before a monetized release.
+
+
+## Phase 12 — Release Readiness
+
+### Scope: seven tasks
+
+- [x] 12.1 API security headers, strict production env validation and paid-upgrade denial
+- [x] 12.2 Marketplace bounded search/rate limits, conditional public caching and stale offline-cache limits
+- [x] 12.3 Shared mobile control accessibility and keyboard navigation refinements
+- [x] 12.4 Three-language RTL/localization static regression gate
+- [x] 12.5 Provider failure tests and production subscription guard
+- [x] 12.6 Missing-location, cutoff and suspended-merchant delivery edge tests
+- [x] 12.7 Production build profiles, readiness endpoint, preflight and runbook
+
+Automated implementation scope is committed as an integrated Phase 12 change. Final verification evidence to be recorded after CI.
+
+**Release gate:** passing CI alone does not mean public-launch approved. External live provider integration, full on-device E2E journeys, app signing, official artwork, deployed backups and recovery drill, accessibility/RTL device checks and production observability are manual requirements. Paid-plan self-service is disabled on production until verified payment or authorized activation is implemented. A COD-only Starter pilot is the safe available launch scope. Details: `docs/RELEASE-READINESS.md`.

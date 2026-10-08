@@ -22,6 +22,10 @@
     },
     "web": {
       "bundler": "metro"
+    },
+    "android": {
+      "package": "com.bazaarlink.app",
+      "versionCode": 1
     }
   }
 }

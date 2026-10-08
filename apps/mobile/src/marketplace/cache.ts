@@ -10,6 +10,8 @@ const PREFIX = "bazaarlink.marketplace.v9.";
 const RECENT_KEY = PREFIX + "recent-products";
 const MAX_RECENT = 12;
 const CACHE_TTL_MS = 15 * 60 * 1000;
+const MAX_STALE_MS = 7 * 24 * 60 * 60 * 1000;
+const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000;
 
 interface CacheEnvelope<T> {
   savedAt: number;
@@ -29,9 +31,13 @@ async function readCache<T>(
 
     const parsed = JSON.parse(raw) as CacheEnvelope<T>;
 
+    const ageMs = Date.now() - parsed.savedAt;
     if (
-      !allowStale &&
-      Date.now() - parsed.savedAt > CACHE_TTL_MS
+      !Number.isFinite(parsed.savedAt) ||
+      parsed.savedAt <= 0 ||
+      ageMs < -MAX_CLOCK_SKEW_MS ||
+      ageMs > MAX_STALE_MS ||
+      (!allowStale && ageMs > CACHE_TTL_MS)
     ) {
       return null;
     }

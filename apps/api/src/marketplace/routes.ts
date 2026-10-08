@@ -58,7 +58,7 @@ const browseQuerySchema = z
     minRating: z.coerce.number().min(1).max(5).optional(),
     verifiedStore: optionalBoolean,
     sort: sortSchema.default("relevance"),
-    offset: z.coerce.number().int().min(0).default(0),
+    offset: z.coerce.number().int().min(0).max(100_000).default(0),
     limit: z.coerce.number().int().min(1).max(50).default(20)
   })
   .strict()
@@ -153,7 +153,9 @@ export function registerMarketplaceRoutes(
     }
   });
 
-  app.get("/marketplace/products", async (request, reply) => {
+  app.get("/marketplace/products", {
+    config: {rateLimit: {max: 240, timeWindow: "1 minute"}}
+  }, async (request, reply) => {
     const query = browseQuerySchema.safeParse(request.query);
 
     if (!query.success) {
@@ -202,7 +204,9 @@ export function registerMarketplaceRoutes(
     }
   });
 
-  app.get("/marketplace/search/suggestions", async (request, reply) => {
+  app.get("/marketplace/search/suggestions", {
+    config: {rateLimit: {max: 120, timeWindow: "1 minute"}}
+  }, async (request, reply) => {
     const query = suggestionsQuerySchema.safeParse(request.query);
 
     if (!query.success) {

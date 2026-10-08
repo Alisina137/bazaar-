@@ -434,4 +434,45 @@ describe("DeliveryService", () => {
       options: []
     });
   });
+
+  it("stops delivery after the store cutoff without charging a stale delivery price", async () => {
+    const service = new DeliveryService(repository({
+      getRuntimeConfiguration: async () => runtime({
+        settings: {...settings, cutoffTime:"00:00",pickupEnabled:false}
+      })
+    }),cartService());
+    const response = await service.options(USER_ID,ADDRESS_ID);
+    expect(response.canContinue).toBe(false);
+    expect(response.merchantGroups[0]).toMatchObject({
+      available:false,unavailableReason:"cutoff_missed",options:[]
+    });
+  });
+
+  it("rejects coordinate-dependent delivery when no location or zone can price it",async()=>{
+    const service = new DeliveryService(repository({
+      getRuntimeConfiguration: async () => runtime({
+        zones:[],
+        distanceRules: [{
+          id:"b0000000-0000-4000-8000-000000000002",
+          storeId:STORE_ID,name:"Distance tier",type:"tier",minDistanceKm:0,
+          maxDistanceKm:20,fee:80,baseFee:null,perKmFee:null,priority:0,
+          active:true,createdAt:NOW,updatedAt:NOW
+        }],
+        settings:{...settings,originLatitude:34.5253,originLongitude:69.1783,defaultDeliveryFee:null}
+      })
+    }),cartService());
+    const response = await service.options(USER_ID,ADDRESS_ID);
+    expect(response.canContinue).toBe(false);
+    expect(response.merchantGroups[0]?.unavailableReason).toBe("address_location_required");
+  });
+
+  it("blocks checkout when the merchant is suspended",async()=>{
+    const service = new DeliveryService(repository({
+      getRuntimeConfiguration: async () => runtime({store:{...runtime().store,status:"suspended"}})
+    }),cartService());
+    const response=await service.options(USER_ID,ADDRESS_ID);
+    expect(response.canContinue).toBe(false);
+    expect(response.merchantGroups[0]?.unavailableReason).toBe("delivery_disabled");
+  });
+
 });

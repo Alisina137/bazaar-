@@ -37,6 +37,7 @@ export function TextField({
       <TextInput
         {...props}
         accessibilityLabel={accessibilityLabel ?? label}
+        accessibilityHint={error ?? helperText ?? props.accessibilityHint}
         onFocus={(event) => {
           setFocused(true);
           onFocus?.(event);
@@ -47,7 +48,7 @@ export function TextField({
         }}
         placeholderTextColor={theme.colors.textMuted}
         style={{
-          minHeight: theme.sizes.controlHeight,
+          minHeight: Math.max(48, theme.sizes.controlHeight),
           borderRadius: theme.radii.md,
           borderColor: error
             ? theme.colors.danger

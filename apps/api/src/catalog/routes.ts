@@ -18,6 +18,7 @@ import type { AuthServiceContract } from "../auth/service.js";
 import { CatalogError } from "./errors.js";
 import type { CatalogServiceContract } from "./service.js";
 import type { GrowthServiceContract } from "../growth/service.js";
+import { GrowthError } from "../growth/errors.js";
 
 const uuidSchema = z.string().uuid();
 const nullableText = (max: number) =>
@@ -232,6 +233,12 @@ async function merchantOwner(
 }
 
 function sendCatalogError(reply: FastifyReply, error: unknown) {
+  if (error instanceof GrowthError) {
+    return reply.code(error.statusCode).send({
+      error: { code: error.code }
+    });
+  }
+
   if (error instanceof CatalogError) {
     return reply.code(error.statusCode).send(catalogErrorBody(error.code));
   }

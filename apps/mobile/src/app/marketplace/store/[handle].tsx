@@ -13,7 +13,7 @@ import {
   View
 } from "react-native";
 
-import { MarketplaceProductCard } from "@/components/marketplace/MarketplaceProductCard";
+import { MarketplaceProductGrid } from "@/components/marketplace/MarketplaceProductGrid";
 import {
   AppText,
   Badge,
@@ -238,7 +238,7 @@ export default function MarketplaceStoreScreen() {
 
       {data.categories.length > 0 ? (
         <View style={{ gap: theme.spacing.md }}>
-          <AppText variant="title">{t("marketplace.store.categories")}</AppText>
+          <AppText variant="heading">{t("marketplace.store.categories")}</AppText>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -252,7 +252,7 @@ export default function MarketplaceStoreScreen() {
       ) : null}
 
       <View style={{ gap: theme.spacing.lg }}>
-        <AppText variant="title">{t("marketplace.store.products")}</AppText>
+        <AppText variant="heading">{t("marketplace.store.products")}</AppText>
 
         {data.products.length === 0 ? (
           <StateView
@@ -261,9 +261,7 @@ export default function MarketplaceStoreScreen() {
             message={t("marketplace.store.emptyMessage")}
           />
         ) : (
-          data.products.map((product) => (
-            <MarketplaceProductCard key={product.id} product={product} />
-          ))
+          <MarketplaceProductGrid products={data.products} />
         )}
 
         {data.pageInfo.hasMore ? (

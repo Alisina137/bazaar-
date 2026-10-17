@@ -2,13 +2,14 @@ import type { MarketplaceHomeResponse, MarketplaceSearchSuggestion } from "@baza
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Image, Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 
 import { useAuth } from "@/auth/provider";
 import { LanguageSwitcher } from "@/components/localization/LanguageSwitcher";
 import { MarketplaceCategoryTile } from "@/components/marketplace/MarketplaceCategoryTile";
 import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox";
 import { MarketplaceSuggestions } from "@/components/marketplace/MarketplaceSuggestions";
+import { MarketplaceStoreCard } from "@/components/marketplace/MarketplaceStoreCard";
 import { HomeDealSpotlight } from "@/components/marketplace/HomeDealSpotlight";
 import { HomeProductRail } from "@/components/marketplace/HomeProductRail";
 import { HomeProvinceSelector } from "@/components/marketplace/HomeProvinceSelector";
@@ -291,31 +292,8 @@ export default function HomeScreen() {
           <SectionHeader title={t("marketplace.featuredStores")} action={t("home.viewAll")} onPress={openMarketplace} />
           <ScrollView horizontal showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.md }}>
-            {featuredStores.map(({ store }) => (
-              <Pressable key={store.id} accessibilityRole="button" accessibilityLabel={store.name}
-                onPress={() => router.push({ pathname: "/marketplace/store/[handle]", params: { handle: store.handle } })}
-                style={({ pressed }) => ({
-                  width: 172, minHeight: 120, overflow: "hidden",
-                  backgroundColor: theme.colors.surface, borderColor: theme.colors.border,
-                  borderWidth: 1, borderRadius: theme.radii.lg, opacity: pressed ? theme.opacity.pressed : 1
-                })}>
-                {store.coverImageUrl ? (
-                  <Image source={{ uri: store.coverImageUrl }} resizeMode="cover"
-                    accessibilityLabel={store.name}
-                    style={{ height: 64, width: "100%", backgroundColor: theme.colors.surfaceMuted }} />
-                ) : (
-                  <View style={{
-                    height: 64, alignItems: "center", justifyContent: "center",
-                    backgroundColor: theme.colors.primarySoft
-                  }}>
-                    <Ionicons name="storefront-outline" size={26} color={theme.colors.primary} />
-                  </View>
-                )}
-                <View style={{ padding: theme.spacing.sm, gap: theme.spacing.xs }}>
-                  <AppText variant="label" numberOfLines={1}>{store.name}</AppText>
-                  <AppText variant="caption" tone="muted" numberOfLines={1}>{store.province}</AppText>
-                </View>
-              </Pressable>
+            {featuredStores.map((featured) => (
+              <MarketplaceStoreCard key={featured.store.id} featured={featured} />
             ))}
           </ScrollView>
         </View>

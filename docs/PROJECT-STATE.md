@@ -1669,3 +1669,12 @@ Automated implementation scope is committed as an integrated Phase 12 change. Gi
 - View-all shortcuts deep-link into matching Marketplace server-side sort, discount and province browse filters. Existing auth, checkout, merchant entitlement and offline cache behavior retained.
 - Compact labels remain; no redundant titles or explanatory marketing subtitles added.
 - Following phases remain: product/store card polish, further preference-based personalization, and full design/UX regression.
+
+## Customer Home UX redesign — Phase 4 (product/store cards)
+
+- Added shared responsive image-first MarketplaceProductCard, MarketplaceStoreCard and MarketplaceProductGrid.
+- Images show fallback when missing or broken; cards use theme tokens for light/dark, RTL-aware order and touch-friendly press targets.
+- Product prices are formatted AFN; original compare-at price and percentage badges appear only when hasDiscount and a valid higher comparison price. Out-of-stock state and real review ratings remain visible where applicable.
+- Phone-verification cues are based only on seller.trust.phoneVerified, never subscription or paid status.
+- Home, Marketplace, and store product listings share card presentation; Marketplace and store catalogs use a 2-column grid while Home uses compact horizontal rails.
+- Product cards navigate to product detail for options/purchase; store cards navigate to published store. No new backend routes or migrations.

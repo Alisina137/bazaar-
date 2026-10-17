@@ -129,3 +129,9 @@ The mobile Home now displays live recommended (general relevance, not yet person
 Use the compact province picker to view listings from a **selected province**, not GPS-measured nearby distances. No province is inferred or preselected. Province choice is stored locally and can be reset to `All Afghanistan`. Nearby/province results only appear when a province has been explicitly chosen. If no matching products exist, a small no-results message appears without fabricated listings. Each `View all` opens real Marketplace filtered results (popularity, newest, discounted, province); recently viewed intentionally has no false global `View all`. Live data and province-specific offline caches are kept separate.
 
 This phase does not add a personalized recommendation engine, GPS radius filtering, or paid promoted-placement logic. Those require additional approved features and data.
+
+## Customer Home — Phase 4 product and store card design
+
+Home discovery rails, filtered Marketplace results, and public store product listings reuse an updated customer-facing product card. Cards have consistent responsive image areas with fallback icons on image errors, compact product and seller names, province, real phone-verification cues (not subscription or paid verification), available review ratings, AFN pricing, validated discount percentages and out-of-stock labels. Product cards navigate to product details; variant-dependent cart logic remains on the detail page.
+
+Home and Marketplace now share a branded featured-store card with a real store cover, logo fallback, location, verified-phone indicator only when true, and authoritative active product count. Search results and store listings use a two-column responsive product grid; Home's horizontal product rails remain compact. Dari, Pashto and English text direction follow the existing localization system. No new payments, fabricated ratings, schema migrations or push features.

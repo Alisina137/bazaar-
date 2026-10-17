@@ -20,6 +20,7 @@ import {
 } from "react-native";
 
 import { MarketplaceProductCard } from "@/components/marketplace/MarketplaceProductCard";
+import { MarketplaceProductGrid } from "@/components/marketplace/MarketplaceProductGrid";
 import { MarketplaceCategoryTile } from "@/components/marketplace/MarketplaceCategoryTile";
 import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox";
 import { MarketplaceSuggestions } from "@/components/marketplace/MarketplaceSuggestions";
@@ -601,9 +602,7 @@ export default function MarketplaceScreen() {
             />
           ) : (
             <View style={{ gap: theme.spacing.lg }}>
-              {browse.products.map((product) => (
-                <MarketplaceProductCard key={product.id} product={product} />
-              ))}
+              <MarketplaceProductGrid products={browse.products} />
 
               {browse.pageInfo.hasMore && browseInput ? (
                 <Button

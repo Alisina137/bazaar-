@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import console from "node:console";
 import { readFile, writeFile } from "node:fs/promises";
 import { get } from "node:http";
@@ -8,6 +8,7 @@ import process from "node:process";
 import { setTimeout as sleep } from "node:timers/promises";
 
 import { findNgrokHttpsUrl, setMobileApiUrl } from "./lib/dev-api-tunnel.mjs";
+import { resolveNgrokExecutable, parseNgrokMajorVersion } from "./lib/ngrok-executable.mjs";
 
 const PORT = 4000;
 const API_READY_URL = "http://127.0.0.1:" + PORT + "/ready";
@@ -50,8 +51,12 @@ process.on("SIGTERM", () => shutdown(143));
 function start(name, args, env = {}) {
   const isWindows = process.platform === "win32";
   // Fixed command arguments avoid shell quoting and escaping ambiguities.
-  const command = isWindows ? "cmd.exe" : name;
-  const commandArgs = isWindows
+  // Windows pnpm adds bin directories to PATH, which may shadow the v3
+  // desktop CLI with an old ngrok v2 executable. Launch the selected .exe
+  // directly rather than sending it back through cmd.exe's PATH lookup.
+  const directWindowsExe = isWindows && /\.exe$/i.test(name);
+  const command = isWindows && !directWindowsExe ? "cmd.exe" : name;
+  const commandArgs = isWindows && !directWindowsExe
     ? ["/d", "/s", "/c", [name, ...args].join(" ")]
     : args;
   log("Starting: " + [name, ...args].join(" "));
@@ -74,6 +79,20 @@ function start(name, args, env = {}) {
     }
   });
   return child;
+}
+
+function probeNgrokVersion(executable) {
+  try {
+    const result = spawnSync(executable, ["version"], {
+      encoding: "utf8",
+      timeout: 6_000,
+      windowsHide: true
+    });
+    if (result.status === 0) return (result.stdout || "").trim();
+  } catch {
+    // Let the ngrok process itself report a missing or unusable executable.
+  }
+  return null;
 }
 
 function readHttp(url) {
@@ -168,6 +187,17 @@ async function main() {
     return;
   }
 
+  const ngrokExecutable = resolveNgrokExecutable();
+  const ngrokVersion = probeNgrokVersion(ngrokExecutable);
+  log("ngrok executable: " + ngrokExecutable +
+    (ngrokVersion ? " (" + ngrokVersion + ")" : ""));
+  if (ngrokVersion && parseNgrokMajorVersion(ngrokVersion) < 3) {
+    console.error("[api:dev] This ngrok CLI is version 2, but modern authentication uses ngrok 3.");
+    console.error("[api:dev] Install/authenticate ngrok 3 or set BAZAARLINK_NGROK_BIN to its ngrok.exe path.");
+    process.exitCode = 1;
+    return;
+  }
+
   // Pin 4000 even if API_PORT in the developer's .env differs.
   start("pnpm", ["--filter", "@bazaarlink/api", "dev"], {
     API_PORT: String(PORT),
@@ -184,7 +214,7 @@ async function main() {
   }
 
   log("API ready at http://127.0.0.1:4000. Starting ngrok http 4000...");
-  start("ngrok", ["http", String(PORT)]);
+  start(ngrokExecutable, ["http", String(PORT)]);
   const url = await waitForTunnel();
   if (!url) {
     if (!stopping) {

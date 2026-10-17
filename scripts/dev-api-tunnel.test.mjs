@@ -42,3 +42,43 @@ test("refuses HTTP or malformed public URLs", () => {
     public_url:"https://test.example/path",config:{addr:"http://localhost:4000"}
   }] }), "https://test.example");
 });
+
+import { resolveNgrokExecutable, parseNgrokMajorVersion } from "./lib/ngrok-executable.mjs";
+import { readFileSync } from "node:fs";
+
+test("Windows launcher selects the same installed ngrok v3 WindowsApps CLI as PowerShell", () => {
+  const correct = "C:\\Users\\DELL\\AppData\\Local\\Microsoft\\WindowsApps\\ngrok.exe";
+  const seen = [];
+  assert.equal(resolveNgrokExecutable({
+    platform: "win32", localAppData: "C:\\Users\\DELL\\AppData\\Local",
+    explicitBinary: "", exists: (path) => { seen.push(path); return path === correct; }
+  }), correct);
+  assert.deepEqual(seen, [correct]);
+});
+
+test("explicit ngrok executable takes priority and other platforms use PATH", () => {
+  assert.equal(resolveNgrokExecutable({
+    platform: "win32", localAppData: "C:\\Users\\DELL\\AppData\\Local",
+    explicitBinary: "C:\\Tools\\ngrok.exe", exists: () => true
+  }), "C:\\Tools\\ngrok.exe");
+  assert.equal(resolveNgrokExecutable({
+    platform: "win32", localAppData: "C:\\Users\\DELL\\AppData\\Local",
+    explicitBinary: "", exists: () => false
+  }), "ngrok");
+  assert.equal(resolveNgrokExecutable({
+    platform: "linux", explicitBinary: "", exists: () => true
+  }), "ngrok");
+});
+
+test("ngrok version diagnostics distinguish legacy CLI from v3", () => {
+  assert.equal(parseNgrokMajorVersion("ngrok version 2.3.41"), 2);
+  assert.equal(parseNgrokMajorVersion("ngrok version 3.39.9-msix-stable"), 3);
+  assert.equal(parseNgrokMajorVersion("not a version"), null);
+});
+
+test("Windows ngrok executable is launched directly rather than via cmd PATH lookup", () => {
+  const source = readFileSync("scripts/dev-api-with-ngrok.mjs", "utf8");
+  assert.match(source, /directWindowsExe/);
+  assert.match(source, /start\(ngrokExecutable, \["http", String\(PORT\)\]\)/);
+  assert.match(source, /resolveNgrokExecutable\(\)/);
+});

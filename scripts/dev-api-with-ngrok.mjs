@@ -8,7 +8,7 @@ import process from "node:process";
 import { setTimeout as sleep } from "node:timers/promises";
 
 import { findNgrokHttpsUrl, setMobileApiUrl } from "./lib/dev-api-tunnel.mjs";
-import { resolveNgrokExecutable, parseNgrokMajorVersion } from "./lib/ngrok-executable.mjs";
+import { resolveNgrokExecutable, getSpawnSpec, parseNgrokMajorVersion } from "./lib/ngrok-executable.mjs";
 
 const PORT = 4000;
 const API_READY_URL = "http://127.0.0.1:" + PORT + "/ready";
@@ -50,15 +50,9 @@ process.on("SIGTERM", () => shutdown(143));
 
 function start(name, args, env = {}) {
   const isWindows = process.platform === "win32";
-  // Fixed command arguments avoid shell quoting and escaping ambiguities.
-  // Windows pnpm adds bin directories to PATH, which may shadow the v3
-  // desktop CLI with an old ngrok v2 executable. Launch the selected .exe
-  // directly rather than sending it back through cmd.exe's PATH lookup.
-  const directWindowsExe = isWindows && /\.exe$/i.test(name);
-  const command = isWindows && !directWindowsExe ? "cmd.exe" : name;
-  const commandArgs = isWindows && !directWindowsExe
-    ? ["/d", "/s", "/c", [name, ...args].join(" ")]
-    : args;
+  // pnpm.cmd needs the Windows shell; ngrok must not pass through it.
+  // Otherwise "ngrok version" can probe v3 while "ngrok http" launches v2.
+  const { command, args: commandArgs } = getSpawnSpec(name, args, process.platform);
   log("Starting: " + [name, ...args].join(" "));
   const child = spawn(command, commandArgs, {
     cwd: process.cwd(),
@@ -191,9 +185,10 @@ async function main() {
   const ngrokVersion = probeNgrokVersion(ngrokExecutable);
   log("ngrok executable: " + ngrokExecutable +
     (ngrokVersion ? " (" + ngrokVersion + ")" : ""));
-  if (ngrokVersion && parseNgrokMajorVersion(ngrokVersion) < 3) {
-    console.error("[api:dev] This ngrok CLI is version 2, but modern authentication uses ngrok 3.");
-    console.error("[api:dev] Install/authenticate ngrok 3 or set BAZAARLINK_NGROK_BIN to its ngrok.exe path.");
+  if (parseNgrokMajorVersion(ngrokVersion ?? "") !== 3) {
+    console.error("[api:dev] Cannot verify ngrok v3 at the selected executable.");
+    console.error("[api:dev] Use ngrok 3, or set $env:BAZAARLINK_NGROK_BIN = (Get-Command ngrok).Source in PowerShell.");
+    console.error("[api:dev] Then run pnpm dev:api again.");
     process.exitCode = 1;
     return;
   }

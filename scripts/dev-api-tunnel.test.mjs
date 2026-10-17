@@ -43,7 +43,7 @@ test("refuses HTTP or malformed public URLs", () => {
   }] }), "https://test.example");
 });
 
-import { resolveNgrokExecutable, parseNgrokMajorVersion } from "./lib/ngrok-executable.mjs";
+import { resolveNgrokExecutable, parseNgrokMajorVersion, getSpawnSpec } from "./lib/ngrok-executable.mjs";
 import { readFileSync } from "node:fs";
 
 test("Windows launcher selects the same installed ngrok v3 WindowsApps CLI as PowerShell", () => {
@@ -51,7 +51,8 @@ test("Windows launcher selects the same installed ngrok v3 WindowsApps CLI as Po
   const seen = [];
   assert.equal(resolveNgrokExecutable({
     platform: "win32", localAppData: "C:\\Users\\DELL\\AppData\\Local",
-    explicitBinary: "", exists: (path) => { seen.push(path); return path === correct; }
+    explicitBinary: "", exists: (path) => { seen.push(path); return path === correct; },
+    lookup: () => ""
   }), correct);
   assert.deepEqual(seen, [correct]);
 });
@@ -59,14 +60,14 @@ test("Windows launcher selects the same installed ngrok v3 WindowsApps CLI as Po
 test("explicit ngrok executable takes priority and other platforms use PATH", () => {
   assert.equal(resolveNgrokExecutable({
     platform: "win32", localAppData: "C:\\Users\\DELL\\AppData\\Local",
-    explicitBinary: "C:\\Tools\\ngrok.exe", exists: () => true
+    explicitBinary: "C:\\Tools\\ngrok.exe", exists: () => true, lookup: () => ""
   }), "C:\\Tools\\ngrok.exe");
   assert.equal(resolveNgrokExecutable({
     platform: "win32", localAppData: "C:\\Users\\DELL\\AppData\\Local",
-    explicitBinary: "", exists: () => false
+    explicitBinary: "", exists: () => false, lookup: () => ""
   }), "ngrok");
   assert.equal(resolveNgrokExecutable({
-    platform: "linux", explicitBinary: "", exists: () => true
+    platform: "linux", explicitBinary: "", exists: () => true, lookup: () => ""
   }), "ngrok");
 });
 
@@ -78,7 +79,31 @@ test("ngrok version diagnostics distinguish legacy CLI from v3", () => {
 
 test("Windows ngrok executable is launched directly rather than via cmd PATH lookup", () => {
   const source = readFileSync("scripts/dev-api-with-ngrok.mjs", "utf8");
-  assert.match(source, /directWindowsExe/);
+  assert.match(source, /getSpawnSpec\(name, args, process.platform\)/);
   assert.match(source, /start\(ngrokExecutable, \["http", String\(PORT\)\]\)/);
   assert.match(source, /resolveNgrokExecutable\(\)/);
+});
+
+test("Windows where.exe result resolves the WindowsApps alias even if existsSync fails", () => {
+  const alias = "C:\\Users\\DELL\\AppData\\Local\\Microsoft\\WindowsApps\\ngrok.exe";
+  const old = "C:\\projects\\bazaar\\node_modules\\.bin\\ngrok.exe";
+  assert.equal(resolveNgrokExecutable({
+    platform: "win32", localAppData: "C:\\Users\\DELL\\AppData\\Local",
+    explicitBinary: "", exists: () => false,
+    lookup: () => [old, alias].join(String.fromCharCode(13, 10))
+  }), alias);
+});
+
+test("Windows spawn plan uses cmd.exe for pnpm but executes ngrok directly", () => {
+  assert.deepEqual(getSpawnSpec("pnpm", ["--filter", "@bazaarlink/api", "dev"], "win32"), {
+    command: "cmd.exe",
+    args: ["/d", "/s", "/c", "pnpm --filter @bazaarlink/api dev"]
+  });
+  assert.deepEqual(getSpawnSpec("ngrok", ["http", "4000"], "win32"), {
+    command: "ngrok", args: ["http", "4000"]
+  });
+  const alias = "C:\\Users\\DELL\\AppData\\Local\\Microsoft\\WindowsApps\\ngrok.exe";
+  assert.deepEqual(getSpawnSpec(alias, ["http", "4000"], "win32"), {
+    command: alias, args: ["http", "4000"]
+  });
 });

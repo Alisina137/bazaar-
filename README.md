@@ -97,7 +97,7 @@ Mobile (Expo Go using a tunnel; clears Metro cache on startup):
 pnpm dev:mobile
 ```
 
-This command runs `pnpm --filter @bazaarlink/mobile exec expo start --tunnel --clear --go` automatically. Keep `pnpm dev:api` running in another terminal for the backend and ngrok API tunnel.
+This command runs `pnpm --filter @bazaarlink/mobile exec expo start --tunnel --clear --go` automatically. On Android Expo Go, the app skips native remote-push registration (unsupported since Expo SDK 53) but still supports browsing, accounts, orders and the in-app notification center. Remote push requires an EAS development/production build with configured credentials. Keep `pnpm dev:api` running in another terminal for the backend and ngrok API tunnel.
 
 Admin:
 

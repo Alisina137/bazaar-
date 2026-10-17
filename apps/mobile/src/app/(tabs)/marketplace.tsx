@@ -88,6 +88,7 @@ export default function MarketplaceScreen() {
   const [usingCachedHome, setUsingCachedHome] = useState(false);
 
   const [query, setQuery] = useState(linkedQuery ?? "");
+  const [dismissedQuery, setDismissedQuery] = useState<string | null>(linkedQuery?.trim() ?? null);
   const [province, setProvince] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -230,6 +231,7 @@ export default function MarketplaceScreen() {
     setStoreId(linkedStoreId);
     setBrand(linkedBrand);
     setQuery(linkedQuery ?? "");
+    setDismissedQuery(linkedQuery?.trim() ?? null);
     void executeBrowse({
       ...(linkedCategoryId ? { categoryId: linkedCategoryId } : {}),
       ...(linkedQuery ? { q: linkedQuery } : {}),
@@ -301,6 +303,7 @@ export default function MarketplaceScreen() {
     setBrowseLoading(false);
     setBrowseLoadingMore(false);
     setQuery("");
+    setDismissedQuery(null);
     setProvince("");
     setMinPrice("");
     setMaxPrice("");
@@ -322,6 +325,7 @@ export default function MarketplaceScreen() {
   };
 
   const submitSearch = () => {
+    setDismissedQuery(query.trim());
     setCategoryId(undefined);
     setStoreId(undefined);
     setBrand(undefined);
@@ -372,11 +376,13 @@ export default function MarketplaceScreen() {
 
       <Card>
         <View style={{ gap: theme.spacing.md }}>
-          <MarketplaceSearchBox value={query} onChangeText={setQuery} onSubmit={submitSearch} />
-          <MarketplaceSuggestions
-            query={query} items={suggestions} loading={suggestionsLoading}
-            categories={home?.categories} onSelect={chooseSuggestion} onSearchAll={submitSearch}
-          />
+          <MarketplaceSearchBox value={query} onChangeText={(text) => { setQuery(text); setDismissedQuery(null); }} onSubmit={submitSearch} />
+          {dismissedQuery !== query.trim() ? (
+            <MarketplaceSuggestions
+              query={query} items={suggestions} loading={suggestionsLoading}
+              categories={home?.categories} onSelect={chooseSuggestion} onSearchAll={submitSearch}
+            />
+          ) : null}
 
           <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
             <View style={{ flex: 1 }}>

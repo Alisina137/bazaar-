@@ -31,7 +31,7 @@ test("shared search control supports RTL, input clearing, and keyboard submit", 
   assert.match(box, /writingDirection: direction/);
   assert.match(suggestions, /items\.slice\(0, 8\)/);
   assert.match(suggestions, /onSearchAll/);
-  assert.match(suggestions, /item\.type === "category"/);
+  assert.match(suggestions, /item\.type !== "category"/);
 });
 
 test("Home and Marketplace both use localized image-or-icon category tiles", () => {
@@ -48,6 +48,7 @@ test("search links open real category, brand, and seller results", () => {
     assert.ok(marketplace.includes(param), "Missing deep-link filter " + param);
   }
   assert.match(marketplace, /activeFilterCount/);
+  assert.match(marketplace, /dismissedQuery !== query\.trim\(\)/);
   assert.match(marketplace, /browse\.pageInfo\.total/);
   assert.match(repository, /handle: stores\.handle/);
   assert.match(repository, /handle: row\.handle/);

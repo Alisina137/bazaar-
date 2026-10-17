@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "pnpm -r --parallel --if-present dev",
-    "dev:api": "pnpm --filter @bazaarlink/api dev",
+    "dev:api": "pnpm api:dev",
     "dev:mobile": "pnpm --filter @bazaarlink/mobile dev",
     "dev:admin": "pnpm --filter @bazaarlink/admin dev",
     "dev:storefront": "pnpm --filter @bazaarlink/storefront-web dev",
@@ -26,10 +26,13 @@
     "test": "pnpm -r --if-present test",
     "build": "pnpm -r --if-present build",
     "verify:localization": "node scripts/verify-mobile-localization.mjs",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm verify:localization && pnpm verify:release-ux && pnpm build",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm verify:localization && pnpm verify:release-ux && pnpm test:api-dev && pnpm build",
     "test:integration": "pnpm --filter @bazaarlink/api test:integration",
     "verify:release-ux": "node scripts/verify-release-ux.mjs",
-    "release:preflight": "node scripts/production-preflight.mjs"
+    "release:preflight": "node scripts/production-preflight.mjs",
+    "api:dev": "node scripts/dev-api-with-ngrok.mjs",
+    "api:dev:server": "pnpm --filter @bazaarlink/api dev",
+    "test:api-dev": "node --test scripts/dev-api-tunnel.test.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.38.0",

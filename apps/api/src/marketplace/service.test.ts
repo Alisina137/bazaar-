@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 
 import { MarketplaceError } from "./errors.js";
 import type {
+  MarketplaceBrowseQuery,
   MarketplaceRepository
 } from "./repository.js";
 import {
@@ -155,7 +156,7 @@ describe("MarketplaceService", () => {
   });
 
   it("loads real discovery rails and restricts province results to explicit user selection", async () => {
-    const queries: Array<{sort:string; province?:string; discount?:boolean}> = [];
+    const queries: MarketplaceBrowseQuery[] = [];
     const service = new MarketplaceService(repository({
       browse: async (query) => {
         queries.push(query);

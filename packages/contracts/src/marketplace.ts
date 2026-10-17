@@ -124,6 +124,8 @@ export interface MarketplaceSearchSuggestion {
   id: string;
   label: string;
   secondaryLabel: string | null;
+  /** Public handle is provided on store suggestions for direct store navigation. */
+  handle?: string;
 }
 
 export interface MarketplaceSearchSuggestionsResponse {

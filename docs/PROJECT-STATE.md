@@ -1651,3 +1651,12 @@ Automated implementation scope is committed as an integrated Phase 12 change. Gi
 - Uses marketplace data and 7-day maximum stale cache fallback; loads on Home focus, with retry, loading and meaningful empty states. No synthetic listings or invented location filtering.
 - Simplified redundant opening phase labels and large title/subtitle pairs across the five main customer tabs. Useful error and section labels are retained.
 - Backend routes, merchant workflows, and database migrations are unchanged. Later phases cover advanced search, categories, personalized feeds, and full polish.
+
+
+## Home UX redesign — Phase 2: search and categories
+
+- Replaced passive search shortcut on Home with an editable searchable control and debounced live product/store/category/brand suggestions, reusable on Marketplace.
+- Added direct product and public store navigation, category/brand/full-query deep links to filtered Marketplace results. Store suggestions expose existing public handle.
+- Shared localized image-or-icon category cards now appear in Home and Marketplace; Marketplace allows browsing active child categories in filtered results.
+- Filters show active count, sortable options fit in a horizontal row, and result totals are displayed. RTL/Dari/Pashto/English are respected.
+- No fake listings, new permissions, backend schema change or changes to checkout or merchant entitlement systems. Product, promotion, layout and personalization improvements remain later phases.

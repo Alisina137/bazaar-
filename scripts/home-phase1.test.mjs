@@ -20,8 +20,8 @@ test("Home actions reach cart, gated notifications, category-filtered Marketplac
   assert.match(home, /router\.push\("\/\(tabs\)\/cart"\)/);
   assert.match(home, /status === "signedIn" \? "\/notifications" : "\/\(tabs\)\/account"/);
   assert.match(home, /params: \{ categoryId \}/);
-  assert.match(marketplace, /useLocalSearchParams<\{ categoryId\?: string \}>\(\)/);
-  assert.match(marketplace, /executeBrowse\(\{ categoryId: linkedCategoryId,/);
+  assert.match(marketplace, /useLocalSearchParams<\{ categoryId\?: string; q\?: string; brand\?: string; storeId\?: string \}>\(\)/);
+  assert.match(marketplace, /linkedCategoryId \? \{ categoryId: linkedCategoryId \}/);
 });
 
 test("main customer tabs omit redundant intro badges and subtitles", () => {

@@ -795,7 +795,7 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
         .orderBy(desc(products.publishedAt))
         .limit(perType),
       this.db
-        .select({ id: stores.id, label: stores.name, secondary: stores.province })
+        .select({ id: stores.id, label: stores.name, secondary: stores.province, handle: stores.handle })
         .from(stores)
         .where(
           and(
@@ -849,7 +849,8 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
         type: "store" as const,
         id: row.id,
         label: row.label,
-        secondaryLabel: row.secondary
+        secondaryLabel: row.secondary,
+        handle: row.handle
       })),
       ...categoryRows.map((row) => ({
         type: "category" as const,

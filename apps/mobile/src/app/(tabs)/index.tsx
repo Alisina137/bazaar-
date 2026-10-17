@@ -1,4 +1,4 @@
-import type { MarketplaceHomeResponse } from "@bazaarlink/contracts";
+import type { MarketplaceHomeResponse, MarketplaceSearchSuggestion } from "@bazaarlink/contracts";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
@@ -6,17 +6,21 @@ import { ActivityIndicator, Image, Pressable, ScrollView, View } from "react-nat
 
 import { useAuth } from "@/auth/provider";
 import { LanguageSwitcher } from "@/components/localization/LanguageSwitcher";
+import { MarketplaceCategoryTile } from "@/components/marketplace/MarketplaceCategoryTile";
+import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox";
+import { MarketplaceSuggestions } from "@/components/marketplace/MarketplaceSuggestions";
 import { MarketplaceProductCard } from "@/components/marketplace/MarketplaceProductCard";
 import { AppText, Button, Card, Screen, StateView } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 import { marketplaceHome } from "@/marketplace/api";
 import { getRecentProductIds, homeCacheKey, readHomeCache, writeHomeCache } from "@/marketplace/cache";
+import { useMarketplaceSuggestions } from "@/marketplace/useMarketplaceSuggestions";
 
 export default function HomeScreen() {
   const router = useRouter();
   const theme = useAppTheme();
-  const { locale, isRTL, t } = useLocalization();
+  const { isRTL, t } = useLocalization();
   const { status } = useAuth();
   const [home, setHome] = useState<MarketplaceHomeResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -24,6 +28,8 @@ export default function HomeScreen() {
   const [cached, setCached] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [query, setQuery] = useState("");
+  const { suggestions, suggestionsLoading } = useMarketplaceSuggestions(query);
 
   useFocusEffect(useCallback(() => {
     let active = true;
@@ -53,12 +59,36 @@ export default function HomeScreen() {
   }, [refreshKey]));
 
   const openMarketplace = () => router.push("/(tabs)/marketplace");
-  const goToCategory = (categoryId: string) => router.push({
-    pathname: "/(tabs)/marketplace",
-    params: { categoryId }
-  });
-  const categoryLabel = (category: MarketplaceHomeResponse["categories"][number]) =>
-    locale === "en" ? category.nameEn : locale === "ps-AF" ? category.namePs : category.nameFa;
+  const goToCategory = (categoryId: string) => {
+    setQuery("");
+    router.push({
+      pathname: "/(tabs)/marketplace",
+      params: { categoryId }
+    });
+  };
+  const submitSearch = () => {
+    const q = query.trim();
+    if (q) {
+      router.push({ pathname: "/(tabs)/marketplace", params: { q } });
+      setQuery("");
+    } else {
+      openMarketplace();
+    }
+  };
+  const selectSuggestion = (suggestion: MarketplaceSearchSuggestion) => {
+    setQuery("");
+    if (suggestion.type === "product") {
+      router.push({ pathname: "/marketplace/product/[productId]", params: { productId: suggestion.id } });
+    } else if (suggestion.type === "category") {
+      goToCategory(suggestion.id);
+    } else if (suggestion.type === "store" && suggestion.handle) {
+      router.push({ pathname: "/marketplace/store/[handle]", params: { handle: suggestion.handle } });
+    } else if (suggestion.type === "store") {
+      router.push({ pathname: "/(tabs)/marketplace", params: { storeId: suggestion.id } });
+    } else {
+      router.push({ pathname: "/(tabs)/marketplace", params: { brand: suggestion.label } });
+    }
+  };
   const rootCategories = home?.categories.filter((item) => !item.parentId).slice(0, 8) ?? [];
   const featuredProducts = home?.recommended.slice(0, 8) ?? [];
   const featuredStores = home?.featuredStores.slice(0, 6) ?? [];
@@ -100,21 +130,17 @@ export default function HomeScreen() {
 
       {languageOpen ? <Card style={{ padding: theme.spacing.md }}><LanguageSwitcher compact /></Card> : null}
 
-      <Pressable accessibilityRole="button" accessibilityLabel={t("marketplace.searchPlaceholder")}
-        onPress={openMarketplace}
-        style={({ pressed }) => ({
-          minHeight: 52, flexDirection: isRTL ? "row-reverse" : "row",
-          alignItems: "center", gap: theme.spacing.md, paddingHorizontal: theme.spacing.lg,
-          borderRadius: theme.radii.md, borderWidth: 1,
-          borderColor: theme.colors.borderStrong, backgroundColor: theme.colors.surface,
-          opacity: pressed ? theme.opacity.pressed : 1
-        })}>
-        <Ionicons name="search-outline" size={22} color={theme.colors.primary} />
-        <View style={{ flex: 1 }}>
-          <AppText variant="label" tone="muted" numberOfLines={1}>{t("marketplace.searchPlaceholder")}</AppText>
-        </View>
-        <Ionicons name={isRTL ? "chevron-back" : "chevron-forward"} size={18} color={theme.colors.textMuted} />
-      </Pressable>
+      <View style={{ gap: theme.spacing.xs }}>
+        <MarketplaceSearchBox value={query} onChangeText={setQuery} onSubmit={submitSearch} />
+        <MarketplaceSuggestions
+          query={query}
+          items={suggestions}
+          loading={suggestionsLoading}
+          categories={home?.categories}
+          onSelect={selectSuggestion}
+          onSearchAll={submitSearch}
+        />
+      </View>
 
       <View style={{
         padding: theme.spacing.xl, gap: theme.spacing.lg,
@@ -157,23 +183,7 @@ export default function HomeScreen() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm }}>
             {rootCategories.map((category) => (
-              <Pressable key={category.id} accessibilityRole="button"
-                accessibilityLabel={categoryLabel(category)} onPress={() => goToCategory(category.id)}
-                style={({ pressed }) => ({
-                  width: 112, minHeight: 96, padding: theme.spacing.md,
-                  backgroundColor: theme.colors.surface, borderRadius: theme.radii.lg,
-                  borderWidth: 1, borderColor: theme.colors.border,
-                  alignItems: "center", justifyContent: "center", gap: theme.spacing.sm,
-                  opacity: pressed ? theme.opacity.pressed : 1
-                })}>
-                <View style={{
-                  width: 34, height: 34, borderRadius: theme.radii.full,
-                  backgroundColor: theme.colors.primarySoft, alignItems: "center", justifyContent: "center"
-                }}>
-                  <Ionicons name="pricetag-outline" size={18} color={theme.colors.primary} />
-                </View>
-                <AppText variant="caption" align="center" numberOfLines={2}>{categoryLabel(category)}</AppText>
-              </Pressable>
+              <MarketplaceCategoryTile key={category.id} category={category} onPress={() => goToCategory(category.id)} />
             ))}
           </ScrollView>
         </View>

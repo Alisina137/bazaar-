@@ -10,6 +10,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState
 } from "react";
 import {
@@ -19,6 +20,9 @@ import {
 } from "react-native";
 
 import { MarketplaceProductCard } from "@/components/marketplace/MarketplaceProductCard";
+import { MarketplaceCategoryTile } from "@/components/marketplace/MarketplaceCategoryTile";
+import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox";
+import { MarketplaceSuggestions } from "@/components/marketplace/MarketplaceSuggestions";
 import {
   AppText,
   Button,
@@ -33,7 +37,6 @@ import {
   browseMarketplace,
   marketplaceHome,
   MarketplaceApiError,
-  searchSuggestions,
   type BrowseMarketplaceInput
 } from "@/marketplace/api";
 import {
@@ -46,6 +49,7 @@ import {
   writeHomeCache
 } from "@/marketplace/cache";
 import { marketplaceErrorKey } from "@/marketplace/messages";
+import { useMarketplaceSuggestions } from "@/marketplace/useMarketplaceSuggestions";
 
 function localizedCategoryName(
   category: MarketplaceCategoryRecord,
@@ -73,16 +77,17 @@ function optionalPrice(value: string): number | undefined {
 
 export default function MarketplaceScreen() {
   const router = useRouter();
-  const { categoryId: linkedCategoryId } = useLocalSearchParams<{ categoryId?: string }>();
+  const { categoryId: linkedCategoryId, q: linkedQuery, brand: linkedBrand, storeId: linkedStoreId } =
+    useLocalSearchParams<{ categoryId?: string; q?: string; brand?: string; storeId?: string }>();
   const theme = useAppTheme();
-  const { locale, t } = useLocalization();
+  const { locale, isRTL, formatNumber, t } = useLocalization();
 
   const [home, setHome] = useState<MarketplaceHomeResponse | null>(null);
   const [homeLoading, setHomeLoading] = useState(true);
   const [homeError, setHomeError] = useState<MarketplaceApiError | null>(null);
   const [usingCachedHome, setUsingCachedHome] = useState(false);
 
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(linkedQuery ?? "");
   const [province, setProvince] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -92,9 +97,10 @@ export default function MarketplaceScreen() {
   const [verifiedStoreOnly, setVerifiedStoreOnly] = useState(false);
   const [sort, setSort] = useState<MarketplaceSort>("relevance");
   const [categoryId, setCategoryId] = useState<string | undefined>(linkedCategoryId);
-  const [storeId, setStoreId] = useState<string | undefined>();
-  const [brand, setBrand] = useState<string | undefined>();
+  const [storeId, setStoreId] = useState<string | undefined>(linkedStoreId);
+  const [brand, setBrand] = useState<string | undefined>(linkedBrand);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const browseRequestId = useRef(0);
 
   const [browse, setBrowse] = useState<MarketplaceBrowseResponse | null>(null);
   const [browseInput, setBrowseInput] = useState<BrowseMarketplaceInput | null>(
@@ -105,8 +111,7 @@ export default function MarketplaceScreen() {
   const [browseError, setBrowseError] = useState<MarketplaceApiError | null>(null);
   const [usingCachedBrowse, setUsingCachedBrowse] = useState(false);
 
-  const [suggestions, setSuggestions] = useState<MarketplaceSearchSuggestion[]>([]);
-  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const { suggestions, suggestionsLoading } = useMarketplaceSuggestions(query);
 
   const loadHome = useCallback(async (nearbyProvince?: string) => {
     setHomeLoading(true);
@@ -146,43 +151,6 @@ export default function MarketplaceScreen() {
     void loadHome();
   }, [loadHome]);
 
-  useEffect(() => {
-    const normalized = query.trim();
-
-    if (normalized.length < 2) {
-      setSuggestions([]);
-      setSuggestionsLoading(false);
-      return;
-    }
-
-    let active = true;
-    const timeout = setTimeout(() => {
-      setSuggestionsLoading(true);
-
-      void searchSuggestions(normalized)
-        .then((response) => {
-          if (active) {
-            setSuggestions(response.suggestions);
-          }
-        })
-        .catch(() => {
-          if (active) {
-            setSuggestions([]);
-          }
-        })
-        .finally(() => {
-          if (active) {
-            setSuggestionsLoading(false);
-          }
-        });
-    }, 250);
-
-    return () => {
-      active = false;
-      clearTimeout(timeout);
-    };
-  }, [query]);
-
   const rootCategories = useMemo(
     () => home?.categories.filter((category) => category.parentId === null) ?? [],
     [home]
@@ -193,6 +161,7 @@ export default function MarketplaceScreen() {
       input: BrowseMarketplaceInput,
       append = false
     ) => {
+      const requestId = ++browseRequestId.current;
       if (append) {
         setBrowseLoadingMore(true);
       } else {
@@ -205,6 +174,7 @@ export default function MarketplaceScreen() {
 
       try {
         const response = await browseMarketplace(input);
+        if (requestId !== browseRequestId.current) return;
 
         if (append) {
           setBrowse((current) => {
@@ -225,6 +195,7 @@ export default function MarketplaceScreen() {
           await writeBrowseCache(key, response);
         }
       } catch (error) {
+        if (requestId !== browseRequestId.current) return;
         const safeError =
           error instanceof MarketplaceApiError
             ? error
@@ -241,10 +212,12 @@ export default function MarketplaceScreen() {
           }
         }
       } finally {
-        if (append) {
-          setBrowseLoadingMore(false);
-        } else {
-          setBrowseLoading(false);
+        if (requestId === browseRequestId.current) {
+          if (append) {
+            setBrowseLoadingMore(false);
+          } else {
+            setBrowseLoading(false);
+          }
         }
       }
     },
@@ -252,10 +225,19 @@ export default function MarketplaceScreen() {
   );
 
   useEffect(() => {
-    if (!linkedCategoryId) return;
+    if (!linkedCategoryId && !linkedQuery && !linkedBrand && !linkedStoreId) return;
     setCategoryId(linkedCategoryId);
-    void executeBrowse({ categoryId: linkedCategoryId, sort: "relevance", offset: 0, limit: 20 });
-  }, [linkedCategoryId, executeBrowse]);
+    setStoreId(linkedStoreId);
+    setBrand(linkedBrand);
+    setQuery(linkedQuery ?? "");
+    void executeBrowse({
+      ...(linkedCategoryId ? { categoryId: linkedCategoryId } : {}),
+      ...(linkedQuery ? { q: linkedQuery } : {}),
+      ...(linkedBrand ? { brand: linkedBrand } : {}),
+      ...(linkedStoreId ? { storeId: linkedStoreId } : {}),
+      sort: "relevance", offset: 0, limit: 20
+    });
+  }, [linkedCategoryId, linkedQuery, linkedBrand, linkedStoreId, executeBrowse]);
 
   const applyBrowse = useCallback(
     async (overrides: Partial<BrowseMarketplaceInput> = {}) => {
@@ -291,7 +273,6 @@ export default function MarketplaceScreen() {
         ...overrides
       };
 
-      setSuggestions([]);
       await executeBrowse(next);
       if (next.province) {
         void loadHome(next.province);
@@ -316,6 +297,9 @@ export default function MarketplaceScreen() {
   );
 
   const clearDiscovery = () => {
+    browseRequestId.current++;
+    setBrowseLoading(false);
+    setBrowseLoadingMore(false);
     setQuery("");
     setProvince("");
     setMinPrice("");
@@ -331,40 +315,56 @@ export default function MarketplaceScreen() {
     setBrowse(null);
     setBrowseInput(null);
     setBrowseError(null);
-    setSuggestions([]);
+    if (linkedCategoryId || linkedQuery || linkedBrand || linkedStoreId) {
+      router.replace("/(tabs)/marketplace");
+    }
     void loadHome();
   };
 
+  const submitSearch = () => {
+    setCategoryId(undefined);
+    setStoreId(undefined);
+    setBrand(undefined);
+    void applyBrowse({ q: query.trim() || undefined, categoryId: undefined, storeId: undefined, brand: undefined });
+  };
+
+  const chooseCategory = (id: string) => {
+    setQuery("");
+    setCategoryId(id);
+    setStoreId(undefined);
+    setBrand(undefined);
+    void applyBrowse({ categoryId: id, q: undefined, storeId: undefined, brand: undefined });
+  };
+
   const chooseSuggestion = (suggestion: MarketplaceSearchSuggestion) => {
-    setSuggestions([]);
-
+    setQuery("");
     if (suggestion.type === "product") {
-      router.push({
-        pathname: "/marketplace/product/[productId]",
-        params: { productId: suggestion.id }
-      });
-      return;
-    }
-
-    if (suggestion.type === "category") {
-      setCategoryId(suggestion.id);
-      void applyBrowse({ categoryId: suggestion.id, q: undefined });
-      return;
-    }
-
-    if (suggestion.type === "store") {
+      router.push({ pathname: "/marketplace/product/[productId]", params: { productId: suggestion.id } });
+    } else if (suggestion.type === "category") {
+      chooseCategory(suggestion.id);
+    } else if (suggestion.type === "store" && suggestion.handle) {
+      router.push({ pathname: "/marketplace/store/[handle]", params: { handle: suggestion.handle } });
+    } else if (suggestion.type === "store") {
       setStoreId(suggestion.id);
-      void applyBrowse({ storeId: suggestion.id, q: undefined });
-      return;
+      setCategoryId(undefined);
+      setBrand(undefined);
+      void applyBrowse({ storeId: suggestion.id, categoryId: undefined, q: undefined, brand: undefined });
+    } else {
+      setBrand(suggestion.label);
+      setStoreId(undefined);
+      setCategoryId(undefined);
+      void applyBrowse({ brand: suggestion.label, storeId: undefined, categoryId: undefined, q: undefined });
     }
-
-    setBrand(suggestion.label);
-    void applyBrowse({ brand: suggestion.label, q: undefined });
   };
 
   const categoryLabel = categoryId
     ? home?.categories.find((category) => category.id === categoryId)
     : undefined;
+  const childCategories = home?.categories.filter((category) => category.parentId === categoryId) ?? [];
+  const activeFilterCount = [
+    categoryId, storeId, brand, province.trim(), minPrice.trim(), maxPrice.trim(),
+    inStockOnly, dealsOnly, minRating !== undefined, verifiedStoreOnly
+  ].filter(Boolean).length;
 
   return (
     <Screen>
@@ -372,57 +372,18 @@ export default function MarketplaceScreen() {
 
       <Card>
         <View style={{ gap: theme.spacing.md }}>
-          <TextField
-            label={t("marketplace.searchLabel")}
-            placeholder={t("marketplace.searchPlaceholder")}
-            value={query}
-            onChangeText={setQuery}
-            returnKeyType="search"
-            onSubmitEditing={() => {
-              void applyBrowse();
-            }}
+          <MarketplaceSearchBox value={query} onChangeText={setQuery} onSubmit={submitSearch} />
+          <MarketplaceSuggestions
+            query={query} items={suggestions} loading={suggestionsLoading}
+            categories={home?.categories} onSelect={chooseSuggestion} onSearchAll={submitSearch}
           />
-
-          {suggestionsLoading ? (
-            <AppText variant="caption" tone="muted">
-              {t("marketplace.searching")}
-            </AppText>
-          ) : null}
-
-          {suggestions.length > 0 ? (
-            <View style={{ gap: theme.spacing.xs }}>
-              {suggestions.map((suggestion) => (
-                <Pressable
-                  key={suggestion.type + ":" + suggestion.id}
-                  onPress={() => chooseSuggestion(suggestion)}
-                  style={({ pressed }) => ({
-                    paddingVertical: theme.spacing.sm,
-                    paddingHorizontal: theme.spacing.md,
-                    borderRadius: theme.radii.md,
-                    backgroundColor: pressed
-                      ? theme.colors.surfaceMuted
-                      : theme.colors.surface
-                  })}
-                >
-                  <AppText variant="label">{suggestion.label}</AppText>
-                  {suggestion.secondaryLabel ? (
-                    <AppText variant="caption" tone="muted">
-                      {suggestion.secondaryLabel}
-                    </AppText>
-                  ) : null}
-                </Pressable>
-              ))}
-            </View>
-          ) : null}
 
           <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
             <View style={{ flex: 1 }}>
               <Button
                 fullWidth
                 loading={browseLoading}
-                onPress={() => {
-                  void applyBrowse();
-                }}
+                onPress={submitSearch}
               >
                 {t("marketplace.searchAction")}
               </Button>
@@ -431,7 +392,7 @@ export default function MarketplaceScreen() {
               variant="secondary"
               onPress={() => setFiltersOpen((value) => !value)}
             >
-              {t("marketplace.filters")}
+              {t("marketplace.filters") + (activeFilterCount ? " · " + formatNumber(activeFilterCount) : "")}
             </Button>
           </View>
 
@@ -498,6 +459,9 @@ export default function MarketplaceScreen() {
               </Button>
 
               <AppText variant="label">{t("marketplace.sort.label")}</AppText>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={{ gap: theme.spacing.sm, flexDirection: isRTL ? "row-reverse" : "row" }}>
               {(
                 [
                   ["relevance", "marketplace.sort.relevance"],
@@ -516,6 +480,7 @@ export default function MarketplaceScreen() {
                   {t(key)}
                 </Button>
               ))}
+              </ScrollView>
 
               <Button
                 fullWidth
@@ -534,7 +499,7 @@ export default function MarketplaceScreen() {
         </View>
       </Card>
 
-      {homeLoading && !home ? (
+      {homeLoading && !home && !browse ? (
         <StateView
           kind="loading"
           title={t("marketplace.loadingTitle")}
@@ -542,7 +507,7 @@ export default function MarketplaceScreen() {
         />
       ) : null}
 
-      {homeError && !home ? (
+      {homeError && !home && !browse ? (
         <StateView
           kind="error"
           title={t("marketplace.errorTitle")}
@@ -562,16 +527,39 @@ export default function MarketplaceScreen() {
         </Card>
       ) : null}
 
+      {browseLoading && !browse ? <StateView kind="loading" title={t("marketplace.searching")} /> : null}
+      {browseError && !browse ? (
+        <StateView kind="error" title={t("marketplace.errorTitle")}
+          message={t(marketplaceErrorKey(browseError.code))}
+          actionLabel={t("marketplace.retry")} onAction={submitSearch} />
+      ) : null}
+
       {browse ? (
         <View style={{ gap: theme.spacing.lg }}>
           <View style={{ gap: theme.spacing.xs }}>
             <AppText variant="heading">{t("marketplace.results")}</AppText>
+            <AppText variant="caption" tone="muted">{t("marketplace.productCount") + ": " + formatNumber(browse.pageInfo.total)}</AppText>
             <AppText variant="caption" tone="muted">
               {categoryLabel
                 ? localizedCategoryName(categoryLabel, locale)
                 : query.trim() || t("marketplace.allProducts")}
             </AppText>
           </View>
+
+          {childCategories.length > 0 ? (
+            <View style={{ gap: theme.spacing.sm }}>
+              <AppText variant="bodyStrong">{t("marketplace.subcategories")}</AppText>
+              <View style={{
+                flexDirection: isRTL ? "row-reverse" : "row",
+                flexWrap: "wrap", justifyContent: "space-between", gap: theme.spacing.sm
+              }}>
+                {childCategories.map((category) => (
+                  <MarketplaceCategoryTile grid key={category.id} category={category}
+                    onPress={() => chooseCategory(category.id)} />
+                ))}
+              </View>
+            </View>
+          ) : null}
 
           {browse.products.length === 0 ? (
             <StateView
@@ -618,30 +606,20 @@ export default function MarketplaceScreen() {
         </View>
       ) : home ? (
         <View style={{ gap: theme.spacing["2xl"] }}>
-          <View style={{ gap: theme.spacing.md }}>
-            <AppText variant="heading">{t("marketplace.categories")}</AppText>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: theme.spacing.sm }}
-            >
-              {rootCategories.map((category) => (
-                <Button
-                  key={category.id}
-                  variant="secondary"
-                  onPress={() => {
-                    setCategoryId(category.id);
-                    void applyBrowse({
-                      categoryId: category.id,
-                      q: undefined
-                    });
-                  }}
-                >
-                  {localizedCategoryName(category, locale)}
-                </Button>
-              ))}
-            </ScrollView>
-          </View>
+          {rootCategories.length > 0 ? (
+            <View style={{ gap: theme.spacing.md }}>
+              <AppText variant="heading">{t("marketplace.categories")}</AppText>
+              <View style={{
+                flexDirection: isRTL ? "row-reverse" : "row",
+                flexWrap: "wrap", justifyContent: "space-between", gap: theme.spacing.sm
+              }}>
+                {rootCategories.map((category) => (
+                  <MarketplaceCategoryTile grid key={category.id} category={category}
+                    onPress={() => chooseCategory(category.id)} />
+                ))}
+              </View>
+            </View>
+          ) : null}
 
           <ProductSection
             title={t("marketplace.recommended")}

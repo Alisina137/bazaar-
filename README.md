@@ -116,3 +116,7 @@ pnpm dev:storefront
 ## Customer Home refresh — Phase 1
 
 Home is now a compact shopping landing page with a branded header, language menu, existing cart and notification links, search entry, real categories, product recommendations and featured stores. Category shortcuts deep-link into filtered Marketplace results. Home uses the marketplace API and offline cache with loading/empty/error states. The five main customer tabs have reduced their duplicated large introductory titles, subtitles and phase badges. Further phases refine search, category imagery, promotion surfaces, personalized discovery and commerce-specific styling.
+
+## Customer Home UX — Phase 2
+
+The Home search is now an editable field with debounced suggestions for products, shops, categories and brands, backed by the live marketplace search API. Selecting a product opens its detail; selecting a store opens its public storefront using the returned handle; category, brand and full search queries open filtered Marketplace results. Category tiles display real category images or recognizable fallback icons in English/Dari/Pashto. Marketplace supports incoming search/brand/category/store parameters, subcategories and horizontal sort controls. Search suggestions ignore stale responses, offer a clear action and keyboard submission, and never invent product/store results. No DB migration required.

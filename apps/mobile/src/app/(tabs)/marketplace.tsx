@@ -24,6 +24,7 @@ import { MarketplaceProductGrid } from "@/components/marketplace/MarketplaceProd
 import { MarketplaceCategoryTile } from "@/components/marketplace/MarketplaceCategoryTile";
 import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox";
 import { MarketplaceSuggestions } from "@/components/marketplace/MarketplaceSuggestions";
+import { MarketplaceStoreCard } from "@/components/marketplace/MarketplaceStoreCard";
 import {
   AppText,
   Button,
@@ -685,32 +686,8 @@ export default function MarketplaceScreen() {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ gap: theme.spacing.md }}
               >
-                {home.featuredStores.map(({ store, activeProductCount }) => (
-                  <Pressable
-                    key={store.id}
-                    onPress={() =>
-                      router.push({
-                        pathname: "/marketplace/store/[handle]",
-                        params: { handle: store.handle }
-                      })
-                    }
-                    style={({ pressed }) => ({
-                      opacity: pressed ? theme.opacity.pressed : 1,
-                      width: 220
-                    })}
-                  >
-                    <Card>
-                      <View style={{ gap: theme.spacing.sm }}>
-                        <AppText variant="heading">{store.name}</AppText>
-                        <AppText variant="caption" tone="muted">
-                          {store.province} · {store.cityDistrict}
-                        </AppText>
-                        <AppText variant="caption" tone="muted">
-                          {t("marketplace.productCount")}: {activeProductCount}
-                        </AppText>
-                      </View>
-                    </Card>
-                  </Pressable>
+                {home.featuredStores.map((featured) => (
+                  <MarketplaceStoreCard key={featured.store.id} featured={featured} />
                 ))}
               </ScrollView>
             </View>

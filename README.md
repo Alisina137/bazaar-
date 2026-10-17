@@ -71,9 +71,11 @@ Expo reads the mobile app environment from `apps/mobile`. For local mobile devel
 Copy-Item apps/mobile/.env.example apps/mobile/.env.local
 ```
 
-Run `pnpm api:dev` from the repository root. It starts the Fastify API on **port 4000**, waits for `/ready` (including PostgreSQL), starts `ngrok http 4000` in the **same terminal**, prints the public HTTPS URL and automatically sets `EXPO_PUBLIC_API_URL` in the ignored `apps/mobile/.env.local`. It updates only this key and preserves other local values. The ngrok local inspector (normally port 4040) is **not** the forwarding target. Stop both processes with Ctrl+C.\n\nInstall and authenticate the ngrok CLI once before the first launch (for example `ngrok config add-authtoken <your-token>`; never commit tokens). Keep the API and ngrok process running while using Expo on a device. For a server-only API (no tunnel), run `pnpm api:dev:server`.
+Run `pnpm dev:api` from the repository root. It starts the Fastify API on **port 4000**, waits for `/ready` (including PostgreSQL), starts `ngrok http 4000` in the **same terminal**, prints the public HTTPS URL and automatically sets `EXPO_PUBLIC_API_URL` in the ignored `apps/mobile/.env.local`. It updates only this key and preserves other local values. The ngrok local inspector (normally port 4040) is **not** the forwarding target. Stop both processes with Ctrl+C.
 
-For a physical phone, `http://localhost:4000` points to the phone itself, not the development computer. The single-terminal API runner handles the ngrok URL; restart Expo after a URL change. The existing alias `pnpm dev:api` invokes the same combined runner.
+Install and authenticate the ngrok CLI once before the first launch (for example `ngrok config add-authtoken <your-token>`; never commit tokens). Keep the API and ngrok process running while using Expo on a device. For a server-only API (no tunnel), run `pnpm api:dev:server`.
+
+For a physical phone, `http://localhost:4000` points to the phone itself, not the development computer. The single-terminal API runner handles the ngrok URL; restart Expo after a URL change. The legacy alias `pnpm api:dev` also works, but `pnpm dev:api` is the primary command.
 
 ## Verify
 

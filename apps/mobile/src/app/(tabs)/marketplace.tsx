@@ -5,7 +5,7 @@ import type {
   MarketplaceSearchSuggestion,
   MarketplaceSort
 } from "@bazaarlink/contracts";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   useCallback,
   useEffect,
@@ -21,7 +21,6 @@ import {
 import { MarketplaceProductCard } from "@/components/marketplace/MarketplaceProductCard";
 import {
   AppText,
-  Badge,
   Button,
   Card,
   Screen,
@@ -74,6 +73,7 @@ function optionalPrice(value: string): number | undefined {
 
 export default function MarketplaceScreen() {
   const router = useRouter();
+  const { categoryId: linkedCategoryId } = useLocalSearchParams<{ categoryId?: string }>();
   const theme = useAppTheme();
   const { locale, t } = useLocalization();
 
@@ -91,7 +91,7 @@ export default function MarketplaceScreen() {
   const [minRating, setMinRating] = useState<number | undefined>();
   const [verifiedStoreOnly, setVerifiedStoreOnly] = useState(false);
   const [sort, setSort] = useState<MarketplaceSort>("relevance");
-  const [categoryId, setCategoryId] = useState<string | undefined>();
+  const [categoryId, setCategoryId] = useState<string | undefined>(linkedCategoryId);
   const [storeId, setStoreId] = useState<string | undefined>();
   const [brand, setBrand] = useState<string | undefined>();
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -251,6 +251,12 @@ export default function MarketplaceScreen() {
     []
   );
 
+  useEffect(() => {
+    if (!linkedCategoryId) return;
+    setCategoryId(linkedCategoryId);
+    void executeBrowse({ categoryId: linkedCategoryId, sort: "relevance", offset: 0, limit: 20 });
+  }, [linkedCategoryId, executeBrowse]);
+
   const applyBrowse = useCallback(
     async (overrides: Partial<BrowseMarketplaceInput> = {}) => {
       const parsedMin = optionalPrice(minPrice);
@@ -362,13 +368,7 @@ export default function MarketplaceScreen() {
 
   return (
     <Screen>
-      <View style={{ gap: theme.spacing.sm }}>
-        <Badge label={t("marketplace.phaseBadge")} tone="primary" />
-        <AppText variant="display">{t("marketplace.title")}</AppText>
-        <AppText variant="bodyLarge" tone="muted">
-          {t("marketplace.description")}
-        </AppText>
-      </View>
+      <AppText variant="heading">{t("marketplace.title")}</AppText>
 
       <Card>
         <View style={{ gap: theme.spacing.md }}>
@@ -517,10 +517,6 @@ export default function MarketplaceScreen() {
                 </Button>
               ))}
 
-              <AppText variant="caption" tone="muted">
-                {t("marketplace.futureFilterHint")}
-              </AppText>
-
               <Button
                 fullWidth
                 onPress={() => {
@@ -569,7 +565,7 @@ export default function MarketplaceScreen() {
       {browse ? (
         <View style={{ gap: theme.spacing.lg }}>
           <View style={{ gap: theme.spacing.xs }}>
-            <AppText variant="title">{t("marketplace.results")}</AppText>
+            <AppText variant="heading">{t("marketplace.results")}</AppText>
             <AppText variant="caption" tone="muted">
               {categoryLabel
                 ? localizedCategoryName(categoryLabel, locale)
@@ -623,7 +619,7 @@ export default function MarketplaceScreen() {
       ) : home ? (
         <View style={{ gap: theme.spacing["2xl"] }}>
           <View style={{ gap: theme.spacing.md }}>
-            <AppText variant="title">{t("marketplace.categories")}</AppText>
+            <AppText variant="heading">{t("marketplace.categories")}</AppText>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -674,7 +670,7 @@ export default function MarketplaceScreen() {
 
           {home.featuredStores.length > 0 ? (
             <View style={{ gap: theme.spacing.md }}>
-              <AppText variant="title">
+              <AppText variant="heading">
                 {t("marketplace.featuredStores")}
               </AppText>
               <ScrollView
@@ -740,7 +736,7 @@ function ProductSection({
 
   return (
     <View style={{ gap: theme.spacing.md }}>
-      <AppText variant="title">{title}</AppText>
+      <AppText variant="heading">{title}</AppText>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

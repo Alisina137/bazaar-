@@ -24,6 +24,12 @@ export const enMessages = {
   "home.accessibleTargets": "Accessible targets",
   "home.rtlReady": "RTL ready",
 
+  "home.shopLocal": "Shop from local businesses",
+  "home.exploreProducts": "Explore products",
+  "home.viewAll": "View all",
+  "home.emptyTitle": "No listings yet",
+  "home.emptyMessage": "Products and stores will appear as sellers publish them.",
+
   "marketplace.title": "Marketplace",
   "marketplace.description":
     "The marketplace shell is reserved for the approved marketplace phase.",

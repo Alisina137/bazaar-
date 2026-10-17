@@ -26,7 +26,7 @@
     "test": "pnpm -r --if-present test",
     "build": "pnpm -r --if-present build",
     "verify:localization": "node scripts/verify-mobile-localization.mjs",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm verify:localization && pnpm verify:release-ux && pnpm test:api-dev && pnpm test:admin-login && pnpm test:expo-go && pnpm build",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm verify:localization && pnpm verify:release-ux && pnpm test:api-dev && pnpm test:admin-login && pnpm test:expo-go && pnpm test:home-phase1 && pnpm build",
     "test:integration": "pnpm --filter @bazaarlink/api test:integration",
     "verify:release-ux": "node scripts/verify-release-ux.mjs",
     "release:preflight": "node scripts/production-preflight.mjs",
@@ -34,7 +34,8 @@
     "api:dev:server": "pnpm --filter @bazaarlink/api dev",
     "test:api-dev": "node --test scripts/dev-api-tunnel.test.mjs scripts/dev-api-command.test.mjs",
     "test:admin-login": "node --test scripts/admin-login.test.mjs",
-    "test:expo-go": "node --test scripts/expo-go-compatibility.test.mjs"
+    "test:expo-go": "node --test scripts/expo-go-compatibility.test.mjs",
+    "test:home-phase1": "node --test scripts/home-phase1.test.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.38.0",

@@ -13,6 +13,7 @@ import {
   getAuthErrorCode,
   useAuth
 } from "@/auth/provider";
+import { LanguageSwitcher } from "@/components/localization/LanguageSwitcher";
 import {
   AppText,
   Badge,
@@ -102,13 +103,7 @@ export default function AccountScreen() {
 
     return (
       <Screen>
-        <View style={{ gap: theme.spacing.sm }}>
-          <Badge label={t("auth.activeSession")} tone="success" />
-          <AppText variant="title">
-            {user.displayName ?? t("auth.signedInTitle")}
-          </AppText>
-          <AppText tone="muted">{t("auth.signedInMessage")}</AppText>
-        </View>
+        <AppText variant="heading">{user.displayName ?? t("auth.signedInTitle")}</AppText>
 
         <Card>
           <View style={{ gap: theme.spacing.lg }}>
@@ -154,7 +149,6 @@ export default function AccountScreen() {
 
         <Card>
           <View style={{ gap: theme.spacing.lg }}>
-            <AppText variant="heading">{t("account.title")}</AppText>
             <Button
               onPress={() => {
                 router.push(
@@ -230,6 +224,7 @@ export default function AccountScreen() {
             </Button>
           </View>
         </Card>
+        <Card><LanguageSwitcher compact /></Card>
       </Screen>
     );
   }
@@ -263,17 +258,7 @@ export default function AccountScreen() {
 
   return (
     <Screen>
-      <View style={{ gap: theme.spacing.sm }}>
-        <Badge label={t("common.brandName")} tone="primary" />
-        <AppText variant="title">
-          {mode === "login" ? t("auth.signInTitle") : t("auth.registerTitle")}
-        </AppText>
-        <AppText tone="muted">
-          {mode === "login"
-            ? t("auth.signInDescription")
-            : t("auth.registerDescription")}
-        </AppText>
-      </View>
+      <AppText variant="heading">{mode === "login" ? t("auth.signInTitle") : t("auth.registerTitle")}</AppText>
 
       <Card>
         <View style={{ gap: theme.spacing.lg }}>
@@ -338,6 +323,7 @@ export default function AccountScreen() {
           </Button>
         </View>
       </Card>
+      <Card><LanguageSwitcher compact /></Card>
     </Screen>
   );
 }

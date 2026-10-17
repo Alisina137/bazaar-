@@ -134,13 +134,7 @@ export default function OrdersScreen() {
 
   return (
     <Screen>
-      <View style={{ gap: theme.spacing.sm }}>
-        <Badge label={t("order.phaseBadge")} tone="primary" />
-        <AppText variant="display">{t("order.customer.title")}</AppText>
-        <AppText tone="muted">
-          {t("order.customer.description")}
-        </AppText>
-      </View>
+      <AppText variant="heading">{t("order.customer.title")}</AppText>
 
       {errorKey ? (
         <Card>

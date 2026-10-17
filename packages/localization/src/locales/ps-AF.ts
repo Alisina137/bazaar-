@@ -26,6 +26,12 @@ export const psAfMessages = {
   "home.accessibleTargets": "د لاسرسي وړ کنټرولونه",
   "home.rtlReady": "د ښي نه چپ لپاره چمتو",
 
+  "home.shopLocal": "له سیمه‌ییزو کاروبارونو پیرود وکړئ",
+  "home.exploreProducts": "محصولات وګورئ",
+  "home.viewAll": "ټول وګورئ",
+  "home.emptyTitle": "تر اوسه توکي نه دي خپاره شوي",
+  "home.emptyMessage": "کله چې پلورونکي خپل توکي او پلورنځي خپاره کړي، دلته به ښکاره شي.",
+
   "marketplace.title": "بازار",
   "marketplace.description":
     "د بازار بنسټیز جوړښت د منظور شوې بازار مرحلې لپاره ساتل شوی.",

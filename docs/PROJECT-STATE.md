@@ -1643,3 +1643,11 @@ Platform audit records cover all mutations through the newly introduced Phase 11
 Automated implementation scope is committed as an integrated Phase 12 change. GitHub Actions run `37769585890` passed on commit `0f84bb9e79af1ee5c9b915d0c0b9df87cdd1b944`: migration history/diff, PostgreSQL 17 migrations/health, workspace ESLint, TypeScript, unit tests, localization/RTL static check, admin/storefront/mobile builds and serialized database integration suites.
 
 **Release gate:** passing CI alone does not mean public-launch approved. External live provider integration, full on-device E2E journeys, app signing, official artwork, deployed backups and recovery drill, accessibility/RTL device checks and production observability are manual requirements. Paid-plan self-service is disabled on production until verified payment or authorized activation is implemented. A COD-only Starter pilot is the safe available launch scope. Details: `docs/RELEASE-READINESS.md`.
+
+
+## Customer Home UX redesign — Phase 1
+
+- Replaced the development/foundation Home status page with an actual shopping landing page: branded header, language toggle, cart and notifications shortcuts, marketplace search entry, live categories and deep-linked filtered category results, recommendations and featured stores.
+- Uses marketplace data and 7-day maximum stale cache fallback; loads on Home focus, with retry, loading and meaningful empty states. No synthetic listings or invented location filtering.
+- Simplified redundant opening phase labels and large title/subtitle pairs across the five main customer tabs. Useful error and section labels are retained.
+- Backend routes, merchant workflows, and database migrations are unchanged. Later phases cover advanced search, categories, personalized feeds, and full polish.

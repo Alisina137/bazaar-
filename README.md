@@ -112,3 +112,7 @@ Public storefront:
 ```powershell
 pnpm dev:storefront
 ```
+
+## Customer Home refresh — Phase 1
+
+Home is now a compact shopping landing page with a branded header, language menu, existing cart and notification links, search entry, real categories, product recommendations and featured stores. Category shortcuts deep-link into filtered Marketplace results. Home uses the marketplace API and offline cache with loading/empty/error states. The five main customer tabs have reduced their duplicated large introductory titles, subtitles and phase badges. Further phases refine search, category imagery, promotion surfaces, personalized discovery and commerce-specific styling.

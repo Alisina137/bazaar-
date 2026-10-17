@@ -184,13 +184,7 @@ export default function CartScreen() {
 
   return (
     <Screen>
-      <View style={{ gap: theme.spacing.sm }}>
-        <Badge label={t("cart.phaseBadge")} tone="primary" />
-        <AppText variant="display">{t("cart.title")}</AppText>
-        <AppText tone="muted">
-          {t("cart.groupingHint")}
-        </AppText>
-      </View>
+      <AppText variant="heading">{t("cart.title")}</AppText>
 
       {cart.priceChanged ? (
         <Card muted>

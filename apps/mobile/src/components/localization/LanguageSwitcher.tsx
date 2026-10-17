@@ -12,16 +12,13 @@ import { AppText } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 
-export function LanguageSwitcher() {
+export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   const theme = useAppTheme();
   const { locale, isRTL, setLocale, t } = useLocalization();
 
   return (
     <View style={{ gap: theme.spacing.sm }}>
-      <AppText variant="label">{t("language.label")}</AppText>
-      <AppText variant="caption" tone="muted">
-        {t("language.description")}
-      </AppText>
+      {!compact ? <AppText variant="label">{t("language.label")}</AppText> : null}
 
       <View
         style={[

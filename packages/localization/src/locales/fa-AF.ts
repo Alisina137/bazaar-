@@ -26,6 +26,12 @@ export const faAfMessages = {
   "home.accessibleTargets": "کنترل‌های قابل دسترس",
   "home.rtlReady": "آماده برای راست‌به‌چپ",
 
+  "home.shopLocal": "از کسب‌وکارهای محلی خرید کنید",
+  "home.exploreProducts": "دیدن محصولات",
+  "home.viewAll": "مشاهده همه",
+  "home.emptyTitle": "هنوز محصولی ثبت نشده است",
+  "home.emptyMessage": "با نشر محصولات و فروشگاه‌ها توسط فروشندگان، اینجا نمایش داده می‌شوند.",
+
   "marketplace.title": "بازار",
   "marketplace.description":
     "ساختار ابتدایی بازار برای مرحله تأییدشده بازار محفوظ است.",

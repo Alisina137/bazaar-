@@ -70,6 +70,7 @@ export default function AdminHome() {
   const [pendingSession,setPendingSession]=useState(true);
   const [email,setEmail]=useState("");
   const [password,setPassword]=useState("");
+  const [rememberEmail,setRememberEmail]=useState(true);
   const [error,setError]=useState("");
   const [message,setMessage]=useState("");
   const [loading,setLoading]=useState(false);
@@ -89,7 +90,16 @@ export default function AdminHome() {
   const isSuper=Boolean(user?.roles.includes("super_admin"));
   const canManage=isSuper||Boolean(user?.roles.includes("platform_admin"));
   const tabs=useMemo(()=>menu.filter(item => (item.key!=="audit"&&item.key!=="settings" || isSuper) && (item.key!=="users" || canManage) && (item.key!=="prices" || canManage)),[isSuper,canManage]);
-  useEffect(()=>{void api("/api/session").then(data=>setUser(data.user)).catch(()=>undefined).finally(()=>setPendingSession(false));},[]);
+  useEffect(()=>{
+    // A remembered email is a convenience only; never persist passwords.
+    try {
+      const savedEmail = window.localStorage.getItem("bazaarlink_admin_email");
+      if (savedEmail) setEmail(savedEmail);
+    } catch {
+      // Storage may be disabled in private mode; authentication still works.
+    }
+    void api("/api/session").then(data=>setUser(data.user)).catch(()=>undefined).finally(()=>setPendingSession(false));
+  },[]);
   const load=useCallback(async (section:Tab, pageOffset:number)=>{
     setLoading(true);setError("");setRows([]);
     try {
@@ -124,7 +134,19 @@ export default function AdminHome() {
   }
   async function login(event:React.FormEvent<HTMLFormElement>){
     event.preventDefault();setLoading(true);setError("");
-    try {const data=await api("/api/session",{method:"POST",body:JSON.stringify({email,password})});setPassword("");setUser(data.user);}
+    try {
+      const normalizedEmail=email.trim();
+      const data=await api("/api/session",{method:"POST",body:JSON.stringify({email:normalizedEmail,password})});
+      try {
+        if (rememberEmail) window.localStorage.setItem("bazaarlink_admin_email",normalizedEmail);
+        else window.localStorage.removeItem("bazaarlink_admin_email");
+      } catch {
+        // Browser storage is optional and must not block a successful login.
+      }
+      setEmail(normalizedEmail);
+      setPassword("");
+      setUser(data.user);
+    }
     catch(e){setError(e instanceof Error?e.message:"Login failed");}
     finally{setLoading(false);}
   }
@@ -163,7 +185,7 @@ export default function AdminHome() {
   }
   const visibleRows=rows.filter(row=>Object.values(row).some(value=>cell(value).toLowerCase().includes(filter.toLowerCase())));
   if(pendingSession)return <main className="login"><div className="loading">Restoring administrator session…</div></main>;
-  if(!user)return <main className="login"><div className="auth-card"><div className="brand-mark">B</div><p className="eyebrow">BAZAARLINK / PLATFORM</p><h1>Operator sign in</h1><p>Access is restricted to approved support and platform operators.</p><form onSubmit={login}><label>Email address<input type="email" autoComplete="username" required value={email} onChange={e=>setEmail(e.target.value)}/></label><label>Password<input type="password" autoComplete="current-password" required value={password} onChange={e=>setPassword(e.target.value)}/></label><button disabled={loading} type="submit">{loading?"Checking…":"Sign in securely"}</button></form>{error&&<p role="alert" className="error">{error}</p>}</div></main>;
+  if(!user)return <main className="login"><div className="auth-card"><div className="brand-mark">B</div><p className="eyebrow">BAZAARLINK / PLATFORM</p><h1>Operator sign in</h1><p>Access is restricted to approved support and platform operators.</p><form onSubmit={login} autoComplete="on"><label htmlFor="admin-email">Email address</label><input id="admin-email" name="email" type="email" autoComplete="username" required value={email} onChange={e=>setEmail(e.target.value)}/><label htmlFor="admin-password">Password</label><input id="admin-password" name="password" type="password" autoComplete="current-password" required value={password} onChange={e=>setPassword(e.target.value)}/><label className="remember-email"><input type="checkbox" name="rememberEmail" checked={rememberEmail} onChange={e=>{const checked=e.target.checked;setRememberEmail(checked);if(!checked){try{window.localStorage.removeItem("bazaarlink_admin_email");}catch{/* Storage optional. */}}}}/>Remember my email on this device</label><p className="password-manager-hint">Use your browser password manager to save and autofill your password. BazaarLink never stores it in page storage.</p><button disabled={loading} type="submit">{loading?"Checking…":"Sign in securely"}</button></form>{error&&<p role="alert" className="error">{error}</p>}</div></main>;
   return <div className="console"><aside className="sidebar"><div className="brand"><span className="brand-mark">B</span><span>BazaarLink<small>Platform operations</small></span></div><div className="navigation">{tabs.map((item,index)=><div key={item.key}>{(index===0||tabs[index-1]?.section!==item.section)&&<p className="nav-section">{item.section}</p>}<button className={tab===item.key?"nav-active":""} onClick={()=>switchTab(item.key)}>{item.label}</button></div>)}</div><div className="sidebar-footer"><p className="eyebrow">Signed in</p><p>{user.displayName||user.id.slice(0,8)}</p><small>{user.roles.filter(role=>role.startsWith("platform_")||role==="super_admin").join(" · ")}</small><button className="signout" onClick={()=>void logout()}>Sign out</button></div></aside>
     <main className="workspace"><header className="topbar"><div><p className="eyebrow">OPERATIONS CENTER · 2026</p><h1>{headlines[tab]}</h1><p>Controlled platform actions, clear accountability, and scoped access.</p></div><div className="pill">● Secure session</div></header>
     {error&&<div role="alert" className="banner danger">{error}</div>}{message&&<div role="status" className="banner success">{message}</div>}

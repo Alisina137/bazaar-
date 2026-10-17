@@ -105,6 +105,8 @@ Admin:
 pnpm dev:admin
 ```
 
+After a successful operator login, **Remember my email on this device** stores only the email locally for next time. Browser password-manager autofill handles passwords (never stored in the app or committed to Git), and the existing administrator session uses an HttpOnly, SameSite=Strict cookie until expiration or sign-out.
+
 Public storefront:
 
 ```powershell

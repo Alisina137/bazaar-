@@ -21,7 +21,7 @@ export function MarketplaceSuggestions({
   query: string;
   items: MarketplaceSearchSuggestion[];
   loading: boolean;
-  categories?: MarketplaceCategoryRecord[];
+  categories?: MarketplaceCategoryRecord[] | undefined;
   onSelect: (item: MarketplaceSearchSuggestion) => void;
   onSearchAll: () => void;
 }) {

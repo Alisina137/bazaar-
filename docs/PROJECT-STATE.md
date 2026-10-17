@@ -1678,3 +1678,10 @@ Automated implementation scope is committed as an integrated Phase 12 change. Gi
 - Phone-verification cues are based only on seller.trust.phoneVerified, never subscription or paid status.
 - Home, Marketplace, and store product listings share card presentation; Marketplace and store catalogs use a 2-column grid while Home uses compact horizontal rails.
 - Product cards navigate to product detail for options/purchase; store cards navigate to published store. No new backend routes or migrations.
+
+## Home UX Phase 5 — personalization
+
+- Device-local preferred-category selector (top-level category IDs, max five, persisted with AsyncStorage), explicit reset, and confirmed clear of local recent product IDs.
+- Home enriches the public discovery response with bounded category-specific browse requests (in-stock, respect manually chosen province, offline cache fallback), ranks real matching inventory with explicit selections ahead of recent-category affinities, and avoids recently viewed/out-of-stock items.
+- "For you" appears only with actual matched products; generic marketplace relevance still has its own Recommended rail. On-device recent-view order is stable and recent list clearing reconciles cached responses.
+- Existing province opt-in, RTL, language and navigation preserved. The user account/role and database schema remain unchanged; no background tracking or AI API costs were added.

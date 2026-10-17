@@ -39,6 +39,17 @@ export const faAfMessages = {
   "home.discountedProducts": "تخفیف‌ها",
   "home.provinceProducts": "محصولات ولایت شما",
   "home.noProvinceProducts": "هنوز محصولی در این ولایت ثبت نشده است. ولایت دیگری را انتخاب کنید.",
+  "home.preferences": "علاقه‌مندی‌ها",
+  "home.preferencesLocal": "دسته‌های انتخابی شما در این دستگاه ذخیره می‌شوند. محصولات اخیراً دیده‌شده را می‌توانید پاک کنید.",
+  "home.interestedCategories": "دسته‌های مورد علاقه",
+  "home.interestLimit": "حداکثر پنج دسته را انتخاب کنید.",
+  "home.saveInterests": "ذخیره علاقه‌مندی‌ها",
+  "home.resetInterests": "پاک‌کردن انتخاب‌ها",
+  "home.clearHistory": "پاک‌کردن دیده‌شده‌ها",
+  "home.clearHistoryConfirm": "فهرست محصولات اخیراً دیده‌شده از این دستگاه پاک شود؟ شمار بازدیدهای ثبت‌شده در سرور پاک نمی‌شود.",
+  "home.cancel": "لغو",
+  "home.forYou": "برای شما",
+  "home.findingForYou": "جستجوی محصولات مطابق علاقه‌مندی‌های شما…",
 
   "marketplace.title": "بازار",
   "marketplace.description":

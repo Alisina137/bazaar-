@@ -1,4 +1,4 @@
-import type { MarketplaceHomeResponse, MarketplaceSearchSuggestion } from "@bazaarlink/contracts";
+import type { MarketplaceHomeResponse, MarketplaceProductSummary, MarketplaceSearchSuggestion } from "@bazaarlink/contracts";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -13,13 +13,16 @@ import { MarketplaceStoreCard } from "@/components/marketplace/MarketplaceStoreC
 import { HomeDealSpotlight } from "@/components/marketplace/HomeDealSpotlight";
 import { HomeProductRail } from "@/components/marketplace/HomeProductRail";
 import { HomeProvinceSelector } from "@/components/marketplace/HomeProvinceSelector";
+import { HomeInterestPicker } from "@/components/marketplace/HomeInterestPicker";
 import { AppText, Button, Card, Screen, StateView } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
-import { marketplaceHome } from "@/marketplace/api";
-import { getRecentProductIds, homeCacheKey, readHomeCache, writeHomeCache } from "@/marketplace/cache";
+import { browseMarketplace, marketplaceHome } from "@/marketplace/api";
+import { browseCacheKey, clearRecentProductIds, getRecentProductIds, homeCacheKey, readBrowseCache, readHomeCache, writeBrowseCache, writeHomeCache } from "@/marketplace/cache";
 import { useMarketplaceSuggestions } from "@/marketplace/useMarketplaceSuggestions";
 import { getDiscoveryProvince, provinceName, setDiscoveryProvince, type ProvinceName } from "@/marketplace/provinces";
+import { getFavoriteCategories, setFavoriteCategories } from "@/marketplace/preferences";
+import { orderRecentProducts, personalizeProducts } from "@/marketplace/personalize";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -35,6 +38,10 @@ export default function HomeScreen() {
   const [query, setQuery] = useState("");
   const [province, setProvince] = useState<ProvinceName | null>(null);
   const [provinceLoaded, setProvinceLoaded] = useState(false);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [recentIds, setRecentIds] = useState<string[]>([]);
+  const [favoriteListings, setFavoriteListings] = useState<MarketplaceProductSummary[]>([]);
+  const [favoritesLoading, setFavoritesLoading] = useState(false);
   const lastProvince = useRef<ProvinceName | null | undefined>(undefined);
   const { suggestions, suggestionsLoading } = useMarketplaceSuggestions(query);
 
@@ -48,6 +55,28 @@ export default function HomeScreen() {
     });
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    void getFavoriteCategories().then((stored) => {
+      if (active) setFavorites(stored);
+    });
+    return () => { active = false; };
+  }, []);
+
+  const saveFavorites = (next: string[]) => {
+    const allowed = new Set(home?.categories.filter((item) => !item.parentId)
+      .map((item) => item.id) ?? []);
+    const selected = next.filter((id) => allowed.has(id)).slice(0, 5);
+    setFavorites(selected);
+    void setFavoriteCategories(selected);
+  };
+
+  const clearHistory = () => {
+    setRecentIds([]);
+    setHome((current) => current ? { ...current, recentlyViewed: [] } : current);
+    void clearRecentProductIds().then(() => setRefreshKey((key) => key + 1));
+  };
 
   const chooseProvince = (next: ProvinceName | null) => {
     setProvince(next);
@@ -67,18 +96,28 @@ export default function HomeScreen() {
       const key = homeCacheKey(province ?? undefined);
       try {
         const recentProductIds = await getRecentProductIds();
+        if (active) setRecentIds(recentProductIds);
         const fresh = await marketplaceHome({
           ...(province ? { province } : {}),
           recentProductIds
         });
         if (active) {
-          setHome(fresh);
+          setHome({
+            ...fresh,
+            recentlyViewed: orderRecentProducts(fresh.recentlyViewed, recentProductIds)
+          });
           setCached(false);
         }
         void writeHomeCache(key, fresh);
       } catch {
-        const fallback = await readHomeCache(key, true);
+        const fallbackRaw = await readHomeCache(key, true);
+        const recentProductIds = await getRecentProductIds();
+        const fallback = fallbackRaw ? {
+          ...fallbackRaw,
+          recentlyViewed: orderRecentProducts(fallbackRaw.recentlyViewed, recentProductIds)
+        } : null;
         if (active) {
+          setRecentIds(recentProductIds);
           setHome(fallback);
           setCached(Boolean(fallback));
           setError(!fallback);
@@ -90,6 +129,47 @@ export default function HomeScreen() {
     void load();
     return () => { active = false; };
   }, [refreshKey, province, provinceLoaded]));
+
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    // Fetch a bounded, real catalog sample for each explicitly selected
+    // category. Never block the rest of Home if these calls fail.
+    if (favorites.length === 0) {
+      setFavoriteListings([]);
+      setFavoritesLoading(false);
+      return () => { active = false; };
+    }
+
+    const load = async () => {
+      setFavoritesLoading(true);
+      setFavoriteListings([]);
+      const results = await Promise.all(favorites.map(async (categoryId) => {
+        const input = {
+          categoryId,
+          ...(province ? { province } : {}),
+          inStock: true,
+          sort: "relevance" as const,
+          offset: 0,
+          limit: 10
+        };
+        const key = browseCacheKey(input);
+        try {
+          const response = await browseMarketplace(input);
+          void writeBrowseCache(key, response);
+          return response.products;
+        } catch {
+          const saved = await readBrowseCache(key, true);
+          return saved?.products ?? [];
+        }
+      }));
+      if (active) {
+        setFavoriteListings(results.flat());
+        setFavoritesLoading(false);
+      }
+    };
+    void load();
+    return () => { active = false; };
+  }, [favorites, province]));
 
   const openMarketplace = () => router.push("/(tabs)/marketplace");
   const openResults = (params: {
@@ -130,6 +210,13 @@ export default function HomeScreen() {
   const rootCategories = home?.categories.filter((item) => !item.parentId).slice(0, 8) ?? [];
   const featuredStores = home?.featuredStores.slice(0, 6) ?? [];
   const spotlight = home?.deals.find((item) => item.inStock && item.hasDiscount);
+  const personalized = personalizeProducts({
+    home,
+    favorites,
+    extra: favoriteListings,
+    recentIds,
+    province
+  });
   const hasContent = Boolean(home && (
     rootCategories.length ||
     featuredStores.length ||
@@ -174,7 +261,19 @@ export default function HomeScreen() {
 
       {languageOpen ? <Card style={{ padding: theme.spacing.md }}><LanguageSwitcher compact /></Card> : null}
 
-      <HomeProvinceSelector value={province} onChange={chooseProvince} />
+      <View style={{
+        flexDirection: isRTL ? "row-reverse" : "row",
+        flexWrap: "wrap", gap: theme.spacing.sm, alignItems: "center"
+      }}>
+        <HomeProvinceSelector value={province} onChange={chooseProvince} />
+        <HomeInterestPicker
+          categories={home?.categories.filter((item) => !item.parentId) ?? []}
+          favorites={favorites}
+          recentCount={recentIds.length}
+          onSave={saveFavorites}
+          onClearHistory={clearHistory}
+        />
+      </View>
 
       <View style={{ gap: theme.spacing.xs }}>
         <MarketplaceSearchBox value={query} onChangeText={setQuery} onSubmit={submitSearch} />
@@ -239,6 +338,16 @@ export default function HomeScreen() {
         </View>
       ) : null}
 
+      <HomeProductRail
+        title={t("home.forYou")}
+        products={personalized}
+      />
+      {favoritesLoading && favorites.length > 0 ? (
+        <View style={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm, alignItems: "center" }}>
+          <ActivityIndicator size="small" color={theme.colors.primary} />
+          <AppText variant="caption" tone="muted">{t("home.findingForYou")}</AppText>
+        </View>
+      ) : null}
       <HomeProductRail
         title={t("marketplace.recommended")}
         products={home?.recommended ?? []}

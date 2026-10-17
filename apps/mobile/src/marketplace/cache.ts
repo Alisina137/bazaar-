@@ -87,6 +87,14 @@ export async function getRecentProductIds(): Promise<string[]> {
   }
 }
 
+export async function clearRecentProductIds(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(RECENT_KEY);
+  } catch {
+    // Clearing local activity is best effort without breaking shopping.
+  }
+}
+
 export async function rememberProduct(productId: string): Promise<void> {
   const current = await getRecentProductIds();
   const next = [

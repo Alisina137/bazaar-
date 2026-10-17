@@ -39,6 +39,17 @@ export const psAfMessages = {
   "home.discountedProducts": "تخفیفونه",
   "home.provinceProducts": "ستاسې د ولایت محصولات",
   "home.noProvinceProducts": "تر اوسه په دې ولایت کې محصولات نشته. بل ولایت وټاکئ.",
+  "home.preferences": "خوښې",
+  "home.preferencesLocal": "ستاسې خوښې کټګورۍ په همدې وسیله کې ساتل کېږي. وروستي لیدل شوي توکي دلته پاکولای شئ.",
+  "home.interestedCategories": "خوښې کټګورۍ",
+  "home.interestLimit": "تر پنځو کټګوریو پورې وټاکئ.",
+  "home.saveInterests": "خوښې وساتئ",
+  "home.resetInterests": "ټاکنې پاکې کړئ",
+  "home.clearHistory": "وروستي لیدنې پاکې کړئ",
+  "home.clearHistoryConfirm": "له دې وسیلې د وروستي لیدل شویو توکو لېست پاک شي؟ په سرور کې د لیدنو شمېر نه پاکېږي.",
+  "home.cancel": "لغوه",
+  "home.forYou": "ستاسې لپاره",
+  "home.findingForYou": "ستاسې د خوښې محصولات لټول کېږي…",
 
   "marketplace.title": "بازار",
   "marketplace.description":

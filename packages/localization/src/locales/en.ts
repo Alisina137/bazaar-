@@ -37,6 +37,17 @@ export const enMessages = {
   "home.discountedProducts": "Discounts",
   "home.provinceProducts": "Products in your province",
   "home.noProvinceProducts": "No products listed for this province yet. Browse or try another province.",
+  "home.preferences": "Interests",
+  "home.preferencesLocal": "Your category choices are saved on this device. Recently viewed items can be cleared here.",
+  "home.interestedCategories": "Preferred categories",
+  "home.interestLimit": "Choose up to five categories.",
+  "home.saveInterests": "Save interests",
+  "home.resetInterests": "Reset selections",
+  "home.clearHistory": "Clear recent views",
+  "home.clearHistoryConfirm": "Remove your recently viewed list from this device? This does not remove server-side view counts.",
+  "home.cancel": "Cancel",
+  "home.forYou": "For you",
+  "home.findingForYou": "Finding products for your interests…",
 
   "marketplace.title": "Marketplace",
   "marketplace.description":

@@ -121,3 +121,11 @@ Home is now a compact shopping landing page with a branded header, language menu
 ## Customer Home UX — Phase 2
 
 The Home search is now an editable field with debounced suggestions for products, shops, categories and brands, backed by the live marketplace search API. Selecting a product opens its detail; selecting a store opens its public storefront using the returned handle; category, brand and full search queries open filtered Marketplace results. Category tiles display real category images or recognizable fallback icons in English/Dari/Pashto. Marketplace supports incoming search/brand/category/store parameters, subcategories and horizontal sort controls. Search suggestions ignore stale responses, offer a clear action and keyboard submission, and never invent product/store results. No DB migration required.
+
+## Customer shopping Home — Phase 3 product discovery
+
+The mobile Home now displays live recommended (general relevance, not yet personalized), popular (view counts), new arrivals, discounted listings, recently viewed products, featured stores, and province-specific product rails. Each section uses the marketplace Home API; product cards open their public product pages. A promotional spotlight highlights a genuine discounted in-stock product when available and otherwise keeps the general shop-local CTA.
+
+Use the compact province picker to view listings from a **selected province**, not GPS-measured nearby distances. No province is inferred or preselected. Province choice is stored locally and can be reset to `All Afghanistan`. Nearby/province results only appear when a province has been explicitly chosen. If no matching products exist, a small no-results message appears without fabricated listings. Each `View all` opens real Marketplace filtered results (popularity, newest, discounted, province); recently viewed intentionally has no false global `View all`. Live data and province-specific offline caches are kept separate.
+
+This phase does not add a personalized recommendation engine, GPS radius filtering, or paid promoted-placement logic. Those require additional approved features and data.

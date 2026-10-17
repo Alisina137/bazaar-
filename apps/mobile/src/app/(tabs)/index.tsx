@@ -1,7 +1,7 @@
 import type { MarketplaceHomeResponse, MarketplaceSearchSuggestion } from "@bazaarlink/contracts";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Image, Pressable, ScrollView, View } from "react-native";
 
 import { useAuth } from "@/auth/provider";
@@ -9,18 +9,21 @@ import { LanguageSwitcher } from "@/components/localization/LanguageSwitcher";
 import { MarketplaceCategoryTile } from "@/components/marketplace/MarketplaceCategoryTile";
 import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox";
 import { MarketplaceSuggestions } from "@/components/marketplace/MarketplaceSuggestions";
-import { MarketplaceProductCard } from "@/components/marketplace/MarketplaceProductCard";
+import { HomeDealSpotlight } from "@/components/marketplace/HomeDealSpotlight";
+import { HomeProductRail } from "@/components/marketplace/HomeProductRail";
+import { HomeProvinceSelector } from "@/components/marketplace/HomeProvinceSelector";
 import { AppText, Button, Card, Screen, StateView } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 import { marketplaceHome } from "@/marketplace/api";
 import { getRecentProductIds, homeCacheKey, readHomeCache, writeHomeCache } from "@/marketplace/cache";
 import { useMarketplaceSuggestions } from "@/marketplace/useMarketplaceSuggestions";
+import { getDiscoveryProvince, provinceName, setDiscoveryProvince, type ProvinceName } from "@/marketplace/provinces";
 
 export default function HomeScreen() {
   const router = useRouter();
   const theme = useAppTheme();
-  const { isRTL, t } = useLocalization();
+  const { isRTL, locale, t } = useLocalization();
   const { status } = useAuth();
   const [home, setHome] = useState<MarketplaceHomeResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,24 +32,53 @@ export default function HomeScreen() {
   const [languageOpen, setLanguageOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [query, setQuery] = useState("");
+  const [province, setProvince] = useState<ProvinceName | null>(null);
+  const [provinceLoaded, setProvinceLoaded] = useState(false);
+  const lastProvince = useRef<ProvinceName | null | undefined>(undefined);
   const { suggestions, suggestionsLoading } = useMarketplaceSuggestions(query);
 
-  useFocusEffect(useCallback(() => {
+  useEffect(() => {
     let active = true;
+    void getDiscoveryProvince().then((saved) => {
+      if (active) {
+        setProvince(saved);
+        setProvinceLoaded(true);
+      }
+    });
+    return () => { active = false; };
+  }, []);
+
+  const chooseProvince = (next: ProvinceName | null) => {
+    setProvince(next);
+    void setDiscoveryProvince(next);
+  };
+
+  useFocusEffect(useCallback(() => {
+    if (!provinceLoaded) return () => undefined;
+    let active = true;
+    const locationChanged = lastProvince.current !== province;
+    lastProvince.current = province;
+    if (locationChanged) setHome(null);
     const load = async () => {
       setLoading(true);
       setError(false);
       setCached(false);
-      const key = homeCacheKey();
+      const key = homeCacheKey(province ?? undefined);
       try {
         const recentProductIds = await getRecentProductIds();
-        const fresh = await marketplaceHome({ recentProductIds });
-        if (active) setHome(fresh);
+        const fresh = await marketplaceHome({
+          ...(province ? { province } : {}),
+          recentProductIds
+        });
+        if (active) {
+          setHome(fresh);
+          setCached(false);
+        }
         void writeHomeCache(key, fresh);
       } catch {
         const fallback = await readHomeCache(key, true);
         if (active) {
-          if (fallback) setHome(fallback);
+          setHome(fallback);
           setCached(Boolean(fallback));
           setError(!fallback);
         }
@@ -56,9 +88,14 @@ export default function HomeScreen() {
     };
     void load();
     return () => { active = false; };
-  }, [refreshKey]));
+  }, [refreshKey, province, provinceLoaded]));
 
   const openMarketplace = () => router.push("/(tabs)/marketplace");
+  const openResults = (params: {
+    sort?: "relevance" | "popularity" | "newest";
+    discount?: "true";
+    province?: string;
+  } = {}) => router.push({ pathname: "/(tabs)/marketplace", params });
   const goToCategory = (categoryId: string) => {
     setQuery("");
     router.push({
@@ -90,9 +127,15 @@ export default function HomeScreen() {
     }
   };
   const rootCategories = home?.categories.filter((item) => !item.parentId).slice(0, 8) ?? [];
-  const featuredProducts = home?.recommended.slice(0, 8) ?? [];
   const featuredStores = home?.featuredStores.slice(0, 6) ?? [];
-  const hasContent = rootCategories.length > 0 || featuredProducts.length > 0 || featuredStores.length > 0;
+  const spotlight = home?.deals.find((item) => item.inStock && item.hasDiscount);
+  const hasContent = Boolean(home && (
+    rootCategories.length ||
+    featuredStores.length ||
+    home.recommended.length || home.popular.length ||
+    home.nearby.length || home.newest.length ||
+    home.deals.length || home.recentlyViewed.length
+  ));
 
   const iconAction = (
     icon: "language-outline" | "cart-outline" | "notifications-outline",
@@ -130,6 +173,8 @@ export default function HomeScreen() {
 
       {languageOpen ? <Card style={{ padding: theme.spacing.md }}><LanguageSwitcher compact /></Card> : null}
 
+      <HomeProvinceSelector value={province} onChange={chooseProvince} />
+
       <View style={{ gap: theme.spacing.xs }}>
         <MarketplaceSearchBox value={query} onChangeText={setQuery} onSubmit={submitSearch} />
         <MarketplaceSuggestions
@@ -142,21 +187,25 @@ export default function HomeScreen() {
         />
       </View>
 
-      <View style={{
-        padding: theme.spacing.xl, gap: theme.spacing.lg,
-        borderRadius: theme.radii.xl, backgroundColor: theme.colors.primarySoft,
-        borderWidth: 1, borderColor: theme.colors.border
-      }}>
-        <View style={{ flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center", gap: theme.spacing.md }}>
-          <View style={{ flex: 1 }}>
-            <AppText variant="heading">{t("home.shopLocal")}</AppText>
+      {spotlight ? (
+        <HomeDealSpotlight product={spotlight} />
+      ) : (
+        <View style={{
+          padding: theme.spacing.xl, gap: theme.spacing.lg,
+          borderRadius: theme.radii.xl, backgroundColor: theme.colors.primarySoft,
+          borderWidth: 1, borderColor: theme.colors.border
+        }}>
+          <View style={{ flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center", gap: theme.spacing.md }}>
+            <View style={{ flex: 1 }}>
+              <AppText variant="heading">{t("home.shopLocal")}</AppText>
+            </View>
+            <Ionicons name="bag-handle-outline" size={40} color={theme.colors.primary} />
           </View>
-          <Ionicons name="bag-handle-outline" size={40} color={theme.colors.primary} />
+          <View style={{ flexDirection: isRTL ? "row-reverse" : "row" }}>
+            <Button onPress={openMarketplace}>{t("home.exploreProducts")}</Button>
+          </View>
         </View>
-        <View style={{ flexDirection: isRTL ? "row-reverse" : "row" }}>
-          <Button onPress={openMarketplace}>{t("home.exploreProducts")}</Button>
-        </View>
-      </View>
+      )}
 
       {loading && !home ? (
         <View style={{ alignItems: "center", paddingVertical: theme.spacing["2xl"], gap: theme.spacing.sm }}>
@@ -189,17 +238,53 @@ export default function HomeScreen() {
         </View>
       ) : null}
 
-      {featuredProducts.length > 0 ? (
-        <View style={{ gap: theme.spacing.md }}>
-          <SectionHeader title={t("marketplace.recommended")} action={t("home.viewAll")} onPress={openMarketplace} />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.md }}>
-            {featuredProducts.map((product) => (
-              <MarketplaceProductCard key={product.id} product={product} compact />
-            ))}
-          </ScrollView>
+      <HomeProductRail
+        title={t("marketplace.recommended")}
+        products={home?.recommended ?? []}
+        onViewAll={() => openResults({ sort: "relevance" })}
+      />
+      <HomeProductRail
+        title={t("marketplace.popular")}
+        products={home?.popular ?? []}
+        onViewAll={() => openResults({ sort: "popularity" })}
+      />
+      <HomeProductRail
+        title={t("home.newArrivals")}
+        products={home?.newest ?? []}
+        onViewAll={() => openResults({ sort: "newest" })}
+      />
+      <HomeProductRail
+        title={t("home.discountedProducts")}
+        products={home?.deals ?? []}
+        onViewAll={() => openResults({ discount: "true" })}
+      />
+
+      {province ? (
+        <View style={{ gap: theme.spacing.sm }}>
+          {home?.nearby.length ? (
+            <HomeProductRail
+              title={t("home.provinceProducts") + " · " + provinceName(province, locale)}
+              products={home.nearby}
+              onViewAll={() => openResults({ province })}
+            />
+          ) : home && !loading ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t("home.noProvinceProducts")}
+              onPress={() => openResults({ province })}
+              style={{ padding: theme.spacing.md, borderRadius: theme.radii.lg, backgroundColor: theme.colors.surfaceMuted }}
+            >
+              <AppText variant="label">{t("home.provinceProducts") + " · " + provinceName(province, locale)}</AppText>
+              <AppText variant="caption" tone="muted">{t("home.noProvinceProducts")}</AppText>
+            </Pressable>
+          ) : null}
         </View>
       ) : null}
+
+      <HomeProductRail
+        title={t("marketplace.recentlyViewed")}
+        products={home?.recentlyViewed ?? []}
+      />
 
       {featuredStores.length > 0 ? (
         <View style={{ gap: theme.spacing.md }}>

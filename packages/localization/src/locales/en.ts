@@ -29,6 +29,14 @@ export const enMessages = {
   "home.viewAll": "View all",
   "home.emptyTitle": "No listings yet",
   "home.emptyMessage": "Products and stores will appear as sellers publish them.",
+  "home.selectProvince": "Shop in province",
+  "home.allAfghanistan": "All Afghanistan",
+  "home.featuredDeal": "Featured offer",
+  "home.shopDeal": "View offer",
+  "home.newArrivals": "New arrivals",
+  "home.discountedProducts": "Discounts",
+  "home.provinceProducts": "Products in your province",
+  "home.noProvinceProducts": "No products listed for this province yet. Browse or try another province.",
 
   "marketplace.title": "Marketplace",
   "marketplace.description":

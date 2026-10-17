@@ -31,6 +31,14 @@ export const faAfMessages = {
   "home.viewAll": "مشاهده همه",
   "home.emptyTitle": "هنوز محصولی ثبت نشده است",
   "home.emptyMessage": "با نشر محصولات و فروشگاه‌ها توسط فروشندگان، اینجا نمایش داده می‌شوند.",
+  "home.selectProvince": "انتخاب ولایت",
+  "home.allAfghanistan": "تمام افغانستان",
+  "home.featuredDeal": "پیشنهاد ویژه",
+  "home.shopDeal": "دیدن پیشنهاد",
+  "home.newArrivals": "محصولات تازه",
+  "home.discountedProducts": "تخفیف‌ها",
+  "home.provinceProducts": "محصولات ولایت شما",
+  "home.noProvinceProducts": "هنوز محصولی در این ولایت ثبت نشده است. ولایت دیگری را انتخاب کنید.",
 
   "marketplace.title": "بازار",
   "marketplace.description":

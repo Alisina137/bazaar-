@@ -31,6 +31,14 @@ export const psAfMessages = {
   "home.viewAll": "ټول وګورئ",
   "home.emptyTitle": "تر اوسه توکي نه دي خپاره شوي",
   "home.emptyMessage": "کله چې پلورونکي خپل توکي او پلورنځي خپاره کړي، دلته به ښکاره شي.",
+  "home.selectProvince": "ولایت وټاکئ",
+  "home.allAfghanistan": "ټول افغانستان",
+  "home.featuredDeal": "ځانګړی وړاندیز",
+  "home.shopDeal": "وړاندیز وګورئ",
+  "home.newArrivals": "نوي محصولات",
+  "home.discountedProducts": "تخفیفونه",
+  "home.provinceProducts": "ستاسې د ولایت محصولات",
+  "home.noProvinceProducts": "تر اوسه په دې ولایت کې محصولات نشته. بل ولایت وټاکئ.",
 
   "marketplace.title": "بازار",
   "marketplace.description":

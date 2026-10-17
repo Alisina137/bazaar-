@@ -7,9 +7,11 @@ const home = read("apps/mobile/src/app/(tabs)/index.tsx");
 const marketplace = read("apps/mobile/src/app/(tabs)/marketplace.tsx");
 
 test("shopping Home uses real marketplace data, cache and clear entry points", () => {
-  assert.match(home, /marketplaceHome\(\{ recentProductIds \}\)/);
+  assert.match(home, /marketplaceHome\(\{/);
+  assert.match(home, /recentProductIds/);
+  assert.match(home, /\.\.\.\(province \? \{ province \} : \{\}\)/);
   assert.match(home, /readHomeCache\(key, true\)/);
-  assert.match(home, /<MarketplaceProductCard/);
+  assert.match(home, /<HomeProductRail/);
   assert.match(home, /home\?\.featuredStores/);
   assert.match(home, /<LanguageSwitcher compact/);
   assert.match(home, /<SectionHeader/);
@@ -20,7 +22,7 @@ test("Home actions reach cart, gated notifications, category-filtered Marketplac
   assert.match(home, /router\.push\("\/\(tabs\)\/cart"\)/);
   assert.match(home, /status === "signedIn" \? "\/notifications" : "\/\(tabs\)\/account"/);
   assert.match(home, /params: \{ categoryId \}/);
-  assert.match(marketplace, /useLocalSearchParams<\{ categoryId\?: string; q\?: string; brand\?: string; storeId\?: string \}>\(\)/);
+  assert.match(marketplace, /useLocalSearchParams<\{/);
   assert.match(marketplace, /linkedCategoryId \? \{ categoryId: linkedCategoryId \}/);
 });
 

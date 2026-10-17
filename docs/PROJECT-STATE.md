@@ -1660,3 +1660,12 @@ Automated implementation scope is committed as an integrated Phase 12 change. Gi
 - Shared localized image-or-icon category cards now appear in Home and Marketplace; Marketplace allows browsing active child categories in filtered results.
 - Filters show active count, sortable options fit in a horizontal row, and result totals are displayed. RTL/Dari/Pashto/English are respected.
 - No fake listings, new permissions, backend schema change or changes to checkout or merchant entitlement systems. Product, promotion, layout and personalization improvements remain later phases.
+
+## Customer Home UX — Phase 3 (product discovery)
+
+- Home now surfaces live discovery rails (relevance-ranked, popular, new, real deals, recently viewed) along with categories and stores; no new API endpoints or migrations.
+- Discount spotlight only uses an in-stock product with a real discount.
+- User-selected province controls a separate home request and cache key, with localized 34-province picker and persistent opt-in selection; not device geolocation or delivery guarantee. Explicit no-results when there are no public products in the province.
+- View-all shortcuts deep-link into matching Marketplace server-side sort, discount and province browse filters. Existing auth, checkout, merchant entitlement and offline cache behavior retained.
+- Compact labels remain; no redundant titles or explanatory marketing subtitles added.
+- Following phases remain: product/store card polish, further preference-based personalization, and full design/UX regression.

@@ -154,6 +154,31 @@ describe("MarketplaceService", () => {
     expect(home.filterCapabilities.deliveryAvailability).toBe(false);
   });
 
+  it("loads real discovery rails and restricts province results to explicit user selection", async () => {
+    const queries: Array<{sort:string; province?:string; discount?:boolean}> = [];
+    const service = new MarketplaceService(repository({
+      browse: async (query) => {
+        queries.push(query);
+        return { products: [summary], total: 1 };
+      }
+    }));
+
+    const all = await service.home({ recentProductIds: [] });
+    expect(all.nearby).toEqual([]);
+    expect(queries.map((query) => query.sort)).toContain("popularity");
+    expect(queries.map((query) => query.sort)).toContain("newest");
+    expect(queries.some((query) => query.discount === true)).toBe(true);
+    expect(queries.some((query) => query.province)).toBe(false);
+    expect(all.deals).toEqual([summary]);
+    expect(all.popular).toEqual([summary]);
+    expect(all.newest).toEqual([summary]);
+
+    queries.length = 0;
+    const provincial = await service.home({ province: "Kabul", recentProductIds: [] });
+    expect(provincial.nearby).toEqual([summary]);
+    expect(queries.filter((query) => query.province === "Kabul")).toHaveLength(1);
+  });
+
   it("returns authoritative pagination from repository counts", async () => {
     const service = new MarketplaceService(
       repository({

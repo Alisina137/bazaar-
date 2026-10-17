@@ -77,8 +77,20 @@ function optionalPrice(value: string): number | undefined {
 
 export default function MarketplaceScreen() {
   const router = useRouter();
-  const { categoryId: linkedCategoryId, q: linkedQuery, brand: linkedBrand, storeId: linkedStoreId } =
-    useLocalSearchParams<{ categoryId?: string; q?: string; brand?: string; storeId?: string }>();
+  const {
+    categoryId: linkedCategoryId, q: linkedQuery, brand: linkedBrand,
+    storeId: linkedStoreId, sort: linkedSort,
+    discount: linkedDiscount, province: linkedProvince
+  } = useLocalSearchParams<{
+    categoryId?: string; q?: string; brand?: string; storeId?: string;
+    sort?: string; discount?: string; province?: string;
+  }>();
+  const validSort: MarketplaceSort =
+    linkedSort === "popularity" || linkedSort === "newest" ||
+    linkedSort === "price_asc" || linkedSort === "price_desc" ||
+    linkedSort === "rating"
+      ? linkedSort
+      : "relevance";
   const theme = useAppTheme();
   const { locale, isRTL, formatNumber, t } = useLocalization();
 
@@ -89,14 +101,14 @@ export default function MarketplaceScreen() {
 
   const [query, setQuery] = useState(linkedQuery ?? "");
   const [dismissedQuery, setDismissedQuery] = useState<string | null>(linkedQuery?.trim() ?? null);
-  const [province, setProvince] = useState("");
+  const [province, setProvince] = useState(linkedProvince ?? "");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [inStockOnly, setInStockOnly] = useState(false);
-  const [dealsOnly, setDealsOnly] = useState(false);
+  const [dealsOnly, setDealsOnly] = useState(linkedDiscount === "true");
   const [minRating, setMinRating] = useState<number | undefined>();
   const [verifiedStoreOnly, setVerifiedStoreOnly] = useState(false);
-  const [sort, setSort] = useState<MarketplaceSort>("relevance");
+  const [sort, setSort] = useState<MarketplaceSort>(validSort);
   const [categoryId, setCategoryId] = useState<string | undefined>(linkedCategoryId);
   const [storeId, setStoreId] = useState<string | undefined>(linkedStoreId);
   const [brand, setBrand] = useState<string | undefined>(linkedBrand);
@@ -226,20 +238,31 @@ export default function MarketplaceScreen() {
   );
 
   useEffect(() => {
-    if (!linkedCategoryId && !linkedQuery && !linkedBrand && !linkedStoreId) return;
+    if (!linkedCategoryId && !linkedQuery && !linkedBrand && !linkedStoreId &&
+        !linkedSort && !linkedDiscount && !linkedProvince) return;
     setCategoryId(linkedCategoryId);
     setStoreId(linkedStoreId);
     setBrand(linkedBrand);
     setQuery(linkedQuery ?? "");
     setDismissedQuery(linkedQuery?.trim() ?? null);
+    setSort(validSort);
+    setDealsOnly(linkedDiscount === "true");
+    setProvince(linkedProvince ?? "");
     void executeBrowse({
       ...(linkedCategoryId ? { categoryId: linkedCategoryId } : {}),
       ...(linkedQuery ? { q: linkedQuery } : {}),
       ...(linkedBrand ? { brand: linkedBrand } : {}),
       ...(linkedStoreId ? { storeId: linkedStoreId } : {}),
-      sort: "relevance", offset: 0, limit: 20
+      ...(linkedDiscount === "true" ? { discount: true } : {}),
+      ...(linkedProvince ? { province: linkedProvince } : {}),
+      sort: validSort, offset: 0, limit: 20
     });
-  }, [linkedCategoryId, linkedQuery, linkedBrand, linkedStoreId, executeBrowse]);
+    if (linkedProvince) void loadHome(linkedProvince);
+  }, [
+    linkedCategoryId, linkedQuery, linkedBrand, linkedStoreId,
+    linkedSort, linkedDiscount, linkedProvince, validSort,
+    executeBrowse, loadHome
+  ]);
 
   const applyBrowse = useCallback(
     async (overrides: Partial<BrowseMarketplaceInput> = {}) => {
@@ -318,7 +341,8 @@ export default function MarketplaceScreen() {
     setBrowse(null);
     setBrowseInput(null);
     setBrowseError(null);
-    if (linkedCategoryId || linkedQuery || linkedBrand || linkedStoreId) {
+    if (linkedCategoryId || linkedQuery || linkedBrand || linkedStoreId ||
+        linkedSort || linkedDiscount || linkedProvince) {
       router.replace("/(tabs)/marketplace");
     }
     void loadHome();

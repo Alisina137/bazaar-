@@ -91,11 +91,13 @@ API:
 pnpm dev:api
 ```
 
-Mobile:
+Mobile (Expo Go using a tunnel; clears Metro cache on startup):
 
 ```powershell
 pnpm dev:mobile
 ```
+
+This command runs `pnpm --filter @bazaarlink/mobile exec expo start --tunnel --clear --go` automatically. Keep `pnpm dev:api` running in another terminal for the backend and ngrok API tunnel.
 
 Admin:
 

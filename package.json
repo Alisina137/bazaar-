@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "pnpm -r --parallel --if-present dev",
     "dev:api": "node scripts/dev-api-with-ngrok.mjs",
-    "dev:mobile": "pnpm --filter @bazaarlink/mobile dev",
+    "dev:mobile": "pnpm --filter @bazaarlink/mobile exec expo start --tunnel --clear --go",
     "dev:admin": "pnpm --filter @bazaarlink/admin dev",
     "dev:storefront": "pnpm --filter @bazaarlink/storefront-web dev",
     "db:up": "docker compose up -d --wait postgres",

@@ -429,7 +429,7 @@ export default function MarketplaceScreen() {
             />
           ) : null}
 
-          <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
+          <View style={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm }}>
             <View style={{ flex: 1 }}>
               <Button
                 fullWidth
@@ -454,7 +454,7 @@ export default function MarketplaceScreen() {
                 value={province}
                 onChangeText={setProvince}
               />
-              <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
+              <View style={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm }}>
                 <View style={{ flex: 1 }}>
                   <TextField
                     label={t("marketplace.filter.minPrice")}
@@ -487,7 +487,7 @@ export default function MarketplaceScreen() {
               </Button>
 
               <AppText variant="label">{t("marketplace.filter.rating")}</AppText>
-              <View style={{ flexDirection: "row", gap: theme.spacing.sm, flexWrap: "wrap" }}>
+              <View style={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm, flexWrap: "wrap" }}>
                 {[3, 4, 5].map((value) => (
                   <Button
                     key={value}

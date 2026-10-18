@@ -42,13 +42,13 @@ test("discount percentages use validated real pricing; no invented sale labels",
 });
 
 test("product cards use image fallbacks, real sale prices, stock and review data", () => {
-  assert.match(card, /onError=\{\(\) => setImageFailed\(true\)\}/);
+  assert.match(card, /onError=\{\(\) => setFailedImageUrl\(imageUrl\)\}/);
   assert.match(card, /<Ionicons name="image-outline"/);
   assert.match(card, /discountPercentage\(product\)/);
   assert.match(card, /formatAfn\(product.price\)/);
   assert.match(card, /formatAfn\(compareAt\)/);
   assert.match(card, /!product.inStock/);
-  assert.match(card, /product.averageRating !== null && product.reviewCount > 0/);
+  assert.match(card, /ratingSummary\(product\)/);\n  const presentation = read("apps/mobile/src/marketplace/card-presentation.ts");\n  assert.match(presentation, /reviewCount <= 0/);\n  assert.match(presentation, /averageRating === null/);
   assert.match(card, /product.store.trust.phoneVerified/);
   assert.match(card, /pathname: "\/marketplace\/product\/\[productId\]"/);
   assert.doesNotMatch(card, /addCartItem\(/);
@@ -70,7 +70,7 @@ test("home and Marketplace reuse cards, with two-column catalog grids", () => {
   assert.match(marketplace, /<MarketplaceStoreCard\s+key=\{featured.store.id\}\s+featured=\{featured\}/);
   assert.match(grid, /flexDirection: isRTL \? "row-reverse" : "row"/);
   assert.match(grid, /flexWrap: "wrap"/);
-  assert.match(grid, /<MarketplaceProductCard key=\{product.id\} product=\{product\} grid/);
+  assert.match(grid, /<MarketplaceProductCard\s+key=\{product.id\} product=\{product\} grid/);
   assert.match(marketplace, /<MarketplaceProductGrid products=\{browse.products\}/);
   assert.match(storePage, /<MarketplaceProductGrid products=\{data.products\}/);
   assert.match(card, /width: compact \? 182 : grid \? "48%" : "100%"/);

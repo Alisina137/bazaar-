@@ -307,7 +307,7 @@ describe("authentication routes", () => {
 
   it("does not disclose whether recovery email exists when request is accepted", async () => {
     const mock = new FakeAuthService();
-
+    Object.assign(mock, { requestPasswordReset: async () => undefined });
     const app = buildApp({ authService: mock });
     apps.push(app);
     const response = await app.inject({

@@ -63,6 +63,8 @@ export default function SupportScreen() {
 
   useFocusEffect(useCallback(() => {
     let active = true;
+    // Never display previous-account tickets while fetching for a new session.
+    setTickets([]);
     if (status !== "signedIn" || !sessionToken) {
       setTickets([]);
       setLoading(false);

@@ -67,7 +67,7 @@ test("feature store cards use actual cover, logo, province, count and phone veri
 
 test("home and Marketplace reuse cards, with two-column catalog grids", () => {
   assert.match(home, /<MarketplaceStoreCard key=\{featured.store.id\} featured=\{featured\}/);
-  assert.match(marketplace, /<MarketplaceStoreCard key=\{featured.store.id\} featured=\{featured\}/);
+  assert.match(marketplace, /<MarketplaceStoreCard\s+key=\{featured.store.id\}\s+featured=\{featured\}/);
   assert.match(grid, /flexDirection: isRTL \? "row-reverse" : "row"/);
   assert.match(grid, /flexWrap: "wrap"/);
   assert.match(grid, /<MarketplaceProductCard key=\{product.id\} product=\{product\} grid/);

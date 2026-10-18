@@ -98,7 +98,7 @@ export default function AddressesScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { status, sessionToken } = useAuth();
-  const { t } = useLocalization();
+  const { isRTL, t } = useLocalization();
 
   const [addresses, setAddresses] = useState<CustomerAddressRecord[]>([]);
   const [loading, setLoading] = useState(false);
@@ -275,7 +275,7 @@ export default function AddressesScreen() {
     <Screen>
       <View
         style={{
-          flexDirection: "row",
+          flexDirection: isRTL ? "row-reverse" : "row",
           justifyContent: "space-between",
           gap: theme.spacing.sm
         }}
@@ -448,7 +448,7 @@ export default function AddressesScreen() {
             <View style={{ gap: theme.spacing.md }}>
               <View
                 style={{
-                  flexDirection: "row",
+                  flexDirection: isRTL ? "row-reverse" : "row",
                   flexWrap: "wrap",
                   gap: theme.spacing.sm
                 }}
@@ -479,7 +479,7 @@ export default function AddressesScreen() {
               ) : null}
               <View
                 style={{
-                  flexDirection: "row",
+                  flexDirection: isRTL ? "row-reverse" : "row",
                   flexWrap: "wrap",
                   gap: theme.spacing.sm
                 }}

@@ -20,6 +20,7 @@ export default function WishlistScreen() {
   const [items, setItems] = useState<MarketplaceProductSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [removeError, setRemoveError] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
 
@@ -33,6 +34,7 @@ export default function WishlistScreen() {
     setItems([]);
     setLoading(true);
     setError(false);
+    setRemoveError(false);
     void getWishlist(sessionToken).then(data => {
       if (active) setItems(data.products);
     }).catch(() => {
@@ -46,12 +48,13 @@ export default function WishlistScreen() {
   const remove = async (id: string) => {
     if (!sessionToken || busyId) return;
     setBusyId(id);
-    setError(false);
+    setRemoveError(false);
     try {
       await removeWishlistProduct(sessionToken, id);
       setItems(current => current.filter(product => product.id !== id));
     } catch {
-      setError(true);
+      // Keep the product visible so the customer can retry the removal.
+      setRemoveError(true);
     } finally {
       setBusyId(null);
     }
@@ -98,6 +101,11 @@ export default function WishlistScreen() {
             </Button>
           </View>
         </Card>
+      ) : null}
+      {removeError ? (
+        <AppText accessibilityRole="alert" tone="danger">
+          {t("account.phase8.wishlistRemoveError")}
+        </AppText>
       ) : null}
       {!loading && items.length > 0 ? (
         <AppText variant="caption" tone="muted">

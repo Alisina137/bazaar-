@@ -2,6 +2,7 @@ import type {
   AuthSessionResponse,
   AuthSuccessResponse,
   AuthProfileResponse,
+  AuthSecuritySessionsResponse,
   UpdateAuthProfileInput,
   AuthUser
 } from "@bazaarlink/contracts";
@@ -17,6 +18,8 @@ import {
   verifyPassword
 } from "./password.js";
 import type { AuthRepository } from "./repository.js";
+import type { DatabaseAuthSecurityRepository } from "./security-repository.js";
+import type { SecurityEmailSender } from "./security-email.js";
 import {
   createSessionToken,
   hashSessionToken
@@ -41,6 +44,14 @@ export interface AuthServiceContract {
   logout(token: string): Promise<void>;
   /** Optional for injectable legacy test doubles; configured production service implements it. */
   updateProfile?: (token: string, input: UpdateAuthProfileInput) => Promise<AuthProfileResponse>;
+  requestPasswordReset?: (email: string) => Promise<void>;
+  finishPasswordReset?: (token: string, nextPassword: string) => Promise<void>;
+  requestEmailVerification?: (token: string) => Promise<void>;
+  finishEmailVerification?: (token: string, code: string) => Promise<void>;
+  changePassword?: (token: string, currentPassword: string, newPassword: string) => Promise<void>;
+  activeSessions?: (token: string) => Promise<AuthSecuritySessionsResponse>;
+  revokeSession?: (token: string, sessionId: string) => Promise<void>;
+  revokeOtherSessions?: (token: string) => Promise<void>;
 }
 
 function normalizeEmail(email: string): string {
@@ -50,7 +61,9 @@ function normalizeEmail(email: string): string {
 export class AuthService implements AuthServiceContract {
   constructor(
     private readonly repository: AuthRepository,
-    private readonly config: AuthConfig
+    private readonly config: AuthConfig,
+    private readonly security?: DatabaseAuthSecurityRepository,
+    private readonly emailSender?: SecurityEmailSender
   ) {}
 
   private async createSession(user: AuthUser): Promise<AuthSuccessResponse> {
@@ -162,6 +175,116 @@ export class AuthService implements AuthServiceContract {
     const session = await this.authenticateToken(token);
     const user = await this.repository.updateProfile(session.user.id, input);
     return { user };
+  }
+
+
+  private requireSecurity(): DatabaseAuthSecurityRepository {
+    if (!this.security) throw new AuthError("service_unavailable", 503);
+    return this.security;
+  }
+
+  private requireEmailSender(): SecurityEmailSender {
+    if (!this.emailSender?.configured()) throw new AuthError("service_unavailable", 503);
+    return this.emailSender;
+  }
+
+  async requestPasswordReset(email: string): Promise<void> {
+    const security = this.requireSecurity();
+    const sender = this.requireEmailSender();
+    const identity = await this.repository.findEmailIdentity(normalizeEmail(email));
+    // Identical success responses for unknown, disabled and existing addresses.
+    if (!identity || identity.user.status !== "active") return;
+    const code = createSessionToken();
+    const created = await security.createToken(identity.accountId, "password_reset", hashSessionToken(code));
+    if (created) {
+      try {
+        await sender.send(normalizeEmail(email), "password_reset", code);
+      } catch {
+        // Never expose account existence through delivery errors.
+      }
+    }
+  }
+
+  async finishPasswordReset(code: string, nextPassword: string): Promise<void> {
+    const hash = await hashPassword(nextPassword);
+    if (!await this.requireSecurity().resetPassword(hashSessionToken(code), hash)) {
+      throw new AuthError("invalid_token", 400);
+    }
+  }
+
+  async requestEmailVerification(token: string): Promise<void> {
+    const session = await this.authenticateToken(token);
+    const security = this.requireSecurity();
+    const sender = this.requireEmailSender();
+    if (!session.user.email) throw new AuthError("service_unavailable", 503);
+    const identity = await this.repository.findEmailIdentity(normalizeEmail(session.user.email));
+    if (!identity || identity.user.id !== session.user.id) {
+      throw new AuthError("invalid_session", 401);
+    }
+    if (await security.verified(identity.accountId)) return;
+    const code = createSessionToken();
+    const created = await security.createToken(identity.accountId, "verify_email", hashSessionToken(code));
+    if (created) {
+      try {
+        await sender.send(identity.user.email ?? session.user.email, "verify_email", code);
+      } catch {
+        throw new AuthError("service_unavailable", 503);
+      }
+    }
+  }
+
+  async finishEmailVerification(token: string, code: string): Promise<void> {
+    const session = await this.authenticateToken(token);
+    try {
+      if (!await this.requireSecurity().verifyEmail(session.user.id, hashSessionToken(code))) {
+        throw new AuthError("invalid_token", 400);
+      }
+    } catch (error) {
+      if (error instanceof AuthError) throw error;
+      if (error instanceof Error && error.message === "verification_owner_mismatch") {
+        throw new AuthError("invalid_token", 400);
+      }
+      throw error;
+    }
+  }
+
+  async changePassword(token: string, currentPassword: string, nextPassword: string): Promise<void> {
+    const session = await this.authenticateToken(token);
+    const identity = session.user.email
+      ? await this.repository.findEmailIdentity(normalizeEmail(session.user.email))
+      : null;
+    if (!identity || identity.user.id !== session.user.id ||
+        !await verifyPassword(identity.passwordHash, currentPassword) ||
+        currentPassword === nextPassword) {
+      throw new AuthError("invalid_credentials", 401);
+    }
+    const nextHash = await hashPassword(nextPassword);
+    const changed = await this.requireSecurity().changePassword(
+      session.user.id, identity.passwordHash, nextHash, hashSessionToken(token)
+    );
+    if (!changed) throw new AuthError("invalid_credentials", 401);
+  }
+
+  async activeSessions(token: string): Promise<AuthSecuritySessionsResponse> {
+    const session = await this.authenticateToken(token);
+    const sessions = await this.requireSecurity().listSessions(session.user.id, hashSessionToken(token));
+    return { sessions: sessions.map(({ id, createdAt, lastSeenAt, expiresAt, current }) => ({
+      id, createdAt: createdAt.toISOString(), lastSeenAt: lastSeenAt.toISOString(),
+      expiresAt: expiresAt.toISOString(), current
+    })) };
+  }
+
+  async revokeSession(token: string, sessionId: string): Promise<void> {
+    const session = await this.authenticateToken(token);
+    const deleted = await this.requireSecurity().revokeSession(
+      session.user.id, sessionId, hashSessionToken(token)
+    );
+    if (!deleted) throw new AuthError("invalid_request", 400);
+  }
+
+  async revokeOtherSessions(token: string): Promise<void> {
+    const session = await this.authenticateToken(token);
+    await this.requireSecurity().revokeOthers(session.user.id, hashSessionToken(token));
   }
 
   async logout(token: string): Promise<void> {

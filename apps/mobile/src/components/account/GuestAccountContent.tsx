@@ -391,6 +391,13 @@ export function GuestAccountContent() {
             </View>
           ) : null}
 
+          {mode === "login" ? (
+            <Button variant="ghost" disabled={busy}
+              onPress={() => router.push("/account/recover")}>
+              {t("account.security.forgotPassword")}
+            </Button>
+          ) : null}
+
           <Button
             fullWidth
             loading={busy}

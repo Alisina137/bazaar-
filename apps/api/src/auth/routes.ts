@@ -29,6 +29,21 @@ const profileSchema = z.object({
   avatarColor: z.enum(["teal", "blue", "purple", "orange"])
 }).strict();
 
+const recoveryRequestSchema = z.object({
+  email: z.string().trim().email().max(320)
+}).strict();
+const securityCodeSchema = z.object({
+  code: z.string().regex(/^[A-Za-z0-9_-]{43}$/)
+}).strict();
+const resetConfirmSchema = securityCodeSchema.extend({
+  newPassword: z.string().min(8).max(128)
+}).strict();
+const passwordChangeSchema = z.object({
+  currentPassword: z.string().min(1).max(128),
+  newPassword: z.string().min(8).max(128)
+}).strict();
+const sessionParamsSchema = z.object({ id: z.string().uuid() }).strict();
+
 const loginSchema = z
   .object({
     email: z.string().trim().email().max(320),
@@ -144,6 +159,103 @@ export function registerAuthRoutes(
     } catch (error) {
       return sendAuthError(reply, error);
     }
+  });
+
+
+  app.post("/auth/password-reset/request", {
+    config: { rateLimit: { max: 5, timeWindow: "10 minutes" } }
+  }, async (request, reply) => {
+    const parsed = recoveryRequestSchema.safeParse(request.body);
+    if (!parsed.success) return reply.code(400).send(errorBody("invalid_request"));
+    if (!authService.requestPasswordReset) return reply.code(503).send(errorBody("service_unavailable"));
+    try {
+      await authService.requestPasswordReset(parsed.data.email);
+      return reply.code(202).send({ accepted: true });
+    } catch (error) { return sendAuthError(reply, error); }
+  });
+
+  app.post("/auth/password-reset/confirm", {
+    config: { rateLimit: { max: 5, timeWindow: "10 minutes" } }
+  }, async (request, reply) => {
+    const parsed = resetConfirmSchema.safeParse(request.body);
+    if (!parsed.success) return reply.code(400).send(errorBody("invalid_request"));
+    if (!authService.finishPasswordReset) return reply.code(503).send(errorBody("service_unavailable"));
+    try {
+      await authService.finishPasswordReset(parsed.data.code, parsed.data.newPassword);
+      return reply.code(204).send();
+    } catch (error) { return sendAuthError(reply, error); }
+  });
+
+  app.post("/auth/email-verification/request", {
+    config: { rateLimit: { max: 5, timeWindow: "10 minutes" } }
+  }, async (request, reply) => {
+    const token = getBearerToken(request);
+    if (!token) return reply.code(401).send(errorBody("invalid_session"));
+    if (!authService.requestEmailVerification) return reply.code(503).send(errorBody("service_unavailable"));
+    try {
+      await authService.requestEmailVerification(token);
+      return reply.code(202).send({ accepted: true });
+    } catch (error) { return sendAuthError(reply, error); }
+  });
+
+  app.post("/auth/email-verification/confirm", {
+    config: { rateLimit: { max: 5, timeWindow: "10 minutes" } }
+  }, async (request, reply) => {
+    const token = getBearerToken(request);
+    if (!token) return reply.code(401).send(errorBody("invalid_session"));
+    const parsed = securityCodeSchema.safeParse(request.body);
+    if (!parsed.success) return reply.code(400).send(errorBody("invalid_request"));
+    if (!authService.finishEmailVerification) return reply.code(503).send(errorBody("service_unavailable"));
+    try {
+      await authService.finishEmailVerification(token, parsed.data.code);
+      return reply.code(204).send();
+    } catch (error) { return sendAuthError(reply, error); }
+  });
+
+  app.post("/auth/change-password", {
+    config: { rateLimit: { max: 8, timeWindow: "10 minutes" } }
+  }, async (request, reply) => {
+    const token = getBearerToken(request);
+    if (!token) return reply.code(401).send(errorBody("invalid_session"));
+    const parsed = passwordChangeSchema.safeParse(request.body);
+    if (!parsed.success) return reply.code(400).send(errorBody("invalid_request"));
+    if (!authService.changePassword) return reply.code(503).send(errorBody("service_unavailable"));
+    try {
+      await authService.changePassword(token, parsed.data.currentPassword, parsed.data.newPassword);
+      return reply.code(204).send();
+    } catch (error) { return sendAuthError(reply, error); }
+  });
+
+  app.get("/auth/sessions", async (request, reply) => {
+    const token = getBearerToken(request);
+    if (!token) return reply.code(401).send(errorBody("invalid_session"));
+    if (!authService.activeSessions) return reply.code(503).send(errorBody("service_unavailable"));
+    try { return await authService.activeSessions(token); }
+    catch (error) { return sendAuthError(reply, error); }
+  });
+
+  app.delete("/auth/sessions/:id", async (request, reply) => {
+    const token = getBearerToken(request);
+    if (!token) return reply.code(401).send(errorBody("invalid_session"));
+    const parsed = sessionParamsSchema.safeParse(request.params);
+    if (!parsed.success) return reply.code(400).send(errorBody("invalid_request"));
+    if (!authService.revokeSession) return reply.code(503).send(errorBody("service_unavailable"));
+    try {
+      await authService.revokeSession(token, parsed.data.id);
+      return reply.code(204).send();
+    } catch (error) { return sendAuthError(reply, error); }
+  });
+
+  app.post("/auth/sessions/revoke-others", {
+    config: { rateLimit: { max: 10, timeWindow: "10 minutes" } }
+  }, async (request, reply) => {
+    const token = getBearerToken(request);
+    if (!token) return reply.code(401).send(errorBody("invalid_session"));
+    if (!authService.revokeOtherSessions) return reply.code(503).send(errorBody("service_unavailable"));
+    try {
+      await authService.revokeOtherSessions(token);
+      return reply.code(204).send();
+    } catch (error) { return sendAuthError(reply, error); }
   });
 
   app.post("/auth/logout", async (request, reply) => {

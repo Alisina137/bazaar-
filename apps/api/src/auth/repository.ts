@@ -82,6 +82,7 @@ function toAuthUser(
     phone?: string | null;
     avatarColor?: string;
     email?: string | null;
+    emailVerified?: Date | boolean | null;
     preferredLocale: string;
     status: "active" | "suspended" | "disabled";
   },
@@ -91,6 +92,7 @@ function toAuthUser(
     id: row.id,
     displayName: row.displayName,
     email: row.email ?? null,
+    emailVerified: Boolean(row.emailVerified),
     phone: row.phone ?? null,
     avatarColor: isProfileColor(row.avatarColor) ? row.avatarColor : "teal",
     preferredLocale: row.preferredLocale as AuthUser["preferredLocale"],
@@ -119,6 +121,7 @@ export class DatabaseAuthRepository implements AuthRepository {
         accountId: authAccounts.id,
         passwordHash: authAccounts.passwordHash,
         email: authAccounts.identifier,
+        emailVerified: authAccounts.verifiedAt,
         id: users.id,
         phone: users.phone,
         avatarColor: users.avatarColor,
@@ -184,7 +187,7 @@ export class DatabaseAuthRepository implements AuthRepository {
           role: "customer"
         });
 
-        return toAuthUser({ ...user, email: input.email }, ["customer"]);
+        return toAuthUser({ ...user, email: input.email, emailVerified: false }, ["customer"]);
       });
     } catch (error) {
       if (isUniqueViolation(error)) {
@@ -212,6 +215,7 @@ export class DatabaseAuthRepository implements AuthRepository {
       .select({
         sessionId: authSessions.id,
         email: authAccounts.identifier,
+        emailVerified: authAccounts.verifiedAt,
         phone: users.phone,
         avatarColor: users.avatarColor,
         expiresAt: authSessions.expiresAt,
@@ -282,7 +286,7 @@ export class DatabaseAuthRepository implements AuthRepository {
     }
 
     const [emailAccount] = await this.db
-      .select({ email: authAccounts.identifier })
+      .select({ email: authAccounts.identifier, emailVerified: authAccounts.verifiedAt })
       .from(authAccounts)
       .where(and(
         eq(authAccounts.userId, userId),
@@ -291,7 +295,7 @@ export class DatabaseAuthRepository implements AuthRepository {
       .limit(1);
 
     return toAuthUser(
-      { ...user, email: emailAccount?.email ?? null },
+      { ...user, email: emailAccount?.email ?? null, emailVerified: Boolean(emailAccount?.emailVerified) },
       await this.findRoles(userId)
     );
   }

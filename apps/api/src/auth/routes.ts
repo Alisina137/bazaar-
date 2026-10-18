@@ -25,7 +25,7 @@ const registerSchema = z
 
 const profileSchema = z.object({
   displayName: z.string().trim().min(1).max(160).nullable(),
-  phone: z.string().trim().regex(/^\\+?[0-9 ()-]{7,24}$/).nullable(),
+  phone: z.string().trim().regex(/^\+?[0-9 ()-]{7,24}$/).nullable(),
   avatarColor: z.enum(["teal", "blue", "purple", "orange"])
 }).strict();
 

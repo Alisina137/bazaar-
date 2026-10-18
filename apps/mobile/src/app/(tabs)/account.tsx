@@ -218,6 +218,12 @@ export default function AccountScreen() {
             onPress={() => router.push("/account/profile")}
           />
           <AccountMenuRow
+            icon="shield-checkmark-outline"
+            title={t("account.security.title")}
+            subtitle={t("account.security.menuHint")}
+            onPress={() => router.push("/account/security")}
+          />
+          <AccountMenuRow
             icon="location-outline"
             title={t("address.manage")}
             subtitle={t("account.addressesHint")}

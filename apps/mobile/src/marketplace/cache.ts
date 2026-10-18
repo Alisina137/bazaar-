@@ -16,7 +16,7 @@ let recentWriteQueue: Promise<void> = Promise.resolve();
 function queueRecentWrite(write: () => Promise<void>): Promise<void> {
   const next = recentWriteQueue.then(write);
   recentWriteQueue = next.catch(() => {});
-  return recentWriteQueue;
+  return next;
 }
 const CACHE_TTL_MS = 15 * 60 * 1000;
 const MAX_STALE_MS = 7 * 24 * 60 * 60 * 1000;
@@ -97,13 +97,7 @@ export async function getRecentProductIds(): Promise<string[]> {
 }
 
 export function clearRecentProductIds(): Promise<void> {
-  return queueRecentWrite(async () => {
-    try {
-      await AsyncStorage.removeItem(RECENT_KEY);
-    } catch {
-      // Clearing local activity is best effort without breaking shopping.
-    }
-  });
+  return queueRecentWrite(() => AsyncStorage.removeItem(RECENT_KEY));
 }
 
 export function rememberProduct(productId: string): Promise<void> {

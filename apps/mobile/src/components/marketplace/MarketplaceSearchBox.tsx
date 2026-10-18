@@ -6,11 +6,12 @@ import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 
 export function MarketplaceSearchBox({
-  value, onChangeText, onSubmit, autoFocus = false
+  value, onChangeText, onSubmit, onFocusChange, autoFocus = false
 }: {
   value: string;
   onChangeText: (value: string) => void;
   onSubmit: () => void;
+  onFocusChange?: (focused: boolean) => void;
   autoFocus?: boolean;
 }) {
   const theme = useAppTheme();
@@ -50,8 +51,8 @@ export function MarketplaceSearchBox({
         placeholderTextColor={theme.colors.textMuted}
         value={value}
         onChangeText={onChangeText}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onFocus={() => { setFocused(true); onFocusChange?.(true); }}
+        onBlur={() => { setFocused(false); onFocusChange?.(false); }}
         onSubmitEditing={submit}
         returnKeyType="search"
         maxLength={180}

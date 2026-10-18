@@ -50,7 +50,7 @@ export class DatabaseAuthSecurityRepository {
     return true;
   }
 
-  async verifyEmail(tokenHash: string): Promise<boolean> {
+  async verifyEmail(userId: string, tokenHash: string): Promise<boolean> {
     const now = new Date();
     return this.db.transaction(async (tx) => {
       const [used] = await tx.update(authVerificationTokens)
@@ -63,6 +63,12 @@ export class DatabaseAuthSecurityRepository {
         ))
         .returning({ accountId: authVerificationTokens.accountId });
       if (!used) return false;
+      const [owner] = await tx.select({ userId: authAccounts.userId })
+        .from(authAccounts).where(eq(authAccounts.id, used.accountId)).limit(1);
+      if (owner?.userId !== userId) {
+        // Transaction rollback prevents consuming another account's token.
+        throw new Error("verification_owner_mismatch");
+      }
       await tx.update(authAccounts).set({
         verifiedAt: now, updatedAt: now
       }).where(eq(authAccounts.id, used.accountId));

@@ -61,9 +61,24 @@ export type AuthErrorCode = (typeof authErrorCodes)[number];
 export interface AuthUser {
   id: string;
   displayName: string | null;
+  /** The login address, view-only until a verified email change flow exists. */
+  email?: string | null;
+  /** Optional contact number. Never treated as verified or as a login factor. */
+  phone?: string | null;
+  avatarColor?: "teal" | "blue" | "purple" | "orange";
   preferredLocale: "fa-AF" | "ps-AF" | "en";
   status: "active" | "suspended" | "disabled";
   roles: AppRole[];
+}
+
+export interface UpdateAuthProfileInput {
+  displayName: string | null;
+  phone: string | null;
+  avatarColor: "teal" | "blue" | "purple" | "orange";
+}
+
+export interface AuthProfileResponse {
+  user: AuthUser;
 }
 
 export interface AuthSession {

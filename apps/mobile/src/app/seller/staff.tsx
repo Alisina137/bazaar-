@@ -37,7 +37,7 @@ function permissionKey(permission: MerchantStaffPermission): TranslationKey {
 
 export default function SellerStaffScreen() {
   const theme = useAppTheme();
-  const { formatNumber, t } = useLocalization();
+  const { isRTL, formatNumber, t } = useLocalization();
   const { sessionToken, user } = useAuth();
   const { currentStore } = useStores();
 
@@ -263,7 +263,7 @@ export default function SellerStaffScreen() {
                   <View key={member.id} style={{ gap: theme.spacing.sm }}>
                     <View
                       style={{
-                        flexDirection: "row",
+                        flexDirection: isRTL ? "row-reverse" : "row",
                         justifyContent: "space-between",
                         gap: theme.spacing.md
                       }}
@@ -287,7 +287,7 @@ export default function SellerStaffScreen() {
                         tone={member.status === "active" ? "success" : "warning"}
                       />
                     </View>
-                    <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
+                    <View style={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm }}>
                       <Button
                         variant="secondary"
                         onPress={() => {

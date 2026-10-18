@@ -30,6 +30,7 @@ export function HomeLoadingSkeleton() {
       </View>
       <View style={{
         width: 146,
+        alignSelf: isRTL ? "flex-end" : "flex-start",
         height: 20,
         borderRadius: theme.radii.sm,
         backgroundColor: theme.colors.surfaceMuted

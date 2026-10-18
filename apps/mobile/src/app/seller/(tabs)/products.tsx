@@ -37,7 +37,7 @@ function productStock(product: CatalogProductRecord): number {
 export default function SellerProductsScreen() {
   const router = useRouter();
   const theme = useAppTheme();
-  const { formatAfn, formatNumber, t } = useLocalization();
+  const { isRTL, formatAfn, formatNumber, t } = useLocalization();
   const {
     status,
     categories,
@@ -166,7 +166,7 @@ export default function SellerProductsScreen() {
                 <View style={{ gap: theme.spacing.sm }}>
                   <View
                     style={{
-                      flexDirection: "row",
+                      flexDirection: isRTL ? "row-reverse" : "row",
                       flexWrap: "wrap",
                       gap: theme.spacing.sm
                     }}

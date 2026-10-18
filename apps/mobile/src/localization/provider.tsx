@@ -18,6 +18,7 @@ import {
   useContext,
   useMemo,
   useState,
+  useRef,
   useEffect
 } from "react";
 
@@ -42,13 +43,14 @@ function getDeviceLocale(): SupportedLocale {
 
 export function LocalizationProvider({ children }: PropsWithChildren) {
   const [locale, setLocaleState] = useState<SupportedLocale>(getDeviceLocale);
+  const userHasSelectedLocale = useRef(false);
 
   useEffect(() => {
     let active = true;
 
     AsyncStorage.getItem(STORAGE_KEY)
       .then((stored) => {
-        if (active && isSupportedLocale(stored)) {
+        if (active && !userHasSelectedLocale.current && isSupportedLocale(stored)) {
           setLocaleState(stored);
         }
       })
@@ -62,6 +64,8 @@ export function LocalizationProvider({ children }: PropsWithChildren) {
   }, []);
 
   const setLocale = useCallback(async (nextLocale: SupportedLocale) => {
+    // A pending storage read must never undo a new language selection.
+    userHasSelectedLocale.current = true;
     setLocaleState(nextLocale);
     try {
       await AsyncStorage.setItem(STORAGE_KEY, nextLocale);

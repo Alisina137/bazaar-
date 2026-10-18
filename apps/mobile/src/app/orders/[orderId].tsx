@@ -49,7 +49,7 @@ export default function CustomerOrderDetailScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { status, sessionToken } = useAuth();
-  const { formatAfn, locale, t } = useLocalization();
+  const { isRTL, formatAfn, locale, t } = useLocalization();
 
   const [order, setOrder] = useState<OrderRecord | null>(null);
   const [loading, setLoading] = useState(true);
@@ -186,7 +186,7 @@ export default function CustomerOrderDetailScreen() {
         <View style={{ gap: theme.spacing.md }}>
           <View
             style={{
-              flexDirection: "row",
+              flexDirection: isRTL ? "row-reverse" : "row",
               justifyContent: "space-between",
               gap: theme.spacing.sm,
               alignItems: "center"
@@ -233,7 +233,7 @@ export default function CustomerOrderDetailScreen() {
             <View
               key={event.id}
               style={{
-                flexDirection: "row",
+                flexDirection: isRTL ? "row-reverse" : "row",
                 gap: theme.spacing.md,
                 alignItems: "flex-start"
               }}

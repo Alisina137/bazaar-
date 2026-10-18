@@ -38,7 +38,7 @@ function numeric(value: string): number | null {
 
 export default function SellerDiscountsScreen() {
   const theme = useAppTheme();
-  const { t } = useLocalization();
+  const { isRTL, t } = useLocalization();
   const { sessionToken } = useAuth();
   const { currentStore } = useStores();
   const { products, hasMore, loadingMore, loadMore } = useCatalog();
@@ -201,7 +201,7 @@ export default function SellerDiscountsScreen() {
             onChangeText={setCouponCode}
             autoCapitalize="characters"
           />
-          <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
+          <View style={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm }}>
             <Button
               variant={couponType === "percentage" ? "primary" : "secondary"}
               onPress={() => setCouponType("percentage")}
@@ -261,7 +261,7 @@ export default function SellerDiscountsScreen() {
               >
                 <View
                   style={{
-                    flexDirection: "row",
+                    flexDirection: isRTL ? "row-reverse" : "row",
                     justifyContent: "space-between",
                     alignItems: "center",
                     gap: theme.spacing.md

@@ -1711,3 +1711,14 @@ Automated implementation scope is committed as an integrated Phase 12 change. Gi
 - Marketplace search clears the old result set as the next query starts and checks the active request ID even after async cached fallback. On a failed search, the browse-specific error is shown instead of stale products or a duplicated discovery page.
 - Marketplace general home response loading now has request-ID guards, explicit province-scope resets, and a single province-dependent effect rather than two competing initial requests.
 - Phase 8 Node regression tests exercise concurrent view writes, clear-history races, cache scope isolation, async guard invariants, and navigation/localization accessibility contracts. CI verifies build, typecheck, lint, API integration and migration checks; Android device acceptance remains a separate manual requirement.
+
+
+## Mobile live language-direction parity — English ⇄ Dari/Persian / Pashto
+
+- Language is not only translated: English uses LTR text and content order; Dari (`fa-AF`) and Pashto (`ps-AF`) use right-aligned RTL text and mirrored horizontal content ordering, including shopping, checkout, customer support and seller/platform screens.
+- Navigation explicitly reverses customer/seller tab order when the language changes. Navigator keys update the arrangement immediately without restarting Expo Go.
+- Stable native LTR Yoga roots prevent `direction: rtl` from cancelling manual `row-reverse` on Android. Shared AppText/TextField/search controls set live `writingDirection` and text alignment for the selected language. No `I18nManager.forceRTL`, which would require an app restart and affect other Expo Go projects.
+- An RTL-aware horizontal ScrollView wrapper preserves the leading first item at the right edge even when content exceeds the phone's viewport. Home virtualized product rails retain their existing RTL inversion.
+- Locale hydration cannot override a newer user-selected language during a delayed AsyncStorage read. There are no new native dependencies, API endpoints, migrations or permissions.
+- Regression test: `pnpm test:rtl-layout`, included in `pnpm verify`.
+- **Manual Expo Go device QA still required**: switch English → Dari → Pashto → English on Home, Marketplace/search/filter sliders, product/gallery and stores, cart, checkout/address/payment, account, support, reviews, seller tab bar and seller operations, checking narrow (320–360dp) and normal screens. Verify the first category/product in horizontal carousels appears on the RTL right edge, back arrows remain logical, keyboards/cursors match text direction, and switches do not unexpectedly lose the active route. Android/iOS and light/dark checks are not substituted by CI.

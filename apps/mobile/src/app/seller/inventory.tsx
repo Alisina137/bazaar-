@@ -43,7 +43,7 @@ function isLow(product: CatalogProductRecord): boolean {
 export default function SellerInventoryScreen() {
   const router = useRouter();
   const theme = useAppTheme();
-  const { formatNumber, t } = useLocalization();
+  const { isRTL, formatNumber, t } = useLocalization();
   const {
     status,
     products,
@@ -148,7 +148,7 @@ export default function SellerInventoryScreen() {
                 <View style={{ gap: theme.spacing.sm }}>
                   <View
                     style={{
-                      flexDirection: "row",
+                      flexDirection: isRTL ? "row-reverse" : "row",
                       flexWrap: "wrap",
                       gap: theme.spacing.sm
                     }}

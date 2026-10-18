@@ -83,6 +83,7 @@ export default function CustomerTabsLayout() {
 
   return (
     <Tabs
+      key={isRTL ? "rtl" : "ltr"}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: theme.colors.primary,
@@ -91,6 +92,7 @@ export default function CustomerTabsLayout() {
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
           borderTopColor: theme.colors.border,
+          direction: "ltr",
           minHeight: 68,
           paddingTop: theme.spacing.xs,
           paddingBottom: theme.spacing.sm
@@ -108,6 +110,7 @@ export default function CustomerTabsLayout() {
         }
       }}
     >
+      {/* Expo Router retains screen ordering; key remounts it on a language switch. */}
       {isRTL ? [...screens].reverse() : screens}
     </Tabs>
   );

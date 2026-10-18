@@ -105,6 +105,7 @@ export default function SellerTabsLayout() {
 
   return (
     <Tabs
+      key={isRTL ? "rtl" : "ltr"}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: theme.colors.primary,
@@ -113,6 +114,7 @@ export default function SellerTabsLayout() {
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
           borderTopColor: theme.colors.border,
+          direction: "ltr",
           minHeight: 68,
           paddingTop: theme.spacing.xs,
           paddingBottom: theme.spacing.sm

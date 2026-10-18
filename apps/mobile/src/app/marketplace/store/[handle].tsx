@@ -9,7 +9,6 @@ import {
 } from "react";
 import {
   Image,
-  ScrollView,
   View
 } from "react-native";
 
@@ -19,6 +18,7 @@ import {
   Badge,
   Button,
   Card,
+  HorizontalLocaleScroll,
   Screen,
   StateView
 } from "@/components/ui";
@@ -39,7 +39,7 @@ export default function MarketplaceStoreScreen() {
   const { handle } = useLocalSearchParams<{ handle: string }>();
   const router = useRouter();
   const theme = useAppTheme();
-  const { t } = useLocalization();
+  const { isRTL, t } = useLocalization();
 
   const [data, setData] = useState<MarketplaceStorePageResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -183,7 +183,7 @@ export default function MarketplaceStoreScreen() {
         <View style={{ gap: theme.spacing.md }}>
           <View
             style={{
-              flexDirection: "row",
+              flexDirection: isRTL ? "row-reverse" : "row",
               alignItems: "center",
               gap: theme.spacing.md
             }}
@@ -239,15 +239,14 @@ export default function MarketplaceStoreScreen() {
       {data.categories.length > 0 ? (
         <View style={{ gap: theme.spacing.md }}>
           <AppText variant="heading">{t("marketplace.store.categories")}</AppText>
-          <ScrollView
-            horizontal
+          <HorizontalLocaleScroll
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ gap: theme.spacing.sm }}
           >
             {data.categories.map((category) => (
               <Badge key={category.id} label={category.name} tone="neutral" />
             ))}
-          </ScrollView>
+          </HorizontalLocaleScroll>
         </View>
       ) : null}
 

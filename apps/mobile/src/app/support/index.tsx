@@ -48,7 +48,7 @@ export default function SupportScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { sessionToken } = useAuth();
-  const { t } = useLocalization();
+  const { isRTL, t } = useLocalization();
   const [tickets, setTickets] = useState<SupportTicketRecord[]>([]);
   const [category, setCategory] = useState<SupportTicketCategory>(
     orderId ? "order" : storeId ? "merchant" : "other"
@@ -122,7 +122,7 @@ export default function SupportScreen() {
         <View style={{ gap: theme.spacing.md }}>
           <AppText variant="title">{t("support.newTicket")}</AppText>
           <AppText variant="label">{t("support.category")}</AppText>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.spacing.sm }}>
+          <View style={{ flexDirection: isRTL ? "row-reverse" : "row", flexWrap: "wrap", gap: theme.spacing.sm }}>
             {categories.map((value) => (
               <Button
                 key={value}

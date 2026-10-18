@@ -15,7 +15,6 @@ import {
 } from "react";
 import {
   Image,
-  ScrollView,
   Share,
   View
 } from "react-native";
@@ -32,6 +31,7 @@ import {
   Badge,
   Button,
   Card,
+  HorizontalLocaleScroll,
   Screen,
   StateView
 } from "@/components/ui";
@@ -63,7 +63,7 @@ export default function MarketplaceProductScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { status: authStatus, sessionToken, user } = useAuth();
-  const { formatAfn, t } = useLocalization();
+  const { isRTL, formatAfn, t } = useLocalization();
 
   const [data, setData] = useState<MarketplaceProductDetailResponse | null>(
     null
@@ -245,7 +245,7 @@ export default function MarketplaceProductScreen() {
     <Screen contentStyle={{ paddingBottom: theme.spacing["2xl"] * 2 }}>
       <View
         style={{
-          flexDirection: "row",
+          flexDirection: isRTL ? "row-reverse" : "row",
           justifyContent: "space-between",
           alignItems: "center",
           gap: theme.spacing.sm
@@ -282,8 +282,7 @@ export default function MarketplaceProductScreen() {
         </Card>
       ) : null}
 
-      <ScrollView
-        horizontal
+      <HorizontalLocaleScroll
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ gap: theme.spacing.sm }}
@@ -330,12 +329,12 @@ export default function MarketplaceProductScreen() {
             </AppText>
           </Card>
         )}
-      </ScrollView>
+      </HorizontalLocaleScroll>
 
       <View style={{ gap: theme.spacing.sm }}>
         <View
           style={{
-            flexDirection: "row",
+            flexDirection: isRTL ? "row-reverse" : "row",
             flexWrap: "wrap",
             gap: theme.spacing.sm
           }}
@@ -358,7 +357,7 @@ export default function MarketplaceProductScreen() {
         ) : null}
         <View
           style={{
-            flexDirection: "row",
+            flexDirection: isRTL ? "row-reverse" : "row",
             alignItems: "baseline",
             flexWrap: "wrap",
             gap: theme.spacing.sm
@@ -522,8 +521,7 @@ export default function MarketplaceProductScreen() {
           <AppText variant="title">
             {t("marketplace.product.related")}
           </AppText>
-          <ScrollView
-            horizontal
+          <HorizontalLocaleScroll
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ gap: theme.spacing.md }}
           >
@@ -534,7 +532,7 @@ export default function MarketplaceProductScreen() {
                 compact
               />
             ))}
-          </ScrollView>
+          </HorizontalLocaleScroll>
         </View>
       ) : null}
 
@@ -568,7 +566,7 @@ export default function MarketplaceProductScreen() {
               >
                 <View
                   style={{
-                    flexDirection: "row",
+                    flexDirection: isRTL ? "row-reverse" : "row",
                     gap: theme.spacing.sm,
                     flexWrap: "wrap"
                   }}

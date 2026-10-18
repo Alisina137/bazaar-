@@ -95,9 +95,13 @@ export function Screen({
 
 const styles = StyleSheet.create({
   flex: {
-    flex: 1
+    flex: 1,
+    direction: "ltr"
   },
   content: {
+    // Layout rows are explicitly mirrored for the active locale. Avoid
+    // device-level RTL reversing them again (language changes are live).
+    direction: "ltr",
     width: "100%",
     alignSelf: "center"
   }

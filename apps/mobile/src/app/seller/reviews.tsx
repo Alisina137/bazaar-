@@ -26,7 +26,7 @@ export default function SellerReviewsScreen() {
   const theme = useAppTheme();
   const { sessionToken } = useAuth();
   const { currentStore } = useStores();
-  const { t } = useLocalization();
+  const { isRTL, t } = useLocalization();
   const [reviews, setReviews] = useState<ProductReviewRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<ReturnType<typeof trustErrorKey> | null>(null);
@@ -85,7 +85,7 @@ export default function SellerReviewsScreen() {
         reviews.map((review) => (
           <Card key={review.id}>
             <View style={{ gap: theme.spacing.sm }}>
-              <View style={{ flexDirection: "row", gap: theme.spacing.sm, flexWrap: "wrap" }}>
+              <View style={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm, flexWrap: "wrap" }}>
                 <Badge label={"★ " + review.rating} tone="primary" />
                 <Badge label={t("trust.verifiedPurchase")} tone="success" />
               </View>

@@ -36,7 +36,7 @@ export default function ReviewEditorScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { status, sessionToken } = useAuth();
-  const { t } = useLocalization();
+  const { isRTL, t } = useLocalization();
 
   const [loading, setLoading] = useState(true);
   const [eligible, setEligible] = useState(false);
@@ -158,7 +158,7 @@ export default function ReviewEditorScreen() {
             <AppText variant="label">{t("review.rating")}</AppText>
             <View
               style={{
-                flexDirection: "row",
+                flexDirection: isRTL ? "row-reverse" : "row",
                 gap: theme.spacing.sm,
                 flexWrap: "wrap"
               }}

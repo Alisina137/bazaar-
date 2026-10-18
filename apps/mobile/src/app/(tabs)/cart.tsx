@@ -301,7 +301,7 @@ function MerchantGroupCard({
   onRemoveCoupon: () => Promise<void>;
 }) {
   const theme = useAppTheme();
-  const { formatAfn, formatNumber, t } = useLocalization();
+  const { isRTL, formatAfn, formatNumber, t } = useLocalization();
   const [couponCode, setCouponCode] = useState(group.coupon?.code ?? "");
 
   return (
@@ -326,7 +326,7 @@ function MerchantGroupCard({
           >
             <View
               style={{
-                flexDirection: "row",
+                flexDirection: isRTL ? "row-reverse" : "row",
                 gap: theme.spacing.md
               }}
             >
@@ -355,7 +355,7 @@ function MerchantGroupCard({
 
             <View
               style={{
-                flexDirection: "row",
+                flexDirection: isRTL ? "row-reverse" : "row",
                 flexWrap: "wrap",
                 gap: theme.spacing.sm
               }}
@@ -376,7 +376,7 @@ function MerchantGroupCard({
 
             <View
               style={{
-                flexDirection: "row",
+                flexDirection: isRTL ? "row-reverse" : "row",
                 gap: theme.spacing.sm,
                 alignItems: "center"
               }}
@@ -504,11 +504,12 @@ function PriceRow({
   emphasized?: boolean;
 }) {
   const theme = useAppTheme();
+  const { isRTL } = useLocalization();
 
   return (
     <View
       style={{
-        flexDirection: "row",
+        flexDirection: isRTL ? "row-reverse" : "row",
         justifyContent: "space-between",
         gap: theme.spacing.md
       }}

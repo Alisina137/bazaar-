@@ -2,7 +2,7 @@ import type { MarketplaceHomeResponse, MarketplaceProductSummary, MarketplaceSea
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, View, useWindowDimensions } from "react-native";
+import { ActivityIndicator, Pressable, View, useWindowDimensions } from "react-native";
 
 import { useAuth } from "@/auth/provider";
 import { LanguageSwitcher } from "@/components/localization/LanguageSwitcher";
@@ -17,7 +17,7 @@ import { HomeInterestPicker } from "@/components/marketplace/HomeInterestPicker"
 import { HomeHeroBanner } from "@/components/marketplace/HomeHeroBanner";
 import { HomeLoadingSkeleton } from "@/components/marketplace/HomeLoadingSkeleton";
 import { HomeSectionHeader } from "@/components/marketplace/HomeSectionHeader";
-import { AppText, Card, Screen, StateView } from "@/components/ui";
+import { AppText, Card, HorizontalLocaleScroll, Screen, StateView } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 import { browseMarketplace, marketplaceHome } from "@/marketplace/api";
@@ -341,12 +341,12 @@ export default function HomeScreen() {
       {rootCategories.length > 0 ? (
         <View style={{ gap: theme.spacing.md }}>
           <HomeSectionHeader title={t("marketplace.categories")} icon="grid-outline" onViewAll={openMarketplace} />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}
+          <HorizontalLocaleScroll showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm, paddingVertical: theme.spacing.xs }}>
             {rootCategories.map((category) => (
               <MarketplaceCategoryTile key={category.id} category={category} onPress={() => goToCategory(category.id)} />
             ))}
-          </ScrollView>
+          </HorizontalLocaleScroll>
         </View>
       ) : null}
 
@@ -472,12 +472,12 @@ export default function HomeScreen() {
       {featuredStores.length > 0 ? (
         <View style={{ gap: theme.spacing.md }}>
           <HomeSectionHeader title={t("marketplace.featuredStores")} icon="storefront-outline" onViewAll={openMarketplace} />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}
+          <HorizontalLocaleScroll showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.md, paddingVertical: theme.spacing.xs }}>
             {featuredStores.map((featured) => (
               <MarketplaceStoreCard key={featured.store.id} featured={featured} />
             ))}
-          </ScrollView>
+          </HorizontalLocaleScroll>
         </View>
       ) : null}
     </Screen>

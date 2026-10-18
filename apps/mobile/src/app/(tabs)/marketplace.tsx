@@ -703,7 +703,8 @@ export default function MarketplaceScreen() {
               <AppText variant="caption" tone="muted">
                 {t("marketplace.phase2.activeFilters") + ": " + formatNumber(activeFilterCount)}
               </AppText>
-            </View>
+            ) : null}
+          </View>
 
           {childCategories.length > 0 ? (
             <View style={{ gap: theme.spacing.sm }}>

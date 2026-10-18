@@ -1,7 +1,4 @@
-import type {
-  StoreTheme,
-  SubscriptionPlanCode
-} from "@bazaarlink/contracts";
+import type { StoreTheme } from "@bazaarlink/contracts";
 import {
   localeMetadata,
   supportedLocales,
@@ -9,7 +6,8 @@ import {
   type TranslationKey
 } from "@bazaarlink/localization";
 import { useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { OnboardingPlanCards } from "@/components/seller/OnboardingPlanCards";
+import { useState } from "react";
 import {
   Pressable,
   StyleSheet,
@@ -43,26 +41,6 @@ const themes: StoreTheme[] = [
   "food"
 ];
 
-function planTitleKey(plan: SubscriptionPlanCode): TranslationKey {
-  const keys = {
-    starter: "seller.onboarding.starterTitle",
-    pro: "seller.onboarding.proTitle",
-    business: "seller.onboarding.businessTitle"
-  } as const satisfies Record<SubscriptionPlanCode, TranslationKey>;
-
-  return keys[plan];
-}
-
-function planDescriptionKey(plan: SubscriptionPlanCode): TranslationKey {
-  const keys = {
-    starter: "seller.onboarding.starterDescription",
-    pro: "seller.onboarding.proDescription",
-    business: "seller.onboarding.businessDescription"
-  } as const satisfies Record<SubscriptionPlanCode, TranslationKey>;
-
-  return keys[plan];
-}
-
 export default function SellerOnboardingScreen() {
   const router = useRouter();
   const theme = useAppTheme();
@@ -92,11 +70,6 @@ export default function SellerOnboardingScreen() {
   const [storeTheme, setStoreTheme] = useState<StoreTheme>("minimal");
   const [busy, setBusy] = useState(false);
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
-
-  const starterPlan = useMemo(
-    () => plans.find((plan) => plan.code === "starter"),
-    [plans]
-  );
 
   if (currentStore) {
     return <StateViewRedirect />;
@@ -206,54 +179,21 @@ export default function SellerOnboardingScreen() {
       </View>
 
       {step === "plan" ? (
-        <View style={{ gap: theme.spacing.md }}>
-          {(plans.length > 0
-            ? plans
-            : [
-                {
-                  code: "starter" as const,
-                  entitlements: {
-                    productLimit: 15,
-                    categoryLimit: 5,
-                    staffLimit: 0,
-                    advancedInventory: false,
-                    advancedDelivery: false,
-                    discounts: false,
-                    coupons: false,
-                    advancedAnalytics: false,
-                    premiumStorefront: false,
-                    customDomain: false
-                  },
-                  paidUpgradeAvailable: false
-                }
-              ]
-          ).map((plan) => (
-            <Card key={plan.code}>
-              <View style={{ gap: theme.spacing.sm }}>
-                <AppText variant="heading">
-                  {t(planTitleKey(plan.code))}
-                </AppText>
-                <AppText tone="muted">
-                  {t(planDescriptionKey(plan.code))}
-                </AppText>
-                {plan.code === "starter" ? (
-                  <Badge label={t("seller.subscription.currentPlan")} tone="success" />
-                ) : (
-                  <Badge label={t("seller.onboarding.futureUpgrade")} tone="neutral" />
-                )}
-              </View>
-            </Card>
-          ))}
-
-          <Button
-            disabled={!starterPlan && plans.length > 0}
-            onPress={() => {
-              setStep("store");
-            }}
-          >
-            {t("seller.onboarding.continue")}
-          </Button>
-        </View>
+        plans.length > 0 ? (
+          <OnboardingPlanCards
+            plans={plans}
+            onStartStarter={() => setStep("store")}
+          />
+        ) : (
+          <Card>
+            <View style={{ gap: theme.spacing.md }}>
+              <AppText tone="muted">{t("seller.plans.unavailable")}</AppText>
+              <Button variant="secondary" onPress={() => void refresh()}>
+                {t("seller.plans.retry")}
+              </Button>
+            </View>
+          </Card>
+        )
       ) : null}
 
       {step === "store" ? (
@@ -421,6 +361,7 @@ export default function SellerOnboardingScreen() {
 
             <View style={{ gap: theme.spacing.sm }}>
               <AppText variant="label">{t("seller.onboarding.theme")}</AppText>
+              <AppText variant="caption" tone="muted">{t("seller.plans.themeNotice")}</AppText>
               <View
                 style={[
                   styles.wrap,
@@ -434,7 +375,11 @@ export default function SellerOnboardingScreen() {
                   <Pressable
                     key={item}
                     accessibilityRole="button"
-                    accessibilityState={{ selected: storeTheme === item }}
+                    accessibilityState={{
+                      selected: storeTheme === item,
+                      disabled: item !== "minimal"
+                    }}
+                    disabled={item !== "minimal"}
                     onPress={() => setStoreTheme(item)}
                     style={({ pressed }) => [
                       styles.option,
@@ -449,7 +394,7 @@ export default function SellerOnboardingScreen() {
                           storeTheme === item
                             ? theme.colors.primarySoft
                             : theme.colors.surface,
-                        opacity: pressed ? theme.opacity.pressed : 1,
+                        opacity: item !== "minimal" ? theme.opacity.disabled : pressed ? theme.opacity.pressed : 1,
                         paddingHorizontal: theme.spacing.md
                       }
                     ]}

@@ -1754,3 +1754,15 @@ Automated implementation scope is committed as an integrated Phase 12 change. Gi
 - Additive PostgreSQL migration `0014_customer_profile`: `users.phone` nullable and `users.avatar_color` default `teal`. **Run `pnpm db:migrate` against the configured database after pulling before starting the API.**
 - Supports Dari, Pashto and English, RTL/LTR flow, LTR phone/email values, keyboard-safe form and status/error feedback, plus profile regressions in `pnpm test:account-phase3` included in `pnpm verify`.
 - QA still required in Expo Go (both device sizes + locales) and user lifecycle (login, save, reopen, new login, logout, staff/owner, offline failure). Image uploading, verified email changes, phone verification, and security/session controls belong to later phases.
+
+
+## Sell on BazaarLink — full scrollable plan comparison (October 2026)
+
+- Updated `Account → Sell on BazaarLink → Plan` to show **Starter, Pro and Business horizontally side by side** in an overflow rail. Cards follow the reference design's compact tall pricing-card treatment: asymmetric round corners, visual accent, plan headline, capability checklist and footer action.
+- Product limits, category limits, staff seats, advanced inventory, advanced delivery, discounts, coupons, promotions, analytics, premium storefront and custom domain are all rendered from **the authenticated seller-plan API's `entitlements`**, not hardcoded marketing guesses. Availability is shown clearly for included/unavailable features.
+- Mobile width shows a card and a preview of the next card, and users can swipe horizontally. Shared `HorizontalLocaleScroll` handles Persian/Pashto RTL first-card alignment and English LTR without a device restart.
+- Starter is free and the **only selectable onboarding tier** (new stores are created on Starter). Pro and Business cards explain that paid plan activation is separate; no fake "Order Now" purchase links or example USD prices. Seller prices are platform-controlled and the existing API does not expose public published pricing. Production paid upgrades remain gated until verified billing is available.
+- Premium theme choices in Starter onboarding are disabled with a clear explanation, avoiding a later API rejection during store creation.
+- If server plans fail to load, show an honest retry instead of misleading fabricated plan caps.
+- Test via `pnpm test:seller-plan-cards` (included in `pnpm verify`). Manual Expo Go QA still needed on 320–430px phones and tablets, both appearance modes and all three languages: swipe, CTA, no price guesses, scroll offset, plan descriptions, store creation with minimal theme.
+- No schema or database migration is introduced by this UI update.

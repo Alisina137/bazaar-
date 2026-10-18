@@ -31,7 +31,7 @@ test("Opening Marketplace loads the real paginated product catalog by default", 
 
 test("Selecting a category or searching opens Products while preserving the current query filters", () => {
   const page = read("apps/mobile/src/app/(tabs)/marketplace.tsx");
-  assert.match(page, /const submitSearch = \(\) => \{\s*setSelectedView\("products"\)/);
+  assert.match(page, /const submitSearch = \(\) => \{[\s\S]*?setSelectedView\("products"\)/);
   assert.match(page, /const chooseCategory = \(id: string\) => \{\s*setSelectedView\("products"\)/);
   assert.match(page, /if \(!linkedCategoryId && !linkedQuery/);
   assert.match(page, /setSelectedView\("products"\);\s*setCategoryId\(linkedCategoryId\)/);

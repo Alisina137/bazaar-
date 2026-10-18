@@ -62,8 +62,8 @@ test("category and catalog media cards improve hierarchy without removing trust 
 });
 
 test("Home supports visible focus, selected controls, RTL and stable loading skeleton", () => {
-  assert.match(search, /onFocus=\{\(\) => setFocused\(true\)\}/);
-  assert.match(search, /onBlur=\{\(\) => setFocused\(false\)\}/);
+  assert.match(search, /onFocus=\{\(\) => \{ setFocused\(true\); onFocusChange\?\.\(true\); \}\}/);
+  assert.match(search, /onBlur=\{\(\) => \{ setFocused\(false\); onFocusChange\?\.\(false\); \}\}/);
   assert.match(search, /focused \? theme\.colors\.primary/);
   assert.match(province, /value \? theme\.colors\.primarySoft/);
   assert.match(interests, /favorites\.length \? theme\.colors\.primarySoft/);

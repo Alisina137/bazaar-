@@ -1,4 +1,5 @@
 import type { MarketplaceCategoryRecord, MarketplaceSearchSuggestion } from "@bazaarlink/contracts";
+import type { TranslationKey } from "@bazaarlink/localization";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import type { ComponentProps } from "react";
 import { ActivityIndicator, Pressable, View } from "react-native";
@@ -8,7 +9,16 @@ import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 
 type IconName = ComponentProps<typeof Ionicons>["name"];
-const typeIcons: Record<MarketplaceSearchSuggestion["type"], IconName> = {
+type SuggestionType = MarketplaceSearchSuggestion["type"];
+
+const groups: Array<{ type: SuggestionType; title: TranslationKey }> = [
+  { type: "product", title: "marketplace.phase2.suggestionProducts" },
+  { type: "category", title: "marketplace.phase2.suggestionCategories" },
+  { type: "store", title: "marketplace.phase2.suggestionStores" },
+  { type: "brand", title: "marketplace.phase2.suggestionBrands" }
+];
+
+const typeIcons: Record<SuggestionType, IconName> = {
   product: "cube-outline",
   store: "storefront-outline",
   category: "grid-outline",
@@ -38,52 +48,70 @@ export function MarketplaceSuggestions({
       locale === "ps-AF" ? category.namePs : category.nameFa;
   };
 
+  // The server already controls suggestion ranking and quantity. We group
+  // only the returned public results and do not invent trending searches.
+  const visible = items.slice(0, 8);
+
   return (
     <View style={{
-      padding: theme.spacing.xs,
+      padding: theme.spacing.sm,
       backgroundColor: theme.colors.surface,
       borderColor: theme.colors.border,
       borderWidth: 1,
       borderRadius: theme.radii.md,
-      gap: theme.spacing.xs
+      gap: theme.spacing.sm
     }}>
       {loading ? (
         <View style={{ paddingVertical: theme.spacing.sm, alignItems: "center" }}>
           <ActivityIndicator color={theme.colors.primary} accessibilityLabel={t("marketplace.searching")} />
         </View>
-      ) : (
-        items.slice(0, 8).map((item) => (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={labelFor(item)}
-            key={item.type + ":" + item.id}
-            onPress={() => onSelect(item)}
-            style={({ pressed }) => ({
-              minHeight: 48,
-              borderRadius: theme.radii.sm,
-              flexDirection: isRTL ? "row-reverse" : "row",
-              alignItems: "center",
-              gap: theme.spacing.sm,
-              paddingHorizontal: theme.spacing.sm,
-              opacity: pressed ? theme.opacity.pressed : 1,
-              backgroundColor: pressed ? theme.colors.surfaceMuted : theme.colors.surface
-            })}
-          >
-            <Ionicons name={typeIcons[item.type]} size={20} color={theme.colors.primary} />
-            <View style={{ flex: 1, minWidth: 0, gap: theme.spacing.xs }}>
-              <AppText variant="label" numberOfLines={1}>{labelFor(item)}</AppText>
-              {item.secondaryLabel ? (
-                <AppText variant="caption" tone="muted" numberOfLines={1}>{item.secondaryLabel}</AppText>
-              ) : null}
-            </View>
-            <Ionicons
-              name={isRTL ? "chevron-back" : "chevron-forward"}
-              color={theme.colors.textMuted}
-              size={17}
-            />
-          </Pressable>
-        ))
-      )}
+      ) : visible.length === 0 ? (
+        <AppText variant="caption" tone="muted">
+          {t("marketplace.phase2.noSuggestions")}
+        </AppText>
+      ) : groups.map(group => {
+        const matches = visible.filter(item => item.type === group.type);
+        if (!matches.length) return null;
+
+        return (
+          <View key={group.type} style={{ gap: theme.spacing.xs }}>
+            <AppText variant="caption" tone="muted">{t(group.title)}</AppText>
+            {matches.map(item => (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={labelFor(item)}
+                key={item.type + ":" + item.id}
+                onPress={() => onSelect(item)}
+                style={({ pressed }) => ({
+                  minHeight: 48,
+                  borderRadius: theme.radii.sm,
+                  flexDirection: isRTL ? "row-reverse" : "row",
+                  alignItems: "center",
+                  gap: theme.spacing.sm,
+                  paddingHorizontal: theme.spacing.sm,
+                  opacity: pressed ? theme.opacity.pressed : 1,
+                  backgroundColor: pressed ? theme.colors.surfaceMuted : theme.colors.surface
+                })}
+              >
+                <Ionicons name={typeIcons[item.type]} size={20} color={theme.colors.primary} />
+                <View style={{ flex: 1, minWidth: 0, gap: theme.spacing.xs }}>
+                  <AppText variant="label" numberOfLines={1}>{labelFor(item)}</AppText>
+                  {item.secondaryLabel ? (
+                    <AppText variant="caption" tone="muted" numberOfLines={1}>
+                      {item.secondaryLabel}
+                    </AppText>
+                  ) : null}
+                </View>
+                <Ionicons
+                  name={isRTL ? "chevron-back" : "chevron-forward"}
+                  color={theme.colors.textMuted}
+                  size={17}
+                />
+              </Pressable>
+            ))}
+          </View>
+        );
+      })}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t("marketplace.searchAll")}

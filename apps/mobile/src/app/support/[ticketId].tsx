@@ -30,7 +30,7 @@ export default function SupportTicketScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { sessionToken } = useAuth();
-  const { t } = useLocalization();
+  const { isRTL, t } = useLocalization();
   const [ticket, setTicket] = useState<SupportTicketRecord | null>(null);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -85,7 +85,7 @@ export default function SupportTicketScreen() {
         {t("marketplace.back")}
       </Button>
       <AppText variant="display">{ticket.subject}</AppText>
-      <View style={{ flexDirection: "row", gap: theme.spacing.sm, flexWrap: "wrap" }}>
+      <View style={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm, flexWrap: "wrap" }}>
         <Badge label={t(supportCategoryKey(ticket.category))} tone="primary" />
         <Badge label={t(supportStatusKey(ticket.status))} tone="neutral" />
       </View>

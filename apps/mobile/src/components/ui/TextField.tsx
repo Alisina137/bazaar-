@@ -14,12 +14,14 @@ export interface TextFieldProps extends Omit<TextInputProps, "style"> {
   label: string;
   error?: string | undefined;
   helperText?: string | undefined;
+  forceLTR?: boolean | undefined;
 }
 
 export function TextField({
   label,
   error,
   helperText,
+  forceLTR = false,
   accessibilityLabel,
   onBlur,
   onFocus,
@@ -61,8 +63,8 @@ export function TextField({
           paddingHorizontal: theme.spacing.lg,
           fontSize: theme.fontSizes.body,
           lineHeight: theme.lineHeights.body,
-          textAlign: isRTL ? "right" : "left",
-          writingDirection: direction
+          textAlign: forceLTR ? "left" : isRTL ? "right" : "left",
+          writingDirection: forceLTR ? "ltr" : direction
         }}
       />
       {supportingText ? (

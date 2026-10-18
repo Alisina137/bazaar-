@@ -5,7 +5,7 @@ import type {
   MarketplaceSearchSuggestion,
   MarketplaceSort
 } from "@bazaarlink/contracts";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import {
   useCallback,
   useEffect,
@@ -20,6 +20,7 @@ import {
 import { MarketplaceProductGrid } from "@/components/marketplace/MarketplaceProductGrid";
 import { MarketplaceCategoryTile } from "@/components/marketplace/MarketplaceCategoryTile";
 import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox";
+import { MarketplaceRecentSearches } from "@/components/marketplace/MarketplaceRecentSearches";
 import { MarketplaceSuggestions } from "@/components/marketplace/MarketplaceSuggestions";
 import { MarketplaceStoreCard } from "@/components/marketplace/MarketplaceStoreCard";
 import {
@@ -52,6 +53,13 @@ import {
   writeHomeCache
 } from "@/marketplace/cache";
 import { marketplaceErrorKey } from "@/marketplace/messages";
+import {
+  clearRecentSearches,
+  getRecentSearches,
+  normalizeSearchTerm,
+  rememberSearch,
+  removeRecentSearch
+} from "@/marketplace/search-history";
 import { useMarketplaceSuggestions } from "@/marketplace/useMarketplaceSuggestions";
 
 function localizedCategoryName(
@@ -108,6 +116,9 @@ export default function MarketplaceScreen() {
 
   const [query, setQuery] = useState(linkedQuery ?? "");
   const [dismissedQuery, setDismissedQuery] = useState<string | null>(linkedQuery?.trim() ?? null);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [historyError, setHistoryError] = useState(false);
   const [province, setProvince] = useState(linkedProvince ?? "");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -134,6 +145,38 @@ export default function MarketplaceScreen() {
   const [usingCachedBrowse, setUsingCachedBrowse] = useState(false);
 
   const { suggestions, suggestionsLoading } = useMarketplaceSuggestions(query);
+
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    void getRecentSearches().then(items => {
+      if (active) setRecentSearches(items);
+    });
+    return () => { active = false; };
+  }, []));
+
+  const recordHistory = (term: string) => {
+    if (normalizeSearchTerm(term).length < 2) return;
+    void rememberSearch(term).then(setRecentSearches).catch(() => setHistoryError(true));
+  };
+
+  const clearHistory = async () => {
+    setHistoryError(false);
+    try {
+      await clearRecentSearches();
+      setRecentSearches([]);
+    } catch {
+      setHistoryError(true);
+    }
+  };
+
+  const removeHistoryItem = async (term: string) => {
+    setHistoryError(false);
+    try {
+      setRecentSearches(await removeRecentSearch(term));
+    } catch {
+      setHistoryError(true);
+    }
+  };
 
   const loadHome = useCallback(async (nearbyProvince?: string) => {
     const requestId = ++homeRequestId.current;
@@ -387,12 +430,33 @@ export default function MarketplaceScreen() {
   };
 
   const submitSearch = () => {
+    const submitted = normalizeSearchTerm(query);
+    setSearchFocused(false);
     setSelectedView("products");
-    setDismissedQuery(query.trim());
+    setDismissedQuery(submitted);
+    recordHistory(submitted);
     setCategoryId(undefined);
     setStoreId(undefined);
     setBrand(undefined);
-    void applyBrowse({ q: query.trim() || undefined, categoryId: undefined, storeId: undefined, brand: undefined });
+    void applyBrowse({ q: submitted || undefined, categoryId: undefined, storeId: undefined, brand: undefined });
+  };
+
+  const runRecentSearch = (term: string) => {
+    const submitted = normalizeSearchTerm(term);
+    setSearchFocused(false);
+    setSelectedView("products");
+    setQuery(submitted);
+    setDismissedQuery(submitted);
+    setCategoryId(undefined);
+    setStoreId(undefined);
+    setBrand(undefined);
+    recordHistory(submitted);
+    void applyBrowse({
+      q: submitted || undefined,
+      categoryId: undefined,
+      storeId: undefined,
+      brand: undefined
+    });
   };
 
   const chooseCategory = (id: string) => {
@@ -405,6 +469,7 @@ export default function MarketplaceScreen() {
   };
 
   const chooseSuggestion = (suggestion: MarketplaceSearchSuggestion) => {
+    setSearchFocused(false);
     setQuery("");
     if (suggestion.type === "product") {
       router.push({ pathname: "/marketplace/product/[productId]", params: { productId: suggestion.id } });
@@ -447,7 +512,25 @@ export default function MarketplaceScreen() {
 
       <Card>
         <View style={{ gap: theme.spacing.md }}>
-          <MarketplaceSearchBox value={query} onChangeText={(text) => { setQuery(text); setDismissedQuery(null); }} onSubmit={submitSearch} />
+          <MarketplaceSearchBox
+            value={query}
+            onChangeText={(text) => { setQuery(text); setDismissedQuery(null); }}
+            onSubmit={submitSearch}
+            onFocusChange={setSearchFocused}
+          />
+          {searchFocused && !query.trim() ? (
+            <MarketplaceRecentSearches
+              searches={recentSearches}
+              onSelect={runRecentSearch}
+              onRemove={(term) => { void removeHistoryItem(term); }}
+              onClear={() => { void clearHistory(); }}
+            />
+          ) : null}
+          {historyError ? (
+            <AppText accessibilityRole="alert" variant="caption" tone="danger">
+              {t("marketplace.phase2.historyError")}
+            </AppText>
+          ) : null}
           {dismissedQuery !== query.trim() ? (
             <MarketplaceSuggestions
               query={query} items={suggestions} loading={suggestionsLoading}
@@ -619,8 +702,15 @@ export default function MarketplaceScreen() {
             <AppText variant="caption" tone="muted">
               {categoryLabel
                 ? localizedCategoryName(categoryLabel, locale)
-                : query.trim() || t("marketplace.allProducts")}
+                : browseInput?.q
+                  ? t("marketplace.phase2.searchResultsFor") + ' "' + browseInput.q + '"'
+                  : t("marketplace.allProducts")}
             </AppText>
+            {activeFilterCount > 0 ? (
+              <AppText variant="caption" tone="muted">
+                {t("marketplace.phase2.activeFilters") + ": " + formatNumber(activeFilterCount)}
+              </AppText>
+            ) : null}
           </View>
 
           {childCategories.length > 0 ? (
@@ -642,7 +732,7 @@ export default function MarketplaceScreen() {
             <StateView
               kind="empty"
               title={t("marketplace.noResultsTitle")}
-              message={t("marketplace.noResultsMessage")}
+              message={t("marketplace.phase2.noResultsHelp")}
               actionLabel={t("marketplace.clearFilters")}
               onAction={clearDiscovery}
             />

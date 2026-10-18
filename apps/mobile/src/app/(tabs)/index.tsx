@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, View, useWindowDimensions } from "react-native";
 
 import { useAuth } from "@/auth/provider";
-import { LanguageSwitcher } from "@/components/localization/LanguageSwitcher";
 import { MarketplaceCategoryTile } from "@/components/marketplace/MarketplaceCategoryTile";
 import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox";
 import { MarketplaceSuggestions } from "@/components/marketplace/MarketplaceSuggestions";
@@ -17,7 +16,7 @@ import { HomeInterestPicker } from "@/components/marketplace/HomeInterestPicker"
 import { HomeHeroBanner } from "@/components/marketplace/HomeHeroBanner";
 import { HomeLoadingSkeleton } from "@/components/marketplace/HomeLoadingSkeleton";
 import { HomeSectionHeader } from "@/components/marketplace/HomeSectionHeader";
-import { AppText, Card, HorizontalLocaleScroll, Screen, StateView } from "@/components/ui";
+import { AppText, HorizontalLocaleScroll, Screen, StateView } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 import { browseMarketplace, marketplaceHome } from "@/marketplace/api";
@@ -38,7 +37,6 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [cached, setCached] = useState(false);
-  const [languageOpen, setLanguageOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [refreshRequested, setRefreshRequested] = useState(false);
   const [showMoreSections, setShowMoreSections] = useState(false);
@@ -275,7 +273,7 @@ export default function HomeScreen() {
   ));
 
   const iconAction = (
-    icon: "language-outline" | "cart-outline" | "notifications-outline",
+    icon: "cart-outline" | "notifications-outline",
     label: string,
     onPress: () => void
   ) => (
@@ -313,13 +311,10 @@ export default function HomeScreen() {
         <View style={{ flex: 1, minWidth: 0 }}>
           <AppText variant="heading" numberOfLines={1}>{t("common.brandName")}</AppText>
         </View>
-        {iconAction("language-outline", t("language.label"), () => setLanguageOpen((open) => !open))}
         {iconAction("cart-outline", t("nav.cart"), () => router.push("/(tabs)/cart"))}
         {iconAction("notifications-outline", t("account.notifications"), () =>
           router.push(status === "signedIn" ? "/notifications" : "/(tabs)/account"))}
       </View>
-
-      {languageOpen ? <Card style={{ padding: theme.spacing.md }}><LanguageSwitcher compact /></Card> : null}
 
       <View style={{
         flexDirection: isRTL ? "row-reverse" : "row",

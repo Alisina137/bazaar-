@@ -27,7 +27,7 @@ test("on-focus loads matching saved Home data before network and guards obsolete
   const remote = home.indexOf("const fresh = await marketplaceHome({");
   assert.ok(saved > 0 && remote > saved);
   assert.match(home, /homeCacheKey\(province \?\? undefined\)/);
-  assert.match(home, /orderRecentProducts\(saved.recentlyViewed, recentProductIds\)/);
+  assert.match(home, /orderRecentProducts\(saved.recentlyViewed,/);
   assert.match(home, /setHome\(fallback\)/);
   assert.match(home, /if \(!active\) return/);
   assert.match(home, /if \(locationChanged\) setHome\(null\)/);

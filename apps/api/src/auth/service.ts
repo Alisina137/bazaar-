@@ -1,6 +1,8 @@
 import type {
   AuthSessionResponse,
   AuthSuccessResponse,
+  AuthProfileResponse,
+  UpdateAuthProfileInput,
   AuthUser
 } from "@bazaarlink/contracts";
 
@@ -37,6 +39,8 @@ export interface AuthServiceContract {
   login(input: LoginInput): Promise<AuthSuccessResponse>;
   authenticateToken(token: string): Promise<AuthSessionResponse>;
   logout(token: string): Promise<void>;
+  /** Optional for injectable legacy test doubles; configured production service implements it. */
+  updateProfile?: (token: string, input: UpdateAuthProfileInput) => Promise<AuthProfileResponse>;
 }
 
 function normalizeEmail(email: string): string {
@@ -152,6 +156,12 @@ export class AuthService implements AuthServiceContract {
       user: session.user,
       expiresAt: session.expiresAt.toISOString()
     };
+  }
+
+  async updateProfile(token: string, input: UpdateAuthProfileInput): Promise<AuthProfileResponse> {
+    const session = await this.authenticateToken(token);
+    const user = await this.repository.updateProfile(session.user.id, input);
+    return { user };
   }
 
   async logout(token: string): Promise<void> {

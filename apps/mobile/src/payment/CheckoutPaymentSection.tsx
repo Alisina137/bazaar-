@@ -110,7 +110,7 @@ export function CheckoutPaymentSection({
   onPaymentReady: (ready: boolean) => void;
 }) {
   const theme = useAppTheme();
-  const { formatAfn, t } = useLocalization();
+  const { isRTL, formatAfn, t } = useLocalization();
 
   const [options, setOptions] = useState<PaymentOptionsResponse | null>(null);
   const [selected, setSelected] = useState<Record<string, PaymentMethod>>({});
@@ -377,7 +377,7 @@ export function CheckoutPaymentSection({
               >
                 <View
                   style={{
-                    flexDirection: "row",
+                    flexDirection: isRTL ? "row-reverse" : "row",
                     justifyContent: "space-between",
                     gap: theme.spacing.sm
                   }}

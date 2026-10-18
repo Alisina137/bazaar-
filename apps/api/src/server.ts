@@ -66,6 +66,10 @@ const marketplaceRepository = new DatabaseMarketplaceRepository(
   databaseClient.db
 );
 const marketplaceService = new MarketplaceService(marketplaceRepository);
+const wishlistService = new WishlistService(
+  new DatabaseWishlistRepository(databaseClient.db),
+  marketplaceRepository
+);
 const cartPricingRepository = new DatabaseCartPricingRepository(
   databaseClient.db
 );

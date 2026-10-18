@@ -60,3 +60,12 @@ test("All labels are present in English, Dari, and Pashto", () => {
     for(const key of keys) assert.ok(body.includes('"account.preferences.'+key+'"'),locale+" missing "+key);
   }
 });
+
+test("Language selection is in Account Preferences, not the Home header", () => {
+  const home = read("apps/mobile/src/app/(tabs)/index.tsx");
+  const preferences = read("apps/mobile/src/app/account/preferences.tsx");
+  assert.doesNotMatch(home, /LanguageSwitcher|languageOpen|language-outline/);
+  assert.match(home, /iconAction\("cart-outline"/);
+  assert.match(home, /iconAction\("notifications-outline"/);
+  assert.match(preferences, /<LanguageSwitcher compact \/>/);
+});

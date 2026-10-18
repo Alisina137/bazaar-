@@ -53,6 +53,15 @@ export const faAfMessages = {
   "home.forYou": "برای شما",
   "home.findingForYou": "جستجوی محصولات مطابق علاقه‌مندی‌های شما…",
 
+  "marketplace.nav.title": "گشت‌وگذار در بازار",
+  "marketplace.nav.products": "محصولات",
+  "marketplace.nav.categories": "دسته‌بندی‌ها",
+  "marketplace.nav.stores": "فروشگاه‌ها",
+  "marketplace.nav.categoriesHint": "یک دسته‌بندی را برای مشاهدهٔ محصولات موجود انتخاب کنید.",
+  "marketplace.nav.storesHint": "فروشگاه‌های برگزیدهٔ بازارلینک را ببینید. فهرست کامل و جست‌وجوی فروشگاه‌ها جداگانه اضافه می‌شود.",
+  "marketplace.nav.emptyCategories": "هنوز دسته‌بندی‌ای موجود نیست.",
+  "marketplace.nav.emptyStores": "هنوز فروشگاه برگزیده‌ای موجود نیست.",
+  "marketplace.nav.browseProducts": "دیدن محصولات",
   "marketplace.title": "بازار",
   "marketplace.description":
     "ساختار ابتدایی بازار برای مرحله تأییدشده بازار محفوظ است.",

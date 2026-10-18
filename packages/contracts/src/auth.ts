@@ -50,6 +50,7 @@ export const authErrorCodes = [
   "email_in_use",
   "invalid_credentials",
   "invalid_session",
+  "invalid_token",
   "account_unavailable",
   "forbidden",
   "rate_limited",
@@ -63,6 +64,7 @@ export interface AuthUser {
   displayName: string | null;
   /** The login address, view-only until a verified email change flow exists. */
   email?: string | null;
+  emailVerified?: boolean;
   /** Optional contact number. Never treated as verified or as a login factor. */
   phone?: string | null;
   avatarColor?: "teal" | "blue" | "purple" | "orange";
@@ -79,6 +81,18 @@ export interface UpdateAuthProfileInput {
 
 export interface AuthProfileResponse {
   user: AuthUser;
+}
+
+export interface AuthSecuritySession {
+  id: string;
+  createdAt: string;
+  lastSeenAt: string;
+  expiresAt: string;
+  current: boolean;
+}
+
+export interface AuthSecuritySessionsResponse {
+  sessions: AuthSecuritySession[];
 }
 
 export interface AuthSession {

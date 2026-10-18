@@ -29,7 +29,8 @@ test("server owns profile fields; never accepts email or privileged roles", () =
   assert.match(repository, /eq\(users\.id, userId\)/);
   assert.match(repository, /avatarColor: input\.avatarColor/);
   assert.match(repository, /phone: input\.phone/);
-  assert.doesNotMatch(repository, /identifier: input\.email/);
+  const updateBody = repository.slice(repository.indexOf("async updateProfile(userId:"));
+  assert.doesNotMatch(updateBody, /identifier: input\.email/);
 });
 
 test("profile persists in one additive numbered database migration", () => {

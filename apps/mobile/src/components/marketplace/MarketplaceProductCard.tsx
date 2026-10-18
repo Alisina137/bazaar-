@@ -34,7 +34,7 @@ export function MarketplaceProductCard({
   const [loadedImageUrl, setLoadedImageUrl] = useState<string | null>(null);
   const imageUrl = product.imageUrl;
   const imageFailed = imageUrl !== null && failedImageUrl === imageUrl;
-  const imageLoading = imageUrl !== null && loadedImageUrl !== imageUrl && !imageFailed;
+  const imageLoading = Boolean(imageUrl) && loadedImageUrl !== imageUrl && !imageFailed;
 
   const discount = discountPercentage(product);
   const compareAt = discount !== null ? product.compareAtPrice : null;
@@ -63,7 +63,8 @@ export function MarketplaceProductCard({
         accessibilityLabel={
           product.name + ", " + formatAfn(product.price) +
           (product.inStock ? "" : ", " + t("marketplace.outOfStock")) +
-          (rating ? ", " + t("marketplace.rating") + " " + formatNumber(rating.average) : "")
+          (rating ? ", " + t("marketplace.rating") + " " + formatNumber(rating.average) +
+            ", " + formatNumber(rating.count) + " " + t("marketplace.reviewsCount") : "")
         }
         accessibilityHint={t("marketplace.phase4.openDetails")}
         onPress={viewProduct}
@@ -227,7 +228,7 @@ export function MarketplaceProductCard({
       {onSavePress ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={t(saved ? "account.shopping.saved" : "account.shopping.save")}
+          accessibilityLabel={t(saved ? "account.shopping.remove" : "account.shopping.save")}
           accessibilityHint={t("marketplace.phase4.saveHint")}
           accessibilityState={{ disabled: saveDisabled || saving, busy: saving, selected: saved }}
           disabled={saveDisabled || saving}

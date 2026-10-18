@@ -17,12 +17,14 @@ import {
   View
 } from "react-native";
 
-import { MarketplaceProductCard } from "@/components/marketplace/MarketplaceProductCard";
 import { MarketplaceProductGrid } from "@/components/marketplace/MarketplaceProductGrid";
 import { MarketplaceCategoryTile } from "@/components/marketplace/MarketplaceCategoryTile";
 import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox";
 import { MarketplaceSuggestions } from "@/components/marketplace/MarketplaceSuggestions";
 import { MarketplaceStoreCard } from "@/components/marketplace/MarketplaceStoreCard";
+import {
+  MarketplacePrimaryTabs, type MarketplaceView
+} from "@/components/marketplace/MarketplacePrimaryTabs";
 import {
   AppText,
   Button,
@@ -94,6 +96,10 @@ export default function MarketplaceScreen() {
       : "relevance";
   const theme = useAppTheme();
   const { locale, isRTL, formatNumber, t } = useLocalization();
+
+  // Keep each view's browsing state when switching between the three sub-tabs.
+  // Deep-linked searches and category selections always open Products.
+  const [selectedView, setSelectedView] = useState<MarketplaceView>("products");
 
   const [home, setHome] = useState<MarketplaceHomeResponse | null>(null);
   const [homeLoading, setHomeLoading] = useState(true);
@@ -257,8 +263,17 @@ export default function MarketplaceScreen() {
   );
 
   useEffect(() => {
+    // Marketplace opens to the full, real product catalog by default,
+    // rather than duplicating the personalized Home recommendation rails.
+    // This effect runs before deep-link handling; request ids ensure that
+    // a more specific deep-linked request takes precedence.
+    void executeBrowse({ sort: "relevance", offset: 0, limit: 20 });
+  }, [executeBrowse]);
+
+  useEffect(() => {
     if (!linkedCategoryId && !linkedQuery && !linkedBrand && !linkedStoreId &&
         !linkedSort && !linkedDiscount && !linkedProvince) return;
+    setSelectedView("products");
     setCategoryId(linkedCategoryId);
     setStoreId(linkedStoreId);
     setBrand(linkedBrand);
@@ -367,9 +382,12 @@ export default function MarketplaceScreen() {
       router.replace("/(tabs)/marketplace");
     }
     void loadHome();
+    void executeBrowse({ sort: "relevance", offset: 0, limit: 20 });
+    setSelectedView("products");
   };
 
   const submitSearch = () => {
+    setSelectedView("products");
     setDismissedQuery(query.trim());
     setCategoryId(undefined);
     setStoreId(undefined);
@@ -378,6 +396,7 @@ export default function MarketplaceScreen() {
   };
 
   const chooseCategory = (id: string) => {
+    setSelectedView("products");
     setQuery("");
     setCategoryId(id);
     setStoreId(undefined);
@@ -394,11 +413,13 @@ export default function MarketplaceScreen() {
     } else if (suggestion.type === "store" && suggestion.handle) {
       router.push({ pathname: "/marketplace/store/[handle]", params: { handle: suggestion.handle } });
     } else if (suggestion.type === "store") {
+      setSelectedView("products");
       setStoreId(suggestion.id);
       setCategoryId(undefined);
       setBrand(undefined);
       void applyBrowse({ storeId: suggestion.id, categoryId: undefined, q: undefined, brand: undefined });
     } else {
+      setSelectedView("products");
       setBrand(suggestion.label);
       setStoreId(undefined);
       setCategoryId(undefined);
@@ -419,6 +440,11 @@ export default function MarketplaceScreen() {
     <Screen>
       <AppText variant="heading">{t("marketplace.title")}</AppText>
 
+      <MarketplacePrimaryTabs
+        selected={selectedView}
+        onSelect={setSelectedView}
+      />
+
       <Card>
         <View style={{ gap: theme.spacing.md }}>
           <MarketplaceSearchBox value={query} onChangeText={(text) => { setQuery(text); setDismissedQuery(null); }} onSubmit={submitSearch} />
@@ -433,21 +459,21 @@ export default function MarketplaceScreen() {
             <View style={{ flex: 1 }}>
               <Button
                 fullWidth
-                loading={browseLoading}
+                loading={browseLoading && selectedView === "products"}
                 onPress={submitSearch}
               >
                 {t("marketplace.searchAction")}
               </Button>
             </View>
-            <Button
+            {selectedView === "products" ? <Button
               variant="secondary"
               onPress={() => setFiltersOpen((value) => !value)}
             >
               {t("marketplace.filters") + (activeFilterCount ? " · " + formatNumber(activeFilterCount) : "")}
-            </Button>
+            </Button> : null}
           </View>
 
-          {filtersOpen ? (
+          {filtersOpen && selectedView === "products" ? (
             <View style={{ gap: theme.spacing.md }}>
               <TextField
                 label={t("marketplace.filter.province")}
@@ -550,7 +576,7 @@ export default function MarketplaceScreen() {
         </View>
       </Card>
 
-      {homeLoading && !home && !browse && !browseLoading ? (
+      {selectedView !== "products" && homeLoading && !home ? (
         <StateView
           kind="loading"
           title={t("marketplace.loadingTitle")}
@@ -558,7 +584,7 @@ export default function MarketplaceScreen() {
         />
       ) : null}
 
-      {homeError && !home && !browse && !browseLoading && !browseError ? (
+      {selectedView !== "products" && homeError && !home ? (
         <StateView
           kind="error"
           title={t("marketplace.errorTitle")}
@@ -570,7 +596,7 @@ export default function MarketplaceScreen() {
         />
       ) : null}
 
-      {usingCachedHome || usingCachedBrowse ? (
+      {(selectedView === "products" ? usingCachedBrowse : usingCachedHome) ? (
         <Card muted>
           <AppText variant="caption" tone="muted">
             {t("marketplace.cachedNotice")}
@@ -578,14 +604,14 @@ export default function MarketplaceScreen() {
         </Card>
       ) : null}
 
-      {browseLoading && !browse ? <StateView kind="loading" title={t("marketplace.searching")} /> : null}
-      {browseError && !browse ? (
+      {selectedView === "products" && browseLoading && !browse ? <StateView kind="loading" title={t("marketplace.searching")} /> : null}
+      {selectedView === "products" && browseError && !browse ? (
         <StateView kind="error" title={t("marketplace.errorTitle")}
           message={t(marketplaceErrorKey(browseError.code))}
           actionLabel={t("marketplace.retry")} onAction={submitSearch} />
       ) : null}
 
-      {browse ? (
+      {selectedView === "products" && browse ? (
         <View style={{ gap: theme.spacing.lg }}>
           <View style={{ gap: theme.spacing.xs }}>
             <AppText variant="heading">{t("marketplace.results")}</AppText>
@@ -653,104 +679,69 @@ export default function MarketplaceScreen() {
             {t("marketplace.backHome")}
           </Button>
         </View>
-      ) : browseLoading || browseError ? null : home ? (
-        <View style={{ gap: theme.spacing["2xl"] }}>
+      ) : null}
+
+      {selectedView === "categories" && home ? (
+        <View style={{ gap: theme.spacing.md }}>
+          <AppText variant="heading">{t("marketplace.nav.categories")}</AppText>
+          <AppText variant="caption" tone="muted">
+            {t("marketplace.nav.categoriesHint")}
+          </AppText>
           {rootCategories.length > 0 ? (
-            <View style={{ gap: theme.spacing.md }}>
-              <AppText variant="heading">{t("marketplace.categories")}</AppText>
-              <View style={{
-                flexDirection: isRTL ? "row-reverse" : "row",
-                flexWrap: "wrap", justifyContent: "space-between", gap: theme.spacing.sm
-              }}>
-                {rootCategories.map((category) => (
-                  <MarketplaceCategoryTile grid key={category.id} category={category}
-                    onPress={() => chooseCategory(category.id)} />
-                ))}
-              </View>
+            <View style={{
+              flexDirection: isRTL ? "row-reverse" : "row",
+              flexWrap: "wrap", justifyContent: "space-between",
+              gap: theme.spacing.sm
+            }}>
+              {rootCategories.map(category => (
+                <MarketplaceCategoryTile
+                  key={category.id}
+                  grid
+                  category={category}
+                  onPress={() => chooseCategory(category.id)}
+                />
+              ))}
             </View>
-          ) : null}
-
-          <ProductSection
-            title={t("marketplace.recommended")}
-            products={home.recommended}
-          />
-          {home.nearby.length > 0 ? (
-            <ProductSection
-              title={t("marketplace.nearby")}
-              products={home.nearby}
+          ) : (
+            <StateView
+              kind="empty"
+              title={t("marketplace.nav.emptyCategories")}
+              actionLabel={t("marketplace.nav.browseProducts")}
+              onAction={() => setSelectedView("products")}
             />
-          ) : null}
-          <ProductSection
-            title={t("marketplace.popular")}
-            products={home.popular}
-          />
-          <ProductSection
-            title={t("marketplace.new")}
-            products={home.newest}
-          />
-          {home.deals.length > 0 ? (
-            <ProductSection
-              title={t("marketplace.deals")}
-              products={home.deals}
-            />
-          ) : null}
+          )}
+        </View>
+      ) : null}
 
+      {selectedView === "stores" && home ? (
+        <View style={{ gap: theme.spacing.md }}>
+          <AppText variant="heading">{t("marketplace.nav.stores")}</AppText>
+          <AppText variant="caption" tone="muted">
+            {t("marketplace.nav.storesHint")}
+          </AppText>
           {home.featuredStores.length > 0 ? (
-            <View style={{ gap: theme.spacing.md }}>
-              <AppText variant="heading">
-                {t("marketplace.featuredStores")}
-              </AppText>
-              <HorizontalLocaleScroll
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: theme.spacing.md }}
-              >
-                {home.featuredStores.map((featured) => (
-                  <MarketplaceStoreCard key={featured.store.id} featured={featured} />
-                ))}
-              </HorizontalLocaleScroll>
-            </View>
-          ) : null}
-
-          {home.recentlyViewed.length > 0 ? (
-            <ProductSection
-              title={t("marketplace.recentlyViewed")}
-              products={home.recentlyViewed}
+            <HorizontalLocaleScroll
+              showsHorizontalScrollIndicator
+              contentContainerStyle={{ gap: theme.spacing.md }}
+            >
+              {home.featuredStores.map(featured => (
+                <MarketplaceStoreCard
+                  key={featured.store.id}
+                  featured={featured}
+                />
+              ))}
+            </HorizontalLocaleScroll>
+          ) : (
+            <StateView
+              kind="empty"
+              title={t("marketplace.nav.emptyStores")}
+              actionLabel={t("marketplace.nav.browseProducts")}
+              onAction={() => setSelectedView("products")}
             />
-          ) : null}
+          )}
         </View>
       ) : null}
     </Screen>
   );
 }
 
-function ProductSection({
-  title,
-  products
-}: {
-  title: string;
-  products: MarketplaceHomeResponse["recommended"];
-}) {
-  const theme = useAppTheme();
-
-  if (products.length === 0) {
-    return null;
-  }
-
-  return (
-    <View style={{ gap: theme.spacing.md }}>
-      <AppText variant="heading">{title}</AppText>
-      <HorizontalLocaleScroll
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: theme.spacing.md }}
-      >
-        {products.map((product) => (
-          <MarketplaceProductCard
-            key={product.id}
-            product={product}
-            compact
-          />
-        ))}
-      </HorizontalLocaleScroll>
-    </View>
-  );
-}

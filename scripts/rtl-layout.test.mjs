@@ -79,3 +79,19 @@ test("shopping, checkout, support, moderation and seller horizontal rows mirror 
     assert.match(read(path), /flexDirection: isRTL \? "row-reverse" : "row"/, path);
   }
 });
+
+test("horizontal carousels start with the first item on the right in RTL", () => {
+  const rail = read("apps/mobile/src/components/ui/HorizontalLocaleScroll.tsx");
+  assert.match(rail, /flexDirection: isRTL \? "row-reverse" : "row"/);
+  assert.match(rail, /scrollToEnd\(\{ animated: false \}\)/);
+  assert.match(rail, /viewportWidth\.current <= 0 \|\| contentWidth\.current <= 0/);
+  assert.match(rail, /key=\{isRTL \? "rtl" : "ltr"\}/);
+  for (const path of [
+    "apps/mobile/src/app/(tabs)/index.tsx",
+    "apps/mobile/src/app/(tabs)/marketplace.tsx",
+    "apps/mobile/src/app/marketplace/product/[productId].tsx",
+    "apps/mobile/src/app/marketplace/store/[handle].tsx"
+  ]) {
+    assert.match(read(path), /<HorizontalLocaleScroll/, path);
+  }
+});

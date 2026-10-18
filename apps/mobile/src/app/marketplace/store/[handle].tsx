@@ -39,7 +39,7 @@ export default function MarketplaceStoreScreen() {
   const { handle } = useLocalSearchParams<{ handle: string }>();
   const router = useRouter();
   const theme = useAppTheme();
-  const { t } = useLocalization();
+  const { isRTL, t } = useLocalization();
 
   const [data, setData] = useState<MarketplaceStorePageResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -183,7 +183,7 @@ export default function MarketplaceStoreScreen() {
         <View style={{ gap: theme.spacing.md }}>
           <View
             style={{
-              flexDirection: "row",
+              flexDirection: isRTL ? "row-reverse" : "row",
               alignItems: "center",
               gap: theme.spacing.md
             }}

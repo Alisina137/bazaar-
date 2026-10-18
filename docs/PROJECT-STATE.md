@@ -1743,3 +1743,14 @@ Automated implementation scope is committed as an integrated Phase 12 change. Gi
 - Authentication remains email/password-based; no fabricated password-recovery, verification or policy links. Password recovery and advanced security remain allocated to Phase 4. Existing signed-in Account structure and guest access to Marketplace remain unchanged.
 - Validation and layout regression tests: `pnpm test:account-phase2` and `pnpm test:account-phase1`, included in `pnpm verify`.
 - Manual Expo Go QA: guest Account in all three locales and both color themes on narrow and normal Android phones; validate empty/bad email, short/mismatched passwords, eye toggle, keyboard Next/Go, rapid double taps, backend 401/429/offline messages, guest Marketplace navigation, and successful login/sign-up. No database migrations.
+
+
+## Customer Account redesign — Phase 3 (editable personal information)
+
+- Added a real `/account/profile` page accessible through the signed-in Account profile header and Personal Information menu row.
+- Authenticated customer can edit display name (including clearing it), optional **unverified** contact phone number, and an avatar color preset (teal/blue/purple/orange), persisted in users table. The Account header reflects edits from the AuthProvider immediately. The color preset modifies a generated initials avatar; **photo upload is not supported** because a secure image upload provider has not been configured.
+- The signed-in user's email address is returned by the auth session/profile projection and is displayed read-only; email updates require a secure verification workflow and are reserved for Phase 4. Changing a contact phone is explicitly **not** verification or an alternative login factor.
+- Backend: bearer-authenticated `PATCH /auth/profile`, strict allowlist of 3 fields, input-length restrictions, no roles/status/email mutability, rate limiting, immutable session token, role queries from the database.
+- Additive PostgreSQL migration `0014_customer_profile`: `users.phone` nullable and `users.avatar_color` default `teal`. **Run `pnpm db:migrate` against the configured database after pulling before starting the API.**
+- Supports Dari, Pashto and English, RTL/LTR flow, LTR phone/email values, keyboard-safe form and status/error feedback, plus profile regressions in `pnpm test:account-phase3` included in `pnpm verify`.
+- QA still required in Expo Go (both device sizes + locales) and user lifecycle (login, save, reopen, new login, logout, staff/owner, offline failure). Image uploading, verified email changes, phone verification, and security/session controls belong to later phases.

@@ -119,6 +119,7 @@ export interface CommunicationRepository {
     platform: PushPlatform,
     deviceId: string | null
   ): Promise<void>;
+  deactivatePushToken(userId: string, token: string): Promise<void>;
   claimPushTokens(
     userId: string,
     notificationId: string
@@ -286,6 +287,12 @@ export class DatabaseCommunicationRepository
           updatedAt: new Date()
         }
       });
+  }
+
+  async deactivatePushToken(userId: string, token: string): Promise<void> {
+    await this.db.update(pushDeviceTokens)
+      .set({ active: false, updatedAt: new Date() })
+      .where(and(eq(pushDeviceTokens.userId, userId), eq(pushDeviceTokens.token, token)));
   }
 
   async claimPushTokens(

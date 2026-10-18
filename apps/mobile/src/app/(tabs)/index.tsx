@@ -16,7 +16,7 @@ import { HomeInterestPicker } from "@/components/marketplace/HomeInterestPicker"
 import { HomeHeroBanner } from "@/components/marketplace/HomeHeroBanner";
 import { HomeLoadingSkeleton } from "@/components/marketplace/HomeLoadingSkeleton";
 import { HomeSectionHeader } from "@/components/marketplace/HomeSectionHeader";
-import { AppText, Card, HorizontalLocaleScroll, Screen, StateView } from "@/components/ui";
+import { AppText, HorizontalLocaleScroll, Screen, StateView } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 import { browseMarketplace, marketplaceHome } from "@/marketplace/api";

@@ -31,6 +31,13 @@ class FakeAuthRepository implements AuthRepository {
   revokedTokenHash: string | null = null;
   touchedSessionId: string | null = null;
 
+  lastProfile: { displayName: string | null; phone: string | null; avatarColor: string } | null = null;
+
+  async updateProfile(_userId: string, input: { displayName: string | null; phone: string | null; avatarColor: "teal" | "blue" | "purple" | "orange" }): Promise<AuthUser> {
+    this.lastProfile = input;
+    return { ...user, ...input, email: "person@example.com" };
+  }
+
   async findEmailIdentity(): Promise<EmailIdentity | null> {
     return this.identity;
   }
@@ -146,4 +153,31 @@ describe("AuthService", () => {
       hashSessionToken("raw-session-token")
     );
   });
+  it("requires an active session before editing a user's profile", async () => {
+    const repository = new FakeAuthRepository();
+    const service = new AuthService(repository, config);
+    await expect(
+      service.updateProfile("invalid", { displayName: "New", phone: null, avatarColor: "blue" })
+    ).rejects.toMatchObject({ code: "invalid_session" });
+    expect(repository.lastProfile).toBeNull();
+  });
+
+  it("updates the signed-in user without allowing role or email changes", async () => {
+    const repository = new FakeAuthRepository();
+    repository.session = {
+      sessionId: "00000000-0000-4000-8000-000000000004",
+      user, expiresAt: new Date(Date.now() + 60_000),
+      lastSeenAt: new Date(), revokedAt: null
+    };
+    const service = new AuthService(repository, config);
+    const response = await service.updateProfile("valid-token", {
+      displayName: "Updated", phone: "+93 700 123456", avatarColor: "blue"
+    });
+    expect(repository.lastProfile).toEqual({
+      displayName: "Updated", phone: "+93 700 123456", avatarColor: "blue"
+    });
+    expect(response.user.roles).toEqual(["customer"]);
+    expect(response.user.email).toBe("person@example.com");
+  });
+
 });

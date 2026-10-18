@@ -16,6 +16,7 @@ function profileErrorKey(code: ReturnType<typeof getAuthErrorCode>): Translation
     email_in_use: "auth.error.emailInUse",
     invalid_credentials: "auth.error.invalidCredentials",
     invalid_session: "auth.error.sessionExpired",
+    invalid_token: "account.security.invalidCode",
     account_unavailable: "auth.error.accountUnavailable",
     forbidden: "auth.error.forbidden",
     rate_limited: "auth.error.rateLimited",

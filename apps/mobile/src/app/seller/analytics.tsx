@@ -22,7 +22,7 @@ import { useStores } from "@/store/provider";
 
 export default function SellerAnalyticsScreen() {
   const theme = useAppTheme();
-  const { formatNumber, t } = useLocalization();
+  const { isRTL, formatNumber, t } = useLocalization();
   const { sessionToken } = useAuth();
   const { currentStore } = useStores();
   const [days, setDays] = useState(30);
@@ -99,7 +99,7 @@ export default function SellerAnalyticsScreen() {
 
       <Card>
         <View style={{ gap: theme.spacing.md }}>
-          <View style={{ flexDirection: "row", gap: theme.spacing.sm, flexWrap: "wrap" }}>
+          <View style={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm, flexWrap: "wrap" }}>
             {[7, 30, 90].map((period) => (
               <Button
                 key={period}
@@ -168,7 +168,7 @@ export default function SellerAnalyticsScreen() {
                 <View
                   key={point.date}
                   style={{
-                    flexDirection: "row",
+                    flexDirection: isRTL ? "row-reverse" : "row",
                     justifyContent: "space-between",
                     gap: theme.spacing.md
                   }}

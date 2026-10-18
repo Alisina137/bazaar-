@@ -48,7 +48,10 @@ test("product cards use image fallbacks, real sale prices, stock and review data
   assert.match(card, /formatAfn\(product.price\)/);
   assert.match(card, /formatAfn\(compareAt\)/);
   assert.match(card, /!product.inStock/);
-  assert.match(card, /ratingSummary\(product\)/);\n  const presentation = read("apps/mobile/src/marketplace/card-presentation.ts");\n  assert.match(presentation, /reviewCount <= 0/);\n  assert.match(presentation, /averageRating === null/);
+  assert.match(card, /ratingSummary\(product\)/);
+  const presentation = read("apps/mobile/src/marketplace/card-presentation.ts");
+  assert.match(presentation, /reviewCount <= 0/);
+  assert.match(presentation, /averageRating === null/);
   assert.match(card, /product.store.trust.phoneVerified/);
   assert.match(card, /pathname: "\/marketplace\/product\/\[productId\]"/);
   assert.doesNotMatch(card, /addCartItem\(/);

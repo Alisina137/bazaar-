@@ -14,6 +14,8 @@ import { CatalogService } from "./catalog/service.js";
 import { parseAuthConfig } from "./auth/config.js";
 import { DatabaseAuthRepository } from "./auth/repository.js";
 import { AuthService } from "./auth/service.js";
+import { DatabaseAuthSecurityRepository } from "./auth/security-repository.js";
+import { ResendSecurityEmailSender } from "./auth/security-email.js";
 import { DatabaseStoreRepository } from "./store/repository.js";
 import { StoreService } from "./store/service.js";
 import { DatabaseMarketplaceRepository } from "./marketplace/repository.js";
@@ -50,7 +52,9 @@ const databaseClient = createDatabaseClient(parseDatabaseConfig());
 const authRepository = new DatabaseAuthRepository(databaseClient.db);
 const authService = new AuthService(
   authRepository,
-  parseAuthConfig()
+  parseAuthConfig(),
+  new DatabaseAuthSecurityRepository(databaseClient.db),
+  new ResendSecurityEmailSender()
 );
 const storeRepository = new DatabaseStoreRepository(databaseClient.db);
 const storeService = new StoreService(storeRepository);

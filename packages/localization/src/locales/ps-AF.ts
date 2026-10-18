@@ -662,6 +662,24 @@ export const psAfMessages = {
   "auth.error.serviceUnavailable":
     "بازارلینک د ننوتلو خدمت ته ونه رسېد. خپله اړیکه وګورئ او بیا هڅه وکړئ.",
 
+  "account.section.shopping": "زما پېرودنې",
+  "account.section.account": "زما حساب",
+  "account.section.preferences": "غوراوي",
+  "account.section.business": "سوداګري او کاري برخې",
+  "account.section.help": "مرسته او ملاتړ",
+  "account.myOrders": "زما فرمایشونه",
+  "account.ordersHint": "پېرودنې او د سپارلو حالت وګورئ",
+  "account.cartHint": "خپله د پېرودنې ټوکرۍ وګورئ",
+  "account.addressesHint": "د سپارلو خوندي شوې پتې",
+  "account.notificationsHint": "پیغامونه او د فرمایشونو تازه خبرونه",
+  "account.supportHint": "مرسته ترلاسه کړئ او خپلې غوښتنې وګورئ",
+  "account.accessDetails": "رولونه او لاسرسي",
+  "account.sellerStaffWorkspace": "د پلورنځي کاري برخه پرانیزئ",
+  "account.storeAccessLoading": "د پلورنځي لاسرسی کتل کېږي…",
+  "account.storeAccessRetry": "د پلورنځي لاسرسی بیا وازمویئ",
+  "account.storeAccessError": "پلورنځي نه بارېږي. د بیا هڅې لپاره یې ووهئ.",
+  "account.noAssignedStore": "تاسو ته پلورنځی نه دی ټاکل شوی. له مالک څخه د لاسرسي غوښتنه وکړئ.",
+
   "account.sellOnBazaarLink": "په بازارلینک کې وپلورئ",
   "account.openSellerDashboard": "د پلورونکي ډشبورډ پرانیزئ",
 

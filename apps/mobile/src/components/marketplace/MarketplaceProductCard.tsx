@@ -24,7 +24,7 @@ export function MarketplaceProductCard({
   const [imageFailed, setImageFailed] = useState(false);
   const discount = discountPercentage(product);
   const compareAt = discount !== null ? product.compareAtPrice : null;
-  const imageHeight = compact ? 138 : grid ? 132 : 210;
+  const imageHeight = compact ? 148 : grid ? 152 : 218;
 
   return (
     <Pressable
@@ -42,6 +42,7 @@ export function MarketplaceProductCard({
         borderRadius: theme.radii.lg,
         overflow: "hidden",
         backgroundColor: theme.colors.surface,
+        ...(theme.scheme === "light" ? theme.elevation.card : {}),
         opacity: pressed ? theme.opacity.pressed : 1
       })}
     >
@@ -100,7 +101,7 @@ export function MarketplaceProductCard({
 
       <View style={{
         padding: theme.spacing.md, gap: theme.spacing.xs,
-        minHeight: compact || grid ? 143 : 128
+        minHeight: compact || grid ? 155 : 142
       }}>
         <AppText variant="label" numberOfLines={2}
           style={{ minHeight: theme.lineHeights.label * 2 }}>

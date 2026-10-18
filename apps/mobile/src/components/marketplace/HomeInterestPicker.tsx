@@ -70,7 +70,8 @@ export function HomeInterestPicker({
           minHeight: 44, flexDirection: isRTL ? "row-reverse" : "row",
           alignItems: "center", gap: theme.spacing.xs,
           borderRadius: theme.radii.full, borderWidth: 1,
-          borderColor: theme.colors.border, backgroundColor: theme.colors.surface,
+          borderColor: favorites.length ? theme.colors.primary : theme.colors.border,
+          backgroundColor: favorites.length ? theme.colors.primarySoft : theme.colors.surface,
           paddingHorizontal: theme.spacing.md,
           opacity: pressed ? theme.opacity.pressed : 1
         })}

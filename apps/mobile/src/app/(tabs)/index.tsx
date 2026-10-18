@@ -14,7 +14,10 @@ import { HomeDealSpotlight } from "@/components/marketplace/HomeDealSpotlight";
 import { HomeProductRail } from "@/components/marketplace/HomeProductRail";
 import { HomeProvinceSelector } from "@/components/marketplace/HomeProvinceSelector";
 import { HomeInterestPicker } from "@/components/marketplace/HomeInterestPicker";
-import { AppText, Button, Card, Screen, StateView } from "@/components/ui";
+import { HomeHeroBanner } from "@/components/marketplace/HomeHeroBanner";
+import { HomeLoadingSkeleton } from "@/components/marketplace/HomeLoadingSkeleton";
+import { HomeSectionHeader } from "@/components/marketplace/HomeSectionHeader";
+import { AppText, Card, Screen, StateView } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 import { browseMarketplace, marketplaceHome } from "@/marketplace/api";
@@ -232,9 +235,9 @@ export default function HomeScreen() {
   ) => (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress}
       style={({ pressed }) => ({
-        width: 46, height: 46, alignItems: "center", justifyContent: "center",
+        width: 44, height: 44, alignItems: "center", justifyContent: "center",
         borderWidth: 1, borderColor: theme.colors.border,
-        borderRadius: theme.radii.md, backgroundColor: theme.colors.surface,
+        borderRadius: theme.radii.lg, backgroundColor: theme.colors.surface,
         opacity: pressed ? theme.opacity.pressed : 1
       })}>
       <Ionicons name={icon} size={22} color={theme.colors.text} />
@@ -242,13 +245,18 @@ export default function HomeScreen() {
   );
 
   return (
-    <Screen contentStyle={{ gap: theme.spacing.lg, paddingTop: theme.spacing.md }}>
-      <View style={{ flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center", gap: theme.spacing.sm }}>
+    <Screen contentStyle={{ gap: theme.spacing.xl, paddingTop: theme.spacing.sm, paddingHorizontal: theme.spacing.lg, paddingBottom: theme.spacing["3xl"] }}>
+      <View style={{
+        flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center",
+        gap: theme.spacing.sm, paddingVertical: theme.spacing.sm,
+        paddingBottom: theme.spacing.md,
+        borderBottomWidth: 1, borderBottomColor: theme.colors.border
+      }}>
         <View style={{
-          width: 42, height: 42, borderRadius: theme.radii.md,
+          width: 44, height: 44, borderRadius: theme.radii.lg,
           backgroundColor: theme.colors.primary, alignItems: "center", justifyContent: "center"
         }}>
-          <Ionicons name="storefront" size={23} color={theme.colors.onPrimary} />
+          <Ionicons name="storefront" size={24} color={theme.colors.onPrimary} />
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>
           <AppText variant="heading" numberOfLines={1}>{t("common.brandName")}</AppText>
@@ -290,29 +298,10 @@ export default function HomeScreen() {
       {spotlight ? (
         <HomeDealSpotlight product={spotlight} />
       ) : (
-        <View style={{
-          padding: theme.spacing.xl, gap: theme.spacing.lg,
-          borderRadius: theme.radii.xl, backgroundColor: theme.colors.primarySoft,
-          borderWidth: 1, borderColor: theme.colors.border
-        }}>
-          <View style={{ flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center", gap: theme.spacing.md }}>
-            <View style={{ flex: 1 }}>
-              <AppText variant="heading">{t("home.shopLocal")}</AppText>
-            </View>
-            <Ionicons name="bag-handle-outline" size={40} color={theme.colors.primary} />
-          </View>
-          <View style={{ flexDirection: isRTL ? "row-reverse" : "row" }}>
-            <Button onPress={openMarketplace}>{t("home.exploreProducts")}</Button>
-          </View>
-        </View>
+        <HomeHeroBanner />
       )}
 
-      {loading && !home ? (
-        <View style={{ alignItems: "center", paddingVertical: theme.spacing["2xl"], gap: theme.spacing.sm }}>
-          <ActivityIndicator color={theme.colors.primary} accessibilityLabel={t("marketplace.loadingTitle")} />
-          <AppText tone="muted">{t("marketplace.loadingTitle")}</AppText>
-        </View>
-      ) : null}
+      {loading && !home ? <HomeLoadingSkeleton /> : null}
       {error && !home ? (
         <StateView kind="error" title={t("marketplace.errorTitle")}
           message={t("marketplace.error.serviceUnavailable")}
@@ -328,9 +317,9 @@ export default function HomeScreen() {
 
       {rootCategories.length > 0 ? (
         <View style={{ gap: theme.spacing.md }}>
-          <SectionHeader title={t("marketplace.categories")} action={t("home.viewAll")} onPress={openMarketplace} />
+          <HomeSectionHeader title={t("marketplace.categories")} icon="grid-outline" onViewAll={openMarketplace} />
           <ScrollView horizontal showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm }}>
+            contentContainerStyle={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm, paddingVertical: theme.spacing.xs }}>
             {rootCategories.map((category) => (
               <MarketplaceCategoryTile key={category.id} category={category} onPress={() => goToCategory(category.id)} />
             ))}
@@ -339,6 +328,7 @@ export default function HomeScreen() {
       ) : null}
 
       <HomeProductRail
+        icon="sparkles-outline"
         title={t("home.forYou")}
         products={personalized}
       />
@@ -349,21 +339,25 @@ export default function HomeScreen() {
         </View>
       ) : null}
       <HomeProductRail
+        icon="compass-outline"
         title={t("marketplace.recommended")}
         products={home?.recommended ?? []}
         onViewAll={() => openResults({ sort: "relevance" })}
       />
       <HomeProductRail
+        icon="flame-outline"
         title={t("marketplace.popular")}
         products={home?.popular ?? []}
         onViewAll={() => openResults({ sort: "popularity" })}
       />
       <HomeProductRail
+        icon="flash-outline"
         title={t("home.newArrivals")}
         products={home?.newest ?? []}
         onViewAll={() => openResults({ sort: "newest" })}
       />
       <HomeProductRail
+        icon="pricetags-outline"
         title={t("home.discountedProducts")}
         products={home?.deals ?? []}
         onViewAll={() => openResults({ discount: "true" })}
@@ -373,6 +367,7 @@ export default function HomeScreen() {
         <View style={{ gap: theme.spacing.sm }}>
           {home?.nearby.length ? (
             <HomeProductRail
+              icon="location-outline"
               title={t("home.provinceProducts") + " · " + provinceName(province, locale)}
               products={home.nearby}
               onViewAll={() => openResults({ province })}
@@ -392,15 +387,16 @@ export default function HomeScreen() {
       ) : null}
 
       <HomeProductRail
+        icon="time-outline"
         title={t("marketplace.recentlyViewed")}
         products={home?.recentlyViewed ?? []}
       />
 
       {featuredStores.length > 0 ? (
         <View style={{ gap: theme.spacing.md }}>
-          <SectionHeader title={t("marketplace.featuredStores")} action={t("home.viewAll")} onPress={openMarketplace} />
+          <HomeSectionHeader title={t("marketplace.featuredStores")} icon="storefront-outline" onViewAll={openMarketplace} />
           <ScrollView horizontal showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.md }}>
+            contentContainerStyle={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.md, paddingVertical: theme.spacing.xs }}>
             {featuredStores.map((featured) => (
               <MarketplaceStoreCard key={featured.store.id} featured={featured} />
             ))}
@@ -411,27 +407,3 @@ export default function HomeScreen() {
   );
 }
 
-function SectionHeader({ title, action, onPress }: {
-  title: string; action: string; onPress: () => void;
-}) {
-  const theme = useAppTheme();
-  const { isRTL } = useLocalization();
-  return (
-    <View style={{
-      flexDirection: isRTL ? "row-reverse" : "row",
-      alignItems: "center", gap: theme.spacing.sm
-    }}>
-      <View style={{ flex: 1 }}>
-        <AppText variant="bodyStrong" numberOfLines={1}>{title}</AppText>
-      </View>
-      <Pressable accessibilityRole="button" accessibilityLabel={action + ": " + title}
-        onPress={onPress}
-        style={({ pressed }) => ({
-          minHeight: 44, paddingHorizontal: theme.spacing.sm,
-          justifyContent: "center", opacity: pressed ? theme.opacity.pressed : 1
-        })}>
-        <AppText variant="label" tone="primary">{action}</AppText>
-      </Pressable>
-    </View>
-  );
-}

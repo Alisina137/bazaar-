@@ -45,9 +45,9 @@ export function MarketplaceCategoryTile({
       accessibilityLabel={name}
       onPress={onPress}
       style={({ pressed }) => ({
-        width: grid ? "23%" : 106,
-        minHeight: 108,
-        paddingHorizontal: theme.spacing.xs,
+        width: grid ? "31%" : 110,
+        minHeight: 124,
+        paddingHorizontal: theme.spacing.sm,
         paddingVertical: theme.spacing.md,
         alignItems: "center",
         justifyContent: "center",
@@ -60,8 +60,8 @@ export function MarketplaceCategoryTile({
       })}
     >
       <View style={{
-        height: 50, width: 50, overflow: "hidden",
-        borderRadius: theme.radii.md,
+        height: 58, width: 58, overflow: "hidden",
+        borderRadius: theme.radii.full,
         backgroundColor: theme.colors.primarySoft,
         alignItems: "center", justifyContent: "center"
       }}>
@@ -71,13 +71,13 @@ export function MarketplaceCategoryTile({
             accessibilityLabel={name}
             onError={() => setBrokenImage(true)}
             resizeMode="cover"
-            style={{ width: 50, height: 50 }}
+            style={{ width: 58, height: 58 }}
           />
         ) : (
           <Ionicons
             name={categoryIcon(category)}
             color={theme.colors.primary}
-            size={25}
+            size={27}
           />
         )}
       </View>

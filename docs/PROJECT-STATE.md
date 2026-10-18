@@ -1685,3 +1685,11 @@ Automated implementation scope is committed as an integrated Phase 12 change. Gi
 - Home enriches the public discovery response with bounded category-specific browse requests (in-stock, respect manually chosen province, offline cache fallback), ranks real matching inventory with explicit selections ahead of recent-category affinities, and avoids recently viewed/out-of-stock items.
 - "For you" appears only with actual matched products; generic marketplace relevance still has its own Recommended rail. On-device recent-view order is stable and recent list clearing reconciles cached responses.
 - Existing province opt-in, RTL, language and navigation preserved. The user account/role and database schema remain unchanged; no background tracking or AI API costs were added.
+
+## Home UX Phase 6 — visual design / hierarchy
+
+- Added reusable HomeSectionHeader (icon, one-line title, RTL-aware accessible View all), a non-image-dependent HomeHeroBanner, and a stable low-cost HomeLoadingSkeleton.
+- Unified Home rail spacing, visual icons and consistent horizontal card padding. Header actions retain 44px tap targets and gain a separator; surface gutters are tighter to show more products.
+- Styled category icons with circular media surfaces and changed narrow-screen category grids to three columns. Product/store cards use subtle light-mode elevation, improved image sizing, and consistent radii; theme tokens avoid unreadable dark-mode shadows.
+- Search bar now highlights keyboard focus; manual province and interests controls highlight their selected state. Offer spotlight shows only verifiable discounts, with a broken-image fallback.
+- Existing Phase 1–5 search, recommendation, opt-in province, localization and auth flows preserved. No external image assets, mocked listings or backend/schema changes.

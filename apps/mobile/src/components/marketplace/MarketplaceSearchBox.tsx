@@ -1,4 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useState } from "react";
 import { Keyboard, Pressable, TextInput, View } from "react-native";
 
 import { useAppTheme } from "@/design/theme";
@@ -14,6 +15,7 @@ export function MarketplaceSearchBox({
 }) {
   const theme = useAppTheme();
   const { isRTL, direction, t } = useLocalization();
+  const [focused, setFocused] = useState(false);
   const submit = () => {
     Keyboard.dismiss();
     onSubmit();
@@ -28,7 +30,7 @@ export function MarketplaceSearchBox({
         gap: theme.spacing.sm,
         paddingHorizontal: theme.spacing.md,
         borderWidth: 1,
-        borderColor: theme.colors.borderStrong,
+        borderColor: focused ? theme.colors.primary : theme.colors.borderStrong,
         borderRadius: theme.radii.lg,
         backgroundColor: theme.colors.surface
       }}
@@ -48,6 +50,8 @@ export function MarketplaceSearchBox({
         placeholderTextColor={theme.colors.textMuted}
         value={value}
         onChangeText={onChangeText}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         onSubmitEditing={submit}
         returnKeyType="search"
         maxLength={180}

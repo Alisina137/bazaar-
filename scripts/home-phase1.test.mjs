@@ -14,7 +14,7 @@ test("shopping Home uses real marketplace data, cache and clear entry points", (
   assert.match(home, /<HomeProductRail/);
   assert.match(home, /home\?\.featuredStores/);
   assert.match(home, /<LanguageSwitcher compact/);
-  assert.match(home, /<SectionHeader/);
+  assert.match(home, /<HomeSectionHeader/);
   assert.doesNotMatch(home, /home\.(?:title|description|statusTitle|statusMessage|mobileFirst|accessibleTargets|rtlReady)/);
 });
 

@@ -1,55 +1,40 @@
 import type { MarketplaceProductSummary } from "@bazaarlink/contracts";
+import type { ComponentProps } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Pressable, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 
+import { HomeSectionHeader } from "@/components/marketplace/HomeSectionHeader";
 import { MarketplaceProductCard } from "@/components/marketplace/MarketplaceProductCard";
-import { AppText } from "@/components/ui/AppText";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 
+type IconName = ComponentProps<typeof Ionicons>["name"];
+
 export function HomeProductRail({
-  title, products, onViewAll
+  title, products, onViewAll, icon = "albums-outline"
 }: {
   title: string;
   products: MarketplaceProductSummary[];
   onViewAll?: (() => void) | undefined;
+  icon?: IconName;
 }) {
   const theme = useAppTheme();
-  const { isRTL, t } = useLocalization();
+  const { isRTL } = useLocalization();
   if (products.length === 0) return null;
 
   return (
-    <View style={{ gap: theme.spacing.md }}>
-      <View style={{
-        flexDirection: isRTL ? "row-reverse" : "row",
-        alignItems: "center", gap: theme.spacing.sm
-      }}>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <AppText variant="bodyStrong" numberOfLines={1}>{title}</AppText>
-        </View>
-        {onViewAll ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("home.viewAll") + ": " + title}
-            onPress={onViewAll}
-            style={({ pressed }) => ({
-              minHeight: 44, flexDirection: isRTL ? "row-reverse" : "row",
-              alignItems: "center", paddingHorizontal: theme.spacing.xs,
-              gap: theme.spacing.xs,
-              opacity: pressed ? theme.opacity.pressed : 1
-            })}
-          >
-            <AppText variant="label" tone="primary">{t("home.viewAll")}</AppText>
-            <Ionicons name={isRTL ? "chevron-back" : "chevron-forward"}
-              size={16} color={theme.colors.primary} />
-          </Pressable>
-        ) : null}
-      </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}
+    <View style={{ gap: theme.spacing.sm }}>
+      <HomeSectionHeader title={title} icon={icon} onViewAll={onViewAll} />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
         contentContainerStyle={{
           gap: theme.spacing.md,
+          paddingTop: theme.spacing.xs,
+          paddingBottom: theme.spacing.sm,
           flexDirection: isRTL ? "row-reverse" : "row"
-        }}>
+        }}
+      >
         {products.slice(0, 10).map((product) => (
           <MarketplaceProductCard key={product.id} product={product} compact />
         ))}

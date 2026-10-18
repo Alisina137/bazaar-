@@ -38,8 +38,8 @@ export function HomeProvinceSelector({
           alignItems: "center", gap: theme.spacing.xs, minHeight: 44,
           alignSelf: "flex-start",
           borderRadius: theme.radii.full,
-          borderWidth: 1, borderColor: theme.colors.border,
-          backgroundColor: theme.colors.surface,
+          borderWidth: 1, borderColor: value ? theme.colors.primary : theme.colors.border,
+          backgroundColor: value ? theme.colors.primarySoft : theme.colors.surface,
           paddingHorizontal: theme.spacing.md,
           opacity: pressed ? theme.opacity.pressed : 1
         })}

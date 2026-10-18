@@ -35,6 +35,7 @@ export function MarketplaceStoreCard({
         borderColor: theme.colors.border,
         borderRadius: theme.radii.lg,
         backgroundColor: theme.colors.surface,
+        ...(theme.scheme === "light" ? theme.elevation.card : {}),
         opacity: pressed ? theme.opacity.pressed : 1
       })}
     >
@@ -45,13 +46,13 @@ export function MarketplaceStoreCard({
           onError={() => setCoverFailed(true)}
           resizeMode="cover"
           style={{
-            width: "100%", height: 88,
+            width: "100%", height: 104,
             backgroundColor: theme.colors.surfaceMuted
           }}
         />
       ) : (
         <View style={{
-          height: 88,
+          height: 104,
           alignItems: "center", justifyContent: "center",
           backgroundColor: theme.colors.primarySoft
         }}>
@@ -64,7 +65,7 @@ export function MarketplaceStoreCard({
           alignItems: "center", gap: theme.spacing.sm
         }}>
           <View style={{
-            height: 42, width: 42,
+            height: 44, width: 44,
             borderRadius: theme.radii.md,
             overflow: "hidden", alignItems: "center", justifyContent: "center",
             backgroundColor: theme.colors.surfaceMuted

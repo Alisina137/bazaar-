@@ -1,12 +1,13 @@
 import {
   getAvailableAppModes,
   type AppMode,
-  type AppRole
+  type AppRole,
+  type OrderRecord
 } from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { useAuth } from "@/auth/provider";
@@ -25,6 +26,8 @@ import {
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 import { useStores } from "@/store/provider";
+import { listCustomerOrders } from "@/order/api";
+import { orderStateKey } from "@/order/messages";
 
 function roleKey(role: AppRole): TranslationKey {
   const keys: Record<AppRole, TranslationKey> = {
@@ -53,11 +56,31 @@ export default function AccountScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { isRTL, t } = useLocalization();
-  const { status, user, logout } = useAuth();
+  const { status, user, sessionToken, logout } = useAuth();
   const { status: storeStatus, currentStore, refresh: refreshStores } = useStores();
   const [showAccess, setShowAccess] = useState(false);
 
   const [busy, setBusy] = useState(false);
+  const [latestOrder, setLatestOrder] = useState<OrderRecord | null>(null);
+
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    if (status !== "signedIn" || !sessionToken) {
+      setLatestOrder(null);
+      return () => { active = false; };
+    }
+    void listCustomerOrders(sessionToken).then(response => {
+      if (active) {
+        const ordered = [...response.orders].sort((a, b) =>
+          Date.parse(b.placedAt) - Date.parse(a.placedAt)
+        );
+        setLatestOrder(ordered[0] ?? null);
+      }
+    }).catch(() => {
+      if (active) setLatestOrder(null);
+    });
+    return () => { active = false; };
+  }, [sessionToken, status]));
 
   if (status === "loading") {
     return (
@@ -195,11 +218,34 @@ export default function AccountScreen() {
         </Card>
 
         <AccountSection title={t("account.section.shopping")}>
+          {latestOrder ? (
+            <AccountMenuRow
+              icon="cube-outline"
+              title={t("account.shopping.recentOrder") + " #" + latestOrder.orderNumber}
+              subtitle={t(orderStateKey(latestOrder.state))}
+              onPress={() => router.push({
+                pathname: "/orders/[orderId]",
+                params: { orderId: latestOrder.id }
+              })}
+            />
+          ) : null}
           <AccountMenuRow
             icon="receipt-outline"
             title={t("account.myOrders")}
             subtitle={t("account.ordersHint")}
             onPress={() => router.push("/(tabs)/orders")}
+          />
+          <AccountMenuRow
+            icon="heart-outline"
+            title={t("account.shopping.wishlist")}
+            subtitle={t("account.shopping.wishlistHint")}
+            onPress={() => router.push("/account/wishlist")}
+          />
+          <AccountMenuRow
+            icon="time-outline"
+            title={t("account.shopping.recent")}
+            subtitle={t("account.shopping.recentHint")}
+            onPress={() => router.push("/account/recently-viewed")}
           />
           <AccountMenuRow
             icon="cart-outline"

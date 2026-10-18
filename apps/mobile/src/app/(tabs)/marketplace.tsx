@@ -136,6 +136,7 @@ export default function MarketplaceScreen() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [priceError, setPriceError] = useState<"invalid" | "range" | null>(null);
   const browseRequestId = useRef(0);
+  const lastRequestedBrowseInput = useRef<BrowseMarketplaceInput | null>(null);
   const homeRequestId = useRef(0);
   const activeHomeProvince = useRef<string | undefined>(undefined);
 
@@ -242,6 +243,7 @@ export default function MarketplaceScreen() {
       append = false
     ) => {
       const requestId = ++browseRequestId.current;
+      if (!append) lastRequestedBrowseInput.current = input;
       if (append) {
         setBrowseLoadingMore(true);
       } else {
@@ -684,7 +686,11 @@ export default function MarketplaceScreen() {
       {selectedView === "products" && browseError && !browse ? (
         <StateView kind="error" title={t("marketplace.errorTitle")}
           message={t(marketplaceErrorKey(browseError.code))}
-          actionLabel={t("marketplace.retry")} onAction={submitSearch} />
+          actionLabel={t("marketplace.retry")} onAction={() => {
+            if (lastRequestedBrowseInput.current)
+              void executeBrowse(lastRequestedBrowseInput.current);
+            else submitSearch();
+          }} />
       ) : null}
 
       {selectedView === "products" && browse ? (
@@ -726,8 +732,8 @@ export default function MarketplaceScreen() {
               kind="empty"
               title={t("marketplace.noResultsTitle")}
               message={t("marketplace.phase2.noResultsHelp")}
-              actionLabel={t("marketplace.clearFilters")}
-              onAction={clearDiscovery}
+              actionLabel={t(activeFilterCount > 0 ? "marketplace.clearFilters" : "marketplace.clearSearch")}
+              onAction={activeFilterCount > 0 ? clearAppliedFilters : clearDiscovery}
             />
           ) : (
             <View style={{ gap: theme.spacing.lg }}>

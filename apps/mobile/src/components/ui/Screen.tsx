@@ -2,6 +2,7 @@ import type { PropsWithChildren } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   View,
@@ -15,12 +16,16 @@ import { useAppTheme } from "@/design/theme";
 export interface ScreenProps extends PropsWithChildren {
   scrollable?: boolean;
   contentStyle?: StyleProp<ViewStyle>;
+  refreshing?: boolean;
+  onRefresh?: (() => void) | undefined;
 }
 
 export function Screen({
   children,
   scrollable = true,
-  contentStyle
+  contentStyle,
+  refreshing = false,
+  onRefresh
 }: ScreenProps) {
   const theme = useAppTheme();
 
@@ -28,6 +33,14 @@ export function Screen({
     <ScrollView
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="on-drag"
+      refreshControl={onRefresh ? (
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={theme.colors.primary}
+          colors={[theme.colors.primary]}
+        />
+      ) : undefined}
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={[
         styles.content,

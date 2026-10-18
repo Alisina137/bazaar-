@@ -2,7 +2,7 @@ import type { MarketplaceHomeResponse, MarketplaceProductSummary, MarketplaceSea
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, View, useWindowDimensions } from "react-native";
 
 import { useAuth } from "@/auth/provider";
 import { LanguageSwitcher } from "@/components/localization/LanguageSwitcher";
@@ -31,6 +31,8 @@ export default function HomeScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { isRTL, locale, t } = useLocalization();
+  const { width: screenWidth } = useWindowDimensions();
+  const compactHeader = screenWidth < 360;
   const { status } = useAuth();
   const [home, setHome] = useState<MarketplaceHomeResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,6 +40,8 @@ export default function HomeScreen() {
   const [cached, setCached] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [refreshRequested, setRefreshRequested] = useState(false);
+  const [showMoreSections, setShowMoreSections] = useState(false);
   const [query, setQuery] = useState("");
   const [province, setProvince] = useState<ProvinceName | null>(null);
   const [provinceLoaded, setProvinceLoaded] = useState(false);
@@ -46,6 +50,8 @@ export default function HomeScreen() {
   const [favoriteListings, setFavoriteListings] = useState<MarketplaceProductSummary[]>([]);
   const [favoritesLoading, setFavoritesLoading] = useState(false);
   const lastProvince = useRef<ProvinceName | null | undefined>(undefined);
+  const homeRef = useRef(home);
+  homeRef.current = home;
   const { suggestions, suggestionsLoading } = useMarketplaceSuggestions(query);
 
   useEffect(() => {
@@ -81,6 +87,11 @@ export default function HomeScreen() {
     void clearRecentProductIds().then(() => setRefreshKey((key) => key + 1));
   };
 
+  const requestRefresh = () => {
+    setRefreshRequested(true);
+    setRefreshKey((key) => key + 1);
+  };
+
   const chooseProvince = (next: ProvinceName | null) => {
     setProvince(next);
     void setDiscoveryProvince(next);
@@ -92,43 +103,59 @@ export default function HomeScreen() {
     const locationChanged = lastProvince.current !== province;
     lastProvince.current = province;
     if (locationChanged) setHome(null);
+
     const load = async () => {
       setLoading(true);
       setError(false);
-      setCached(false);
       const key = homeCacheKey(province ?? undefined);
+      let fallback: MarketplaceHomeResponse | null = null;
       try {
         const recentProductIds = await getRecentProductIds();
-        if (active) setRecentIds(recentProductIds);
+        if (!active) return;
+        setRecentIds(recentProductIds);
+
+        // Rehydrate the exact province cache before waiting for the network.
+        // Never briefly show another province's listings.
+        const saved = await readHomeCache(key, true);
+        if (!active) return;
+        fallback = saved ? {
+          ...saved,
+          recentlyViewed: orderRecentProducts(saved.recentlyViewed, recentProductIds)
+        } : null;
+        if (fallback) {
+          setHome(fallback);
+          setCached(true);
+        } else if (locationChanged) {
+          setCached(false);
+        }
+
         const fresh = await marketplaceHome({
           ...(province ? { province } : {}),
           recentProductIds
         });
-        if (active) {
-          setHome({
-            ...fresh,
-            recentlyViewed: orderRecentProducts(fresh.recentlyViewed, recentProductIds)
-          });
-          setCached(false);
-        }
+        if (!active) return;
+        setHome({
+          ...fresh,
+          recentlyViewed: orderRecentProducts(fresh.recentlyViewed, recentProductIds)
+        });
+        setCached(false);
         void writeHomeCache(key, fresh);
       } catch {
-        const fallbackRaw = await readHomeCache(key, true);
-        const recentProductIds = await getRecentProductIds();
-        const fallback = fallbackRaw ? {
-          ...fallbackRaw,
-          recentlyViewed: orderRecentProducts(fallbackRaw.recentlyViewed, recentProductIds)
-        } : null;
         if (active) {
-          setRecentIds(recentProductIds);
-          setHome(fallback);
+          // Preserve the last successful response on a transient reconnect.
+          // A new province never uses a different province's cache.
+          if (locationChanged && !fallback) setHome(null);
+          setError(!fallback && (locationChanged || !homeRef.current));
           setCached(Boolean(fallback));
-          setError(!fallback);
         }
       } finally {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+          setRefreshRequested(false);
+        }
       }
     };
+
     void load();
     return () => { active = false; };
   }, [refreshKey, province, provinceLoaded]));
@@ -245,19 +272,25 @@ export default function HomeScreen() {
   );
 
   return (
-    <Screen contentStyle={{ gap: theme.spacing.xl, paddingTop: theme.spacing.sm, paddingHorizontal: theme.spacing.lg, paddingBottom: theme.spacing["3xl"] }}>
+    <Screen
+      refreshing={refreshRequested}
+      onRefresh={requestRefresh}
+      contentStyle={{ gap: theme.spacing.lg, paddingTop: theme.spacing.sm, paddingHorizontal: theme.spacing.lg, paddingBottom: theme.spacing["3xl"] }}
+    >
       <View style={{
         flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center",
         gap: theme.spacing.sm, paddingVertical: theme.spacing.sm,
         paddingBottom: theme.spacing.md,
         borderBottomWidth: 1, borderBottomColor: theme.colors.border
       }}>
-        <View style={{
-          width: 44, height: 44, borderRadius: theme.radii.lg,
-          backgroundColor: theme.colors.primary, alignItems: "center", justifyContent: "center"
-        }}>
-          <Ionicons name="storefront" size={24} color={theme.colors.onPrimary} />
-        </View>
+        {!compactHeader ? (
+          <View style={{
+            width: 44, height: 44, borderRadius: theme.radii.lg,
+            backgroundColor: theme.colors.primary, alignItems: "center", justifyContent: "center"
+          }}>
+            <Ionicons name="storefront" size={24} color={theme.colors.onPrimary} />
+          </View>
+        ) : null}
         <View style={{ flex: 1, minWidth: 0 }}>
           <AppText variant="heading" numberOfLines={1}>{t("common.brandName")}</AppText>
         </View>
@@ -295,26 +328,6 @@ export default function HomeScreen() {
         />
       </View>
 
-      {spotlight ? (
-        <HomeDealSpotlight product={spotlight} />
-      ) : (
-        <HomeHeroBanner />
-      )}
-
-      {loading && !home ? <HomeLoadingSkeleton /> : null}
-      {error && !home ? (
-        <StateView kind="error" title={t("marketplace.errorTitle")}
-          message={t("marketplace.error.serviceUnavailable")}
-          actionLabel={t("marketplace.retry")}
-          onAction={() => setRefreshKey((key) => key + 1)} />
-      ) : null}
-      {cached ? <AppText variant="caption" tone="muted">{t("marketplace.cachedNotice")}</AppText> : null}
-      {home && !loading && !hasContent ? (
-        <StateView kind="empty" title={t("home.emptyTitle")}
-          message={t("home.emptyMessage")} actionLabel={t("home.exploreProducts")}
-          onAction={openMarketplace} />
-      ) : null}
-
       {rootCategories.length > 0 ? (
         <View style={{ gap: theme.spacing.md }}>
           <HomeSectionHeader title={t("marketplace.categories")} icon="grid-outline" onViewAll={openMarketplace} />
@@ -325,6 +338,26 @@ export default function HomeScreen() {
             ))}
           </ScrollView>
         </View>
+      ) : null}
+
+      {spotlight ? (
+        <HomeDealSpotlight product={spotlight} />
+      ) : (
+        <HomeHeroBanner />
+      )}
+
+      {loading && !home ? <HomeLoadingSkeleton /> : null}
+      {error && !home && !loading ? (
+        <StateView kind="error" title={t("marketplace.errorTitle")}
+          message={t("marketplace.error.serviceUnavailable")}
+          actionLabel={t("marketplace.retry")}
+          onAction={requestRefresh} />
+      ) : null}
+      {cached ? <AppText variant="caption" tone="muted">{t("marketplace.cachedNotice")}</AppText> : null}
+      {home && !loading && !hasContent ? (
+        <StateView kind="empty" title={t("home.emptyTitle")}
+          message={t("home.emptyMessage")} actionLabel={t("home.exploreProducts")}
+          onAction={openMarketplace} />
       ) : null}
 
       <HomeProductRail
@@ -350,18 +383,52 @@ export default function HomeScreen() {
         products={home?.popular ?? []}
         onViewAll={() => openResults({ sort: "popularity" })}
       />
-      <HomeProductRail
-        icon="flash-outline"
-        title={t("home.newArrivals")}
-        products={home?.newest ?? []}
-        onViewAll={() => openResults({ sort: "newest" })}
-      />
-      <HomeProductRail
-        icon="pricetags-outline"
-        title={t("home.discountedProducts")}
-        products={home?.deals ?? []}
-        onViewAll={() => openResults({ discount: "true" })}
-      />
+      {(home?.newest.length || home?.deals.length) ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ expanded: showMoreSections }}
+          accessibilityLabel={showMoreSections ? t("home.showLess") : t("home.showMore")}
+          onPress={() => setShowMoreSections((open) => !open)}
+          style={({ pressed }) => ({
+            minHeight: 48,
+            paddingHorizontal: theme.spacing.md,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
+            borderRadius: theme.radii.md,
+            backgroundColor: theme.colors.surface,
+            flexDirection: isRTL ? "row-reverse" : "row",
+            gap: theme.spacing.sm,
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: pressed ? theme.opacity.pressed : 1
+          })}
+        >
+          <AppText variant="label" tone="primary">
+            {showMoreSections ? t("home.showLess") : t("home.showMore")}
+          </AppText>
+          <Ionicons
+            name={showMoreSections ? "chevron-up" : "chevron-down"}
+            color={theme.colors.primary}
+            size={18}
+          />
+        </Pressable>
+      ) : null}
+      {showMoreSections ? (
+        <>
+          <HomeProductRail
+            icon="flash-outline"
+            title={t("home.newArrivals")}
+            products={home?.newest ?? []}
+            onViewAll={() => openResults({ sort: "newest" })}
+          />
+          <HomeProductRail
+            icon="pricetags-outline"
+            title={t("home.discountedProducts")}
+            products={home?.deals ?? []}
+            onViewAll={() => openResults({ discount: "true" })}
+          />
+        </>
+      ) : null}
 
       {province ? (
         <View style={{ gap: theme.spacing.sm }}>

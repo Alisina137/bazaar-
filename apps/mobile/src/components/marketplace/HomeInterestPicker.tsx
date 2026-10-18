@@ -1,7 +1,7 @@
 import type { MarketplaceCategoryRecord } from "@bazaarlink/contracts";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useState } from "react";
-import { Alert, Modal, Pressable, ScrollView, View } from "react-native";
+import { Alert, Modal, Pressable, ScrollView, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/AppText";
@@ -25,6 +25,8 @@ export function HomeInterestPicker({
 }) {
   const theme = useAppTheme();
   const { isRTL, locale, t, formatNumber } = useLocalization();
+  const { width } = useWindowDimensions();
+  const narrow = width < 390;
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<string[]>([]);
   const [atLimit, setAtLimit] = useState(false);
@@ -163,7 +165,7 @@ export function HomeInterestPicker({
               }}>
                 {t("home.saveInterests")}
               </Button>
-              <View style={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm }}>
+              <View style={{ flexDirection: narrow ? "column" : isRTL ? "row-reverse" : "row", gap: theme.spacing.sm }}>
                 <View style={{ flex: 1 }}>
                   <Button variant="secondary" fullWidth onPress={() => {
                     setDraft([]);

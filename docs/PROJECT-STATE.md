@@ -1693,3 +1693,13 @@ Automated implementation scope is committed as an integrated Phase 12 change. Gi
 - Styled category icons with circular media surfaces and changed narrow-screen category grids to three columns. Product/store cards use subtle light-mode elevation, improved image sizing, and consistent radii; theme tokens avoid unreadable dark-mode shadows.
 - Search bar now highlights keyboard focus; manual province and interests controls highlight their selected state. Offer spotlight shows only verifiable discounts, with a broken-image fallback.
 - Existing Phase 1–5 search, recommendation, opt-in province, localization and auth flows preserved. No external image assets, mocked listings or backend/schema changes.
+
+## Home UX Phase 7 — mobile responsiveness / navigation
+
+- Responsive Home header hides the decorative mark at widths below 360dp to maintain the three action shortcuts' minimum 44dp target sizes.
+- Promo banner, live deal spotlight and Interests actions adapt to narrow Android widths (less than 360/390dp).
+- Home screen supports refresh gesture; generic Screen component's RefreshControl is optional and does not alter all other app screens.
+- Home renders cached province-matched public data as soon as possible, then revalidates via the real marketplace service. Stale or failed requests do not erase successfully loaded results; focus cleanup prevents obsolete async screen updates.
+- Horizontal product rails now use bounded FlatList virtualization, stable item IDs and inverted RTL direction.
+- Categories move ahead of the hero and New Arrivals/Discounts use an accessible, localized Show more / Show less expander to cut excessive default vertical scrolling. The exact same View all routes remain available.
+- Phase 1–6 APIs, stock/trust indicators, opt-in manual province selection, customer auth and multilingual RTL/LTR preserved. Device rendering still requires manual Expo Go acceptance testing.

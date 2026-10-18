@@ -1,6 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
-import { Pressable, View } from "react-native";
+import { Pressable, View, useWindowDimensions } from "react-native";
 
 import { AppText } from "@/components/ui/AppText";
 import { useAppTheme } from "@/design/theme";
@@ -11,6 +11,8 @@ export function HomeHeroBanner() {
   const router = useRouter();
   const theme = useAppTheme();
   const { isRTL, t } = useLocalization();
+  const { width } = useWindowDimensions();
+  const compact = width < 360;
 
   return (
     <Pressable
@@ -39,8 +41,8 @@ export function HomeHeroBanner() {
         ...(isRTL ? { left: -54 } : { right: -54 })
       }} />
       <View style={{
-        padding: theme.spacing.xl,
-        gap: theme.spacing.lg,
+        padding: compact ? theme.spacing.md : theme.spacing.xl,
+        gap: compact ? theme.spacing.sm : theme.spacing.lg,
         minHeight: 150,
         flexDirection: isRTL ? "row-reverse" : "row",
         alignItems: "center"
@@ -67,8 +69,8 @@ export function HomeHeroBanner() {
           </View>
         </View>
         <View style={{
-          width: 82,
-          height: 96,
+          width: compact ? 64 : 82,
+          height: compact ? 78 : 96,
           borderRadius: theme.radii.lg,
           borderWidth: 1,
           borderColor: theme.colors.border,
@@ -76,7 +78,7 @@ export function HomeHeroBanner() {
           justifyContent: "center",
           alignItems: "center"
         }}>
-          <Ionicons name="bag-handle" color={theme.colors.primary} size={42} />
+          <Ionicons name="bag-handle" color={theme.colors.primary} size={compact ? 32 : 42} />
         </View>
       </View>
     </Pressable>

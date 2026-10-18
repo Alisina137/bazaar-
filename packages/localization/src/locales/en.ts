@@ -26,6 +26,8 @@ export const enMessages = {
 
   "home.shopLocal": "Shop from local businesses",
   "home.exploreProducts": "Explore products",
+  "home.showMore": "Show new arrivals & deals",
+  "home.showLess": "Show fewer sections",
   "home.viewAll": "View all",
   "home.emptyTitle": "No listings yet",
   "home.emptyMessage": "Products and stores will appear as sellers publish them.",

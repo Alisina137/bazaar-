@@ -2,7 +2,7 @@ import type { MarketplaceProductSummary } from "@bazaarlink/contracts";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Image, Pressable, View } from "react-native";
+import { Image, Pressable, View, useWindowDimensions } from "react-native";
 
 import { AppText } from "@/components/ui/AppText";
 import { useAppTheme } from "@/design/theme";
@@ -18,6 +18,8 @@ export function HomeDealSpotlight({
   const theme = useAppTheme();
   const { t, isRTL, formatAfn, formatNumber } = useLocalization();
   const [imageFailed, setImageFailed] = useState(false);
+  const { width } = useWindowDimensions();
+  const compact = width < 360;
   const sale = discountPercentage(product);
 
   return (
@@ -29,8 +31,8 @@ export function HomeDealSpotlight({
         params: { productId: product.id }
       })}
       style={({ pressed }) => ({
-        minHeight: 184,
-        padding: theme.spacing.lg,
+        minHeight: compact ? 160 : 184,
+        padding: compact ? theme.spacing.md : theme.spacing.lg,
         flexDirection: isRTL ? "row-reverse" : "row",
         borderWidth: 1,
         borderColor: theme.colors.border,
@@ -94,7 +96,7 @@ export function HomeDealSpotlight({
         </View>
       </View>
       <View style={{
-        width: 118, height: 148,
+        width: compact ? 86 : 118, height: compact ? 120 : 148,
         borderWidth: 2,
         borderColor: theme.colors.surface,
         borderRadius: theme.radii.lg,

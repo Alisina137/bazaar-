@@ -149,3 +149,12 @@ Home now uses a compact branded header and accessible 44px quick actions, paired
 The category rail uses larger circular image/icon tiles and three-column category grid tiles on narrow screens. Product rails share one consistent icon-and-heading pattern with single-line labels, direction-aware View all controls, and padded image-first cards; product and store cards use consistent radii and subtle elevation in light mode. A static skeleton matches category and product rails while the first Home request loads; the current error, empty, and offline states remain functional. Layout direction works in Dari/Pashto RTL and English LTR, retaining dark-mode colors from existing design tokens.
 
 The styling phase does not change storefront data, marketplace permissions, pricing, payments, promotions eligibility, server logic, or user location privacy. Typography remains compact without redundant title/subtitle blocks.
+
+## Customer Home — Phase 7 small-phone responsiveness and usability
+
+- Home reduces long initial scrolling: categories are available early and the New Arrivals / Discounts rails collapse behind an accessible Show more toggle; their genuine filters and View all routes are preserved.
+- The branded header adapts on phones under 360dp by hiding the decorative brand icon while retaining the language, cart and notifications actions with 44dp touch targets. Promotional hero/discounted-product imagery shrinks on narrow phones; Interests actions stack vertically when horizontal room is insufficient.
+- A pull-down gesture now refreshes the live Home marketplace feed. The generic ScrollView screen supports an optional pull-to-refresh control with themed colors. Only Home opts into it.
+- Home reads the matching per-province offline cache before contacting the API, so reopening the tab or reconnecting does not show an unnecessary empty skeleton when saved data exists. Live results replace cached data when available; errors retain previous results rather than wiping a working page, and obsolete responses cannot update an unfocused Home tab.
+- Product discovery rails use horizontal FlatList virtualization (small initial batch and stable IDs) instead of eagerly rendering every card. RTL rows use an inverted horizontal list and preserve touch and screen-reader semantics.
+- No backend, database, paid features or new subscriptions. The existing compact titles, authentic inventory, and opt-in location behavior remain.

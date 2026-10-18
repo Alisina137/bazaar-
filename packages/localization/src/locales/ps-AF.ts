@@ -28,6 +28,8 @@ export const psAfMessages = {
 
   "home.shopLocal": "له سیمه‌ییزو کاروبارونو پیرود وکړئ",
   "home.exploreProducts": "محصولات وګورئ",
+  "home.showMore": "نوي محصولات او تخفیفونه وګورئ",
+  "home.showLess": "لږې برخې وښایئ",
   "home.viewAll": "ټول وګورئ",
   "home.emptyTitle": "تر اوسه توکي نه دي خپاره شوي",
   "home.emptyMessage": "کله چې پلورونکي خپل توکي او پلورنځي خپاره کړي، دلته به ښکاره شي.",

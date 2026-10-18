@@ -28,6 +28,8 @@ export const faAfMessages = {
 
   "home.shopLocal": "از کسب‌وکارهای محلی خرید کنید",
   "home.exploreProducts": "دیدن محصولات",
+  "home.showMore": "نمایش محصولات تازه و تخفیف‌ها",
+  "home.showLess": "نمایش بخش‌های کمتر",
   "home.viewAll": "مشاهده همه",
   "home.emptyTitle": "هنوز محصولی ثبت نشده است",
   "home.emptyMessage": "با نشر محصولات و فروشگاه‌ها توسط فروشندگان، اینجا نمایش داده می‌شوند.",

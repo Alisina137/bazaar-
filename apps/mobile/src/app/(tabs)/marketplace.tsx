@@ -14,7 +14,6 @@ import {
   useState
 } from "react";
 import {
-  ScrollView,
   View
 } from "react-native";
 
@@ -28,6 +27,7 @@ import {
   AppText,
   Button,
   Card,
+  HorizontalLocaleScroll,
   Screen,
   StateView,
   TextField
@@ -510,7 +510,7 @@ export default function MarketplaceScreen() {
               </Button>
 
               <AppText variant="label">{t("marketplace.sort.label")}</AppText>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}
+              <HorizontalLocaleScroll showsHorizontalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={{ gap: theme.spacing.sm, flexDirection: isRTL ? "row-reverse" : "row" }}>
               {(
@@ -531,7 +531,7 @@ export default function MarketplaceScreen() {
                   {t(key)}
                 </Button>
               ))}
-              </ScrollView>
+              </HorizontalLocaleScroll>
 
               <Button
                 fullWidth
@@ -700,15 +700,14 @@ export default function MarketplaceScreen() {
               <AppText variant="heading">
                 {t("marketplace.featuredStores")}
               </AppText>
-              <ScrollView
-                horizontal
+              <HorizontalLocaleScroll
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ gap: theme.spacing.md }}
               >
                 {home.featuredStores.map((featured) => (
                   <MarketplaceStoreCard key={featured.store.id} featured={featured} />
                 ))}
-              </ScrollView>
+              </HorizontalLocaleScroll>
             </View>
           ) : null}
 
@@ -740,8 +739,7 @@ function ProductSection({
   return (
     <View style={{ gap: theme.spacing.md }}>
       <AppText variant="heading">{title}</AppText>
-      <ScrollView
-        horizontal
+      <HorizontalLocaleScroll
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ gap: theme.spacing.md }}
       >
@@ -752,7 +750,7 @@ function ProductSection({
             compact
           />
         ))}
-      </ScrollView>
+      </HorizontalLocaleScroll>
     </View>
   );
 }

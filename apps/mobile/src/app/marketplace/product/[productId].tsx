@@ -15,7 +15,6 @@ import {
 } from "react";
 import {
   Image,
-  ScrollView,
   Share,
   View
 } from "react-native";
@@ -32,6 +31,7 @@ import {
   Badge,
   Button,
   Card,
+  HorizontalLocaleScroll,
   Screen,
   StateView
 } from "@/components/ui";
@@ -282,8 +282,7 @@ export default function MarketplaceProductScreen() {
         </Card>
       ) : null}
 
-      <ScrollView
-        horizontal
+      <HorizontalLocaleScroll
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ gap: theme.spacing.sm }}
@@ -330,7 +329,7 @@ export default function MarketplaceProductScreen() {
             </AppText>
           </Card>
         )}
-      </ScrollView>
+      </HorizontalLocaleScroll>
 
       <View style={{ gap: theme.spacing.sm }}>
         <View
@@ -522,8 +521,7 @@ export default function MarketplaceProductScreen() {
           <AppText variant="title">
             {t("marketplace.product.related")}
           </AppText>
-          <ScrollView
-            horizontal
+          <HorizontalLocaleScroll
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ gap: theme.spacing.md }}
           >
@@ -534,7 +532,7 @@ export default function MarketplaceProductScreen() {
                 compact
               />
             ))}
-          </ScrollView>
+          </HorizontalLocaleScroll>
         </View>
       ) : null}
 

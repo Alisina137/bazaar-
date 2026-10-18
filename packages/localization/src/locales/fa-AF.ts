@@ -662,6 +662,24 @@ export const faAfMessages = {
   "auth.error.serviceUnavailable":
     "بازارلینک نتوانست به سرویس ورود وصل شود. اتصال خود را بررسی کرده و دوباره تلاش کنید.",
 
+  "account.section.shopping": "خریدهای من",
+  "account.section.account": "حساب من",
+  "account.section.preferences": "ترجیحات",
+  "account.section.business": "کسب‌وکار و محیط‌های کاری",
+  "account.section.help": "راهنما و پشتیبانی",
+  "account.myOrders": "سفارش‌های من",
+  "account.ordersHint": "مشاهده خریدها و وضعیت تحویل",
+  "account.cartHint": "بررسی سبد خرید",
+  "account.addressesHint": "آدرس‌های ذخیره‌شده برای تحویل",
+  "account.notificationsHint": "پیام‌ها و تازه‌ترین وضعیت سفارش‌ها",
+  "account.supportHint": "دریافت کمک و دیدن درخواست‌های پشتیبانی",
+  "account.accessDetails": "نقش‌ها و دسترسی‌ها",
+  "account.sellerStaffWorkspace": "باز کردن محیط کاری فروشگاه",
+  "account.storeAccessLoading": "در حال بررسی دسترسی فروشگاه…",
+  "account.storeAccessRetry": "تلاش دوباره برای دسترسی فروشگاه",
+  "account.storeAccessError": "فروشگاه‌ها بارگذاری نشدند. برای تلاش دوباره بزنید.",
+  "account.noAssignedStore": "فروشگاهی برای شما تعیین نشده است. از مالک فروشگاه بخواهید دسترسی بدهد.",
+
   "account.sellOnBazaarLink": "فروش در بازارلینک",
   "account.openSellerDashboard": "باز کردن داشبورد فروشنده",
 

@@ -665,6 +665,24 @@ export const enMessages = {
   "auth.error.serviceUnavailable":
     "BazaarLink could not reach the authentication service. Check your connection and try again.",
 
+  "account.section.shopping": "My shopping",
+  "account.section.account": "My account",
+  "account.section.preferences": "Preferences",
+  "account.section.business": "Business and workspaces",
+  "account.section.help": "Help and support",
+  "account.myOrders": "My orders",
+  "account.ordersHint": "View purchases and delivery status",
+  "account.cartHint": "Review your shopping cart",
+  "account.addressesHint": "Saved delivery locations",
+  "account.notificationsHint": "Messages and order updates",
+  "account.supportHint": "Get help or view your support requests",
+  "account.accessDetails": "Roles and access",
+  "account.sellerStaffWorkspace": "Open seller workspace",
+  "account.storeAccessLoading": "Checking store access…",
+  "account.storeAccessRetry": "Retry store access",
+  "account.storeAccessError": "Couldn't load your stores. Tap to try again.",
+  "account.noAssignedStore": "No store assigned. Ask the store owner for access.",
+
   "account.sellOnBazaarLink": "Sell on BazaarLink",
   "account.openSellerDashboard": "Open Seller Dashboard",
 

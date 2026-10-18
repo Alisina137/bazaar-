@@ -1722,3 +1722,13 @@ Automated implementation scope is committed as an integrated Phase 12 change. Gi
 - Locale hydration cannot override a newer user-selected language during a delayed AsyncStorage read. There are no new native dependencies, API endpoints, migrations or permissions.
 - Regression test: `pnpm test:rtl-layout`, included in `pnpm verify`.
 - **Manual Expo Go device QA still required**: switch English → Dari → Pashto → English on Home, Marketplace/search/filter sliders, product/gallery and stores, cart, checkout/address/payment, account, support, reviews, seller tab bar and seller operations, checking narrow (320–360dp) and normal screens. Verify the first category/product in horizontal carousels appears on the RTL right edge, back arrows remain logical, keyboards/cursors match text direction, and switches do not unexpectedly lose the active route. Android/iOS and light/dark checks are not substituted by CI.
+
+## Customer Account redesign — Phase 1 (structure & role-aware navigation)
+
+- Rebuilt the signed-in customer's Account tab as a compact RTL/LTR-aware profile hub, including an initials/avatar placeholder (no photo upload yet), server-authorized primary role indicator and an expandable list of all account roles/authorized modes.
+- Replaced the large unsorted button stack with themed icon rows and clearly separated Shopping (Orders/Cart), Account (Addresses), Preferences (real notification inbox + working language switcher), Business (seller/store staff + authorized moderation/support), Help (existing support), and distinct Sign Out areas.
+- Real destinations only: all navigation rows route to existing screens. No unsupported wishlist, edit-profile, password recovery or appearance controls are presented before later phases implement them.
+- Seller navigation now distinguishes customer, merchant owner and merchant staff; staff without a linked store do not enter store onboarding. Store access remains resolved by the existing authorized store API, including loading/error/retry states, and role restrictions remain server-side.
+- Added localized strings for English, Dari (`fa-AF`) and Pashto (`ps-AF`); icon order and chevrons mirror on language changes, and the page stays readable in dark/light mode.
+- Guest login/registration form and its existing authentication behavior remain unchanged until Phase 2. No new API endpoints, permissions, product storage, migrations, or external services.
+- Verify with `pnpm test:account-phase1` (included in `pnpm verify`); Expo Go manual checks still required on narrow phones, with both layout directions and all available user roles. Profile editing/verified email/wishlist/security belong to upcoming phases.

@@ -26,7 +26,7 @@
     "test": "pnpm -r --if-present test",
     "build": "pnpm -r --if-present build",
     "verify:localization": "node scripts/verify-mobile-localization.mjs",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm verify:localization && pnpm verify:release-ux && pnpm test:api-dev && pnpm test:admin-login && pnpm test:expo-go && pnpm test:home-phase1 && pnpm test:home-phase2 && pnpm test:home-phase3 && pnpm test:home-phase4 && pnpm test:home-phase5 && pnpm test:home-phase6 && pnpm test:home-phase7 && pnpm test:home-phase8 && pnpm test:rtl-layout && pnpm build",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm verify:localization && pnpm verify:release-ux && pnpm test:api-dev && pnpm test:admin-login && pnpm test:expo-go && pnpm test:home-phase1 && pnpm test:home-phase2 && pnpm test:home-phase3 && pnpm test:home-phase4 && pnpm test:home-phase5 && pnpm test:home-phase6 && pnpm test:home-phase7 && pnpm test:home-phase8 && pnpm test:rtl-layout && pnpm test:account-phase1 && pnpm build",
     "test:integration": "pnpm --filter @bazaarlink/api test:integration",
     "verify:release-ux": "node scripts/verify-release-ux.mjs",
     "release:preflight": "node scripts/production-preflight.mjs",
@@ -43,7 +43,8 @@
     "test:home-phase6": "node --test scripts/home-phase6.test.mjs",
     "test:home-phase7": "node --test scripts/home-phase7.test.mjs",
     "test:home-phase8": "node --test scripts/home-phase8.test.mjs",
-    "test:rtl-layout": "node --test scripts/rtl-layout.test.mjs"
+    "test:rtl-layout": "node --test scripts/rtl-layout.test.mjs",
+    "test:account-phase1": "node --test scripts/account-phase1.test.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.38.0",

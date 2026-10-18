@@ -1,6 +1,7 @@
 import type {
   AuthErrorCode,
-  AuthUser
+  AuthUser,
+  UpdateAuthProfileInput
 } from "@bazaarlink/contracts";
 import {
   createContext,
@@ -17,7 +18,8 @@ import {
   loginAccount,
   logoutSession,
   registerAccount,
-  restoreSession
+  restoreSession,
+  updateAccountProfile
 } from "./api";
 import {
   clearStoredSessionToken,
@@ -42,6 +44,7 @@ interface AuthContextValue {
     preferredLocale: "fa-AF" | "ps-AF" | "en";
   }) => Promise<void>;
   refreshSession: () => Promise<void>;
+  updateProfile: (input: UpdateAuthProfileInput) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -168,6 +171,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }
   }, [sessionToken]);
 
+  const updateProfile = useCallback(async (input: UpdateAuthProfileInput) => {
+    if (!sessionToken || status !== "signedIn") {
+      throw new AuthApiError("invalid_session");
+    }
+    const response = await updateAccountProfile(sessionToken, input);
+    setUser((current) =>
+      current?.id === response.user.id ? response.user : current
+    );
+  }, [sessionToken, status]);
+
   const logout = useCallback(async () => {
     const token = sessionToken;
 
@@ -191,6 +204,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       login,
       register,
       refreshSession,
+      updateProfile,
       logout
     }),
     [
@@ -200,6 +214,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       login,
       register,
       refreshSession,
+      updateProfile,
       logout
     ]
   );

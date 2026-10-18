@@ -63,8 +63,9 @@ export function TextField({
           paddingHorizontal: theme.spacing.lg,
           fontSize: theme.fontSizes.body,
           lineHeight: theme.lineHeights.body,
-          textAlign: forceLTR ? "left" : isRTL ? "right" : "left",
-          writingDirection: forceLTR ? "ltr" : direction
+          textAlign: isRTL ? "right" : "left",
+          writingDirection: direction,
+          ...(forceLTR ? { textAlign: "left" as const, writingDirection: "ltr" as const } : {})
         }}
       />
       {supportingText ? (

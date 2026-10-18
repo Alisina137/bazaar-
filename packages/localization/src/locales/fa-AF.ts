@@ -614,6 +614,20 @@ export const faAfMessages = {
   "account.description":
     "برای اتصال امن فعالیت‌های بازارلینک وارد شوید یا یک حساب بسازید.",
 
+  "account.auth.guestIntro": "برای مدیریت خریدها و سفارش‌های خود وارد شوید یا حساب تازه بسازید.",
+  "account.auth.showPassword": "نمایش رمز عبور",
+  "account.auth.hidePassword": "پنهان کردن رمز عبور",
+  "account.auth.confirmPassword": "تأیید رمز عبور",
+  "account.auth.continueShopping": "ادامهٔ خرید بدون ورود",
+  "account.auth.emailRequired": "آدرس ایمیل خود را وارد کنید.",
+  "account.auth.emailInvalid": "یک آدرس ایمیل معتبر وارد کنید.",
+  "account.auth.passwordRequired": "رمز عبور خود را وارد کنید.",
+  "account.auth.passwordTooShort": "رمز عبور باید حداقل ۸ کاراکتر داشته باشد.",
+  "account.auth.passwordTooLong": "رمز عبور باید حداکثر ۱۲۸ کاراکتر باشد.",
+  "account.auth.nameTooLong": "نام باید حداکثر ۱۶۰ کاراکتر باشد.",
+  "account.auth.confirmationRequired": "رمز عبور را تأیید کنید.",
+  "account.auth.confirmationMismatch": "رمزهای عبور مطابقت ندارند.",
+
   "auth.restoringTitle": "بازیابی نشست شما",
   "auth.restoringMessage": "نشست امن ذخیره‌شده شما بررسی می‌شود.",
   "auth.signInTitle": "خوش آمدید",

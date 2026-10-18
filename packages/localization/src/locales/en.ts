@@ -617,6 +617,20 @@ export const enMessages = {
   "account.description":
     "Sign in or create an account to keep your BazaarLink activity connected securely.",
 
+  "account.auth.guestIntro": "Sign in to manage your shopping and orders, or create a new account.",
+  "account.auth.showPassword": "Show password",
+  "account.auth.hidePassword": "Hide password",
+  "account.auth.confirmPassword": "Confirm password",
+  "account.auth.continueShopping": "Continue shopping as a guest",
+  "account.auth.emailRequired": "Enter your email address.",
+  "account.auth.emailInvalid": "Enter a valid email address.",
+  "account.auth.passwordRequired": "Enter your password.",
+  "account.auth.passwordTooShort": "Password must have at least 8 characters.",
+  "account.auth.passwordTooLong": "Password must be 128 characters or fewer.",
+  "account.auth.nameTooLong": "Name must be 160 characters or fewer.",
+  "account.auth.confirmationRequired": "Confirm your password.",
+  "account.auth.confirmationMismatch": "Passwords do not match.",
+
   "auth.restoringTitle": "Restoring your session",
   "auth.restoringMessage": "Checking your saved secure session.",
   "auth.signInTitle": "Welcome back",

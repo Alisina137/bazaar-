@@ -1732,3 +1732,14 @@ Automated implementation scope is committed as an integrated Phase 12 change. Gi
 - Added localized strings for English, Dari (`fa-AF`) and Pashto (`ps-AF`); icon order and chevrons mirror on language changes, and the page stays readable in dark/light mode.
 - Guest login/registration form and its existing authentication behavior remain unchanged until Phase 2. No new API endpoints, permissions, product storage, migrations, or external services.
 - Verify with `pnpm test:account-phase1` (included in `pnpm verify`); Expo Go manual checks still required on narrow phones, with both layout directions and all available user roles. Profile editing/verified email/wishlist/security belong to upcoming phases.
+
+
+## Customer Account redesign — Phase 2 (guest UX & authentication)
+
+- Guest Account redesigned into an icon-led entry screen, localized sign-in/create-account segmented navigation, clearer form hierarchy, large touch targets, accessible labels, and a working Continue Shopping link.
+- Registration asks for an optional name, email, password and confirmation. Login requires email and password. Per-field inline validation checks email shape/length, password length and exact confirmation; invalid submissions do not contact the API. The existing Fastify auth endpoints remain the source of truth.
+- Password visibility is toggleable (including confirmation), login/signup requests are guarded against double taps and provide localized API error messages; secrets are cleared after success or when switching modes.
+- Email and password input content is LTR for readability across English, Dari and Pashto; the rest of the screen and actions retain live RTL/LTR switching through the existing localization provider.
+- Authentication remains email/password-based; no fabricated password-recovery, verification or policy links. Password recovery and advanced security remain allocated to Phase 4. Existing signed-in Account structure and guest access to Marketplace remain unchanged.
+- Validation and layout regression tests: `pnpm test:account-phase2` and `pnpm test:account-phase1`, included in `pnpm verify`.
+- Manual Expo Go QA: guest Account in all three locales and both color themes on narrow and normal Android phones; validate empty/bad email, short/mismatched passwords, eye toggle, keyboard Next/Go, rapid double taps, backend 401/429/offline messages, guest Marketplace navigation, and successful login/sign-up. No database migrations.

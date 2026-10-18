@@ -614,6 +614,20 @@ export const psAfMessages = {
   "account.description":
     "د بازارلینک فعالیتونو د خوندي ساتلو لپاره ننوځئ یا نوی حساب جوړ کړئ.",
 
+  "account.auth.guestIntro": "د پېرودنو او فرمایشونو د اداره کولو لپاره ننوځئ یا نوی حساب جوړ کړئ.",
+  "account.auth.showPassword": "پټنوم ښکاره کړئ",
+  "account.auth.hidePassword": "پټنوم پټ کړئ",
+  "account.auth.confirmPassword": "پټنوم بیا ولیکئ",
+  "account.auth.continueShopping": "له ننوتلو پرته پېرود ته دوام ورکړئ",
+  "account.auth.emailRequired": "خپل ایمیل پته دننه کړئ.",
+  "account.auth.emailInvalid": "سمه ایمیل پته دننه کړئ.",
+  "account.auth.passwordRequired": "خپل پټنوم دننه کړئ.",
+  "account.auth.passwordTooShort": "پټنوم باید لږ تر لږه ۸ توري ولري.",
+  "account.auth.passwordTooLong": "پټنوم باید له ۱۲۸ تورو ډېر نه وي.",
+  "account.auth.nameTooLong": "نوم باید له ۱۶۰ تورو ډېر نه وي.",
+  "account.auth.confirmationRequired": "خپل پټنوم بیا ولیکئ.",
+  "account.auth.confirmationMismatch": "پټنومونه یو شان نه دي.",
+
   "auth.restoringTitle": "ستاسو ناسته بېرته راګرځي",
   "auth.restoringMessage": "ستاسو خوندي ساتل شوې ناسته کتل کېږي.",
   "auth.signInTitle": "بیا ښه راغلاست",

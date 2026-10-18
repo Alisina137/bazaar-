@@ -45,8 +45,11 @@ test("account structure retains real routes, auth and role-scoped platform acces
   assert.match(screen, /sellerAccountEntry\(/);
   assert.match(screen, /sellerEntry === "unassigned"/);
   assert.match(screen, /logout\(\)/);
-  assert.match(screen, /await login\(/);
-  assert.match(screen, /await register\(/);
+  // Phase 2 moved authentication into the guest screen, leaving the signed-in menu intact.
+  const guest = read("apps/mobile/src/components/account/GuestAccountContent.tsx");
+  assert.match(screen, /<GuestAccountContent \/>/);
+  assert.match(guest, /await login\(/);
+  assert.match(guest, /await register\(/);
   assert.match(screen, /<LanguageSwitcher compact \/>/);
   assert.doesNotMatch(screen, /router\.push\("\/account\/edit"\)/);
 });

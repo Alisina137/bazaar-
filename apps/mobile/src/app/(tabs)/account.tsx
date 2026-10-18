@@ -1,8 +1,7 @@
 import {
   getAvailableAppModes,
   type AppMode,
-  type AppRole,
-  type AuthErrorCode
+  type AppRole
 } from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -10,49 +9,21 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 
-import {
-  getAuthErrorCode,
-  useAuth
-} from "@/auth/provider";
+import { useAuth } from "@/auth/provider";
 import { LanguageSwitcher } from "@/components/localization/LanguageSwitcher";
 import { AccountMenuRow, AccountSection } from "@/components/account/AccountMenu";
+import { GuestAccountContent } from "@/components/account/GuestAccountContent";
 import { sellerAccountEntry } from "@/account/navigation";
 import {
   AppText,
   Badge,
-  Button,
   Card,
   Screen,
-  StateView,
-  TextField
+  StateView
 } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 import { useStores } from "@/store/provider";
-
-type AuthMode = "login" | "register";
-
-function authErrorKey(code: AuthErrorCode): TranslationKey {
-  switch (code) {
-    case "invalid_request":
-      return "auth.error.invalidRequest";
-    case "email_in_use":
-      return "auth.error.emailInUse";
-    case "invalid_credentials":
-      return "auth.error.invalidCredentials";
-    case "invalid_session":
-      return "auth.error.sessionExpired";
-    case "account_unavailable":
-      return "auth.error.accountUnavailable";
-    case "forbidden":
-      return "auth.error.forbidden";
-    case "rate_limited":
-      return "auth.error.rateLimited";
-    case "service_unavailable":
-    default:
-      return "auth.error.serviceUnavailable";
-  }
-}
 
 function roleKey(role: AppRole): TranslationKey {
   const keys: Record<AppRole, TranslationKey> = {
@@ -81,16 +52,11 @@ export default function AccountScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { isRTL, locale, t } = useLocalization();
-  const { status, user, login, register, logout } = useAuth();
+  const { status, user, logout } = useAuth();
   const { status: storeStatus, currentStore, refresh: refreshStores } = useStores();
   const [showAccess, setShowAccess] = useState(false);
 
-  const [mode, setMode] = useState<AuthMode>("login");
-  const [displayName, setDisplayName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
 
   if (status === "loading") {
     return (
@@ -342,101 +308,5 @@ export default function AccountScreen() {
     );
   }
 
-  const submit = async () => {
-    setErrorKey(null);
-    setBusy(true);
-
-    try {
-      if (mode === "login") {
-        await login({
-          email,
-          password
-        });
-      } else {
-        await register({
-          email,
-          password,
-          displayName: displayName.trim() || null,
-          preferredLocale: locale
-        });
-      }
-
-      setPassword("");
-    } catch (error) {
-      setErrorKey(authErrorKey(getAuthErrorCode(error)));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Screen>
-      <AppText variant="heading">{mode === "login" ? t("auth.signInTitle") : t("auth.registerTitle")}</AppText>
-
-      <Card>
-        <View style={{ gap: theme.spacing.lg }}>
-          {mode === "register" ? (
-            <TextField
-              label={t("auth.displayName")}
-              value={displayName}
-              onChangeText={setDisplayName}
-              autoCapitalize="words"
-            />
-          ) : null}
-
-          <TextField
-            label={t("auth.email")}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-
-          <TextField
-            label={t("auth.password")}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoCapitalize="none"
-            helperText={
-              mode === "register" ? t("auth.passwordHint") : undefined
-            }
-          />
-
-          {errorKey ? (
-            <AppText tone="danger">{t(errorKey)}</AppText>
-          ) : null}
-
-          <Button
-            fullWidth
-            loading={busy}
-            onPress={() => {
-              void submit();
-            }}
-          >
-            {mode === "login"
-              ? t("auth.signInAction")
-              : t("auth.registerAction")}
-          </Button>
-
-          <Button
-            fullWidth
-            variant="ghost"
-            disabled={busy}
-            onPress={() => {
-              setErrorKey(null);
-              setPassword("");
-              setMode(mode === "login" ? "register" : "login");
-            }}
-          >
-            {mode === "login"
-              ? t("auth.needAccount")
-              : t("auth.haveAccount")}
-          </Button>
-        </View>
-      </Card>
-      <Card><LanguageSwitcher compact /></Card>
-    </Screen>
-  );
+  return <GuestAccountContent />;
 }

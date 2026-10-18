@@ -33,8 +33,8 @@ export function AccountMenuRow({
 }: {
   icon: IconName;
   title: string;
-  subtitle?: string;
-  onPress?: () => void;
+  subtitle?: string | undefined;
+  onPress?: (() => void) | undefined;
   last?: boolean;
   disabled?: boolean;
   destructive?: boolean;

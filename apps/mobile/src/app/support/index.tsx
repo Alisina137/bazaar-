@@ -102,6 +102,16 @@ export default function SupportScreen() {
       .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
   }, [tickets, filter, search, t]);
 
+  const awaitingReply = useMemo(
+    () => tickets.filter(ticket => ticket.status === "waiting_customer")
+      .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt)),
+    [tickets]
+  );
+  const openTicket = (ticketId: string) => router.push({
+    pathname: "/support/[ticketId]",
+    params: { ticketId }
+  });
+
   const submit = async () => {
     const cleanSubject = subject.trim();
     const cleanMessage = message.trim();
@@ -179,6 +189,34 @@ export default function SupportScreen() {
         </Card>
       ) : (
         <>
+          {!loading && !listError && awaitingReply.length > 0 ? (
+            <Card style={{
+              backgroundColor: theme.colors.warningSoft,
+              borderColor: theme.colors.warning
+            }}>
+              <View style={{ gap: theme.spacing.md }}>
+                <View style={{
+                  flexDirection: isRTL ? "row-reverse" : "row",
+                  alignItems: "center", gap: theme.spacing.sm
+                }}>
+                  <Ionicons name="chatbubble-ellipses-outline" size={22}
+                    color={theme.colors.warning} />
+                  <View style={{ flex: 1 }}>
+                    <AppText variant="bodyStrong">
+                      {t("support.phase7.replyNeeded")}
+                    </AppText>
+                    <AppText variant="caption" tone="muted">
+                      {formatNumber(awaitingReply.length)} {t("support.phase7.waitingCount")}
+                    </AppText>
+                  </View>
+                </View>
+                <AppText numberOfLines={2}>{awaitingReply[0]!.subject}</AppText>
+                <Button fullWidth onPress={() => openTicket(awaitingReply[0]!.id)}>
+                  {t("support.phase7.replyNow")}
+                </Button>
+              </View>
+            </Card>
+          ) : null}
           <Button fullWidth onPress={() => {
             setShowForm(current => !current);
             setError(null);
@@ -326,9 +364,7 @@ export default function SupportScreen() {
             <Pressable key={ticket.id}
               accessibilityRole="button"
               accessibilityLabel={ticket.subject}
-              onPress={() => router.push({
-                pathname: "/support/[ticketId]", params: { ticketId: ticket.id }
-              })}
+              onPress={() => openTicket(ticket.id)}
               style={({ pressed }) => ({ opacity: pressed ? theme.opacity.pressed : 1 })}
             >
               <Card>

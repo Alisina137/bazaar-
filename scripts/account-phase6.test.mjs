@@ -32,7 +32,7 @@ test("Shopping region stays explicit, persists, and refreshes the Home screen af
   const home = read("apps/mobile/src/app/(tabs)/index.tsx");
   assert.match(province, /No geolocation is inferred/);
   assert.match(province, /setDiscoveryProvince/);
-  assert.match(home, /useFocusEffect\(useCallback\(\(\) => \{\n    let active = true;\n    void getDiscoveryProvince/);
+  assert.match(home, /useFocusEffect\(useCallback\(\(\) => \{\n[ ]{4}let active = true;\n[ ]{4}void getDiscoveryProvince/);
 });
 
 test("Push setting actually removes the current account device token server-side", () => {

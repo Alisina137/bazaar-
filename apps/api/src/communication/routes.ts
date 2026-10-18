@@ -201,6 +201,21 @@ export function registerCommunicationRoutes(
   );
 
   app.post(
+    "/notifications/push-token/disable",
+    { config: { rateLimit: { max: 20, timeWindow: "1 hour" } } },
+    async (request, reply) => {
+      const payload = z.object({ token: pushTokenSchema.shape.token }).strict()
+        .safeParse(request.body);
+      if (!payload.success) return reply.code(400).send(body("invalid_request"));
+      try {
+        const session = await authenticate(request, authService);
+        await service.deactivatePushToken(session.user.id, payload.data.token);
+        return reply.code(204).send();
+      } catch (error) { return sendError(reply, error); }
+    }
+  );
+
+  app.post(
     "/support/tickets",
     {
       config: {

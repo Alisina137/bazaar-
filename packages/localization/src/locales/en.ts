@@ -51,6 +51,15 @@ export const enMessages = {
   "home.forYou": "For you",
   "home.findingForYou": "Finding products for your interests…",
 
+  "marketplace.nav.title": "Browse the marketplace",
+  "marketplace.nav.products": "Products",
+  "marketplace.nav.categories": "Categories",
+  "marketplace.nav.stores": "Stores",
+  "marketplace.nav.categoriesHint": "Choose a category to see available products.",
+  "marketplace.nav.storesHint": "Explore stores featured on BazaarLink. A full searchable store directory is planned separately.",
+  "marketplace.nav.emptyCategories": "No categories are available yet.",
+  "marketplace.nav.emptyStores": "No featured stores are available yet.",
+  "marketplace.nav.browseProducts": "Browse products",
   "marketplace.title": "Marketplace",
   "marketplace.description":
     "The marketplace shell is reserved for the approved marketplace phase.",

@@ -103,7 +103,9 @@ test("live search results never display cards from a previous query or stale cac
   const hook = read("apps/mobile/src/marketplace/useMarketplaceSuggestions.ts");
   assert.match(market, /setBrowse\(null\);\s*setBrowseInput\(null\);\s*setBrowseLoading\(true\)/);
   assert.match(market, /const cached = await readBrowseCache\(key, true\);\s*if \(requestId !== browseRequestId\.current\) return/);
-  assert.match(market, /browseLoading \|\| browseError \? null : home \?/);
+  assert.match(market, /selectedView === "products" && browse \?/);
+  assert.match(market, /selectedView === "categories" && home \?/);
+  assert.match(market, /selectedView === "stores" && home \?/);
   assert.match(hook, /const queryMatches = resolvedQuery === normalized/);
   assert.match(hook, /suggestions: queryMatches \? suggestions : \[\]/);
 });

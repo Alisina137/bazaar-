@@ -4,6 +4,7 @@ import type {
   AuthSessionResponse,
   AuthSuccessResponse,
   AuthProfileResponse,
+  AuthSecuritySessionsResponse,
   UpdateAuthProfileInput
 } from "@bazaarlink/contracts";
 
@@ -111,6 +112,61 @@ export function updateAccountProfile(token: string, input: UpdateAuthProfileInpu
     method: "PATCH",
     headers: { authorization: "Bearer " + token },
     body: JSON.stringify(input)
+  });
+}
+
+function securityAuthHeaders(token: string) {
+  return { authorization: "Bearer " + token };
+}
+
+export function requestPasswordReset(email: string): Promise<{ accepted: true }> {
+  return requestJson("/auth/password-reset/request", {
+    method: "POST", body: JSON.stringify({ email })
+  });
+}
+
+export function finishPasswordReset(code: string, newPassword: string): Promise<void> {
+  return requestJson("/auth/password-reset/confirm", {
+    method: "POST", body: JSON.stringify({ code, newPassword })
+  });
+}
+
+export function requestEmailVerification(token: string): Promise<{ accepted: true }> {
+  return requestJson("/auth/email-verification/request", {
+    method: "POST", headers: securityAuthHeaders(token), body: "{}"
+  });
+}
+
+export function finishEmailVerification(token: string, code: string): Promise<void> {
+  return requestJson("/auth/email-verification/confirm", {
+    method: "POST", headers: securityAuthHeaders(token), body: JSON.stringify({ code })
+  });
+}
+
+export function updateAccountPassword(
+  token: string, currentPassword: string, newPassword: string
+): Promise<void> {
+  return requestJson("/auth/change-password", {
+    method: "POST", headers: securityAuthHeaders(token),
+    body: JSON.stringify({ currentPassword, newPassword })
+  });
+}
+
+export function listAccountSessions(token: string): Promise<AuthSecuritySessionsResponse> {
+  return requestJson("/auth/sessions", {
+    method: "GET", headers: securityAuthHeaders(token)
+  });
+}
+
+export function revokeAccountSession(token: string, id: string): Promise<void> {
+  return requestJson("/auth/sessions/" + encodeURIComponent(id), {
+    method: "DELETE", headers: securityAuthHeaders(token)
+  });
+}
+
+export function revokeOtherAccountSessions(token: string): Promise<void> {
+  return requestJson("/auth/sessions/revoke-others", {
+    method: "POST", headers: securityAuthHeaders(token), body: "{}"
   });
 }
 

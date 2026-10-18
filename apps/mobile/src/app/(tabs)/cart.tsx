@@ -57,7 +57,7 @@ export default function CartScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { status, sessionToken } = useAuth();
-  const { formatAfn, formatNumber, t } = useLocalization();
+  const { isRTL, formatAfn, formatNumber, t } = useLocalization();
 
   const [cart, setCart] = useState<CartResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -326,7 +326,7 @@ function MerchantGroupCard({
           >
             <View
               style={{
-                flexDirection: "row",
+                flexDirection: isRTL ? "row-reverse" : "row",
                 gap: theme.spacing.md
               }}
             >
@@ -355,7 +355,7 @@ function MerchantGroupCard({
 
             <View
               style={{
-                flexDirection: "row",
+                flexDirection: isRTL ? "row-reverse" : "row",
                 flexWrap: "wrap",
                 gap: theme.spacing.sm
               }}
@@ -376,7 +376,7 @@ function MerchantGroupCard({
 
             <View
               style={{
-                flexDirection: "row",
+                flexDirection: isRTL ? "row-reverse" : "row",
                 gap: theme.spacing.sm,
                 alignItems: "center"
               }}
@@ -504,11 +504,12 @@ function PriceRow({
   emphasized?: boolean;
 }) {
   const theme = useAppTheme();
+  const { isRTL } = useLocalization();
 
   return (
     <View
       style={{
-        flexDirection: "row",
+        flexDirection: isRTL ? "row-reverse" : "row",
         justifyContent: "space-between",
         gap: theme.spacing.md
       }}

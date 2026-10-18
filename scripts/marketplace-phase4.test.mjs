@@ -61,7 +61,7 @@ test("save icon is independent from navigation, authenticated and uses a single 
   const grid = read("apps/mobile/src/components/marketplace/MarketplaceProductGrid.tsx");
   const wishlist = read("apps/mobile/src/account/wishlist-api.ts");
   assert.match(card, /onPress=\{viewProduct\}/);
-  assert.match(card, /\}\s*:\s*null\}\s*\n\s*<\/View>/); // overlay outside navigation
+  assert.match(card, /<\/Pressable>\s*\n\s*\{onSavePress \? \(/); // separate sibling control
   assert.match(card, /onSavePress\s*\?\s*\(/);
   assert.match(card, /onPress=\{onSavePress\}/);
   assert.match(card, /minHeight: 48, minWidth: 48/);

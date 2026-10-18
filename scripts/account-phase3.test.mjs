@@ -44,7 +44,7 @@ test("profile persists in one additive numbered database migration", () => {
   assert.match(schema, /avatarColor: varchar\("avatar_color", \{ length: 16 \}\)/);
   assert.equal(snapshot.tables["public.users"].columns.phone.type, "varchar(24)");
   assert.equal(snapshot.tables["public.users"].columns.avatar_color.default, "'teal'");
-  assert.equal(journal.entries.at(-1).tag, "0014_customer_profile");
+  assert.equal(journal.entries.find((entry) => entry.idx === 14)?.tag, "0014_customer_profile");
 });
 
 test("saved account profile updates context; no email-change without verification", () => {

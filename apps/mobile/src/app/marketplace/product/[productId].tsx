@@ -20,6 +20,7 @@ import {
 } from "react-native";
 
 import { useAuth } from "@/auth/provider";
+import { getWishlist, removeWishlistProduct, saveWishlistProduct } from "@/account/wishlist-api";
 import {
   addCartItem,
   CartPricingApiError
@@ -80,6 +81,43 @@ export default function MarketplaceProductScreen() {
   );
   const [addedToCart, setAddedToCart] = useState(false);
   const [reviews, setReviews] = useState<ProductReviewsResponse | null>(null);
+  const [wishlisted, setWishlisted] = useState(false);
+  const [wishlistBusy, setWishlistBusy] = useState(false);
+  const [wishlistError, setWishlistError] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    setWishlisted(false);
+    setWishlistError(false);
+    if (authStatus === "signedIn" && sessionToken && productId) {
+      void getWishlist(sessionToken).then(response => {
+        if (active) setWishlisted(response.savedProductIds.includes(productId));
+      }).catch(() => {
+        if (active) setWishlistError(true);
+      });
+    }
+    return () => { active = false; };
+  }, [authStatus, sessionToken, productId]);
+
+  const toggleWishlist = async () => {
+    if (wishlistBusy || !productId) return;
+    if (authStatus !== "signedIn" || !sessionToken) {
+      router.push("/(tabs)/account");
+      return;
+    }
+    setWishlistBusy(true);
+    setWishlistError(false);
+    try {
+      if (wishlisted) await removeWishlistProduct(sessionToken, productId);
+      else await saveWishlistProduct(sessionToken, productId);
+      setWishlisted(previous => !previous);
+    } catch {
+      setWishlistError(true);
+    } finally {
+      setWishlistBusy(false);
+    }
+  };
+
 
   useEffect(() => {
     if (!productId) {
@@ -257,6 +295,14 @@ export default function MarketplaceProductScreen() {
         >
           {t("marketplace.back")}
         </Button>
+        <View style={{
+          flexDirection: isRTL ? "row-reverse" : "row",
+          alignItems: "center", gap: theme.spacing.xs
+        }}>
+          <Button variant="ghost" disabled={wishlistBusy}
+            loading={wishlistBusy} onPress={() => void toggleWishlist()}>
+            {t(wishlisted ? "account.shopping.saved" : "account.shopping.save")}
+          </Button>
         <Button
           variant="ghost"
           onPress={() => {
@@ -272,7 +318,12 @@ export default function MarketplaceProductScreen() {
         >
           {t("marketplace.share")}
         </Button>
+        </View>
       </View>
+
+      {wishlistError ? (
+        <AppText tone="danger" accessibilityRole="alert">{t("account.shopping.saveError")}</AppText>
+      ) : null}
 
       {cached ? (
         <Card muted>

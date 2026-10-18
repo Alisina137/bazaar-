@@ -202,3 +202,5 @@ export {
 } from "./growth.js";
 
 export { platformAuditLogs, platformSettings, platformPlanPrices } from "./platform.js";
+
+export { customerWishlist, type CustomerWishlistItem } from "./wishlist.js";

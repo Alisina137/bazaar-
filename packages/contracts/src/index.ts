@@ -22,3 +22,5 @@ export * from "./trust.js";
 export * from "./communication.js";
 
 export * from "./growth.js";
+
+export * from "./wishlist.js";

@@ -30,7 +30,7 @@ export default function SellerOrdersScreen() {
   const theme = useAppTheme();
   const { status: authStatus, sessionToken } = useAuth();
   const { currentStore } = useStores();
-  const { formatAfn, locale, t } = useLocalization();
+  const { isRTL, formatAfn, locale, t } = useLocalization();
 
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [loading, setLoading] = useState(false);
@@ -138,7 +138,7 @@ export default function SellerOrdersScreen() {
             <View style={{ gap: theme.spacing.md }}>
               <View
                 style={{
-                  flexDirection: "row",
+                  flexDirection: isRTL ? "row-reverse" : "row",
                   justifyContent: "space-between",
                   gap: theme.spacing.sm,
                   alignItems: "center"

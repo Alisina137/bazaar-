@@ -167,7 +167,6 @@ export default function AccountScreen() {
                   flexWrap: "wrap"
                 }}>
                   <Badge label={t(roleKey(mainRole))} tone="primary" />
-                  <Badge label={t("auth.activeSession")} tone="success" />
                 </View>
               </View>
             </View>

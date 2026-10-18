@@ -53,6 +53,15 @@ export const psAfMessages = {
   "home.forYou": "ستاسې لپاره",
   "home.findingForYou": "ستاسې د خوښې محصولات لټول کېږي…",
 
+  "marketplace.nav.title": "په بازار کې لټون",
+  "marketplace.nav.products": "محصولات",
+  "marketplace.nav.categories": "کټګورۍ",
+  "marketplace.nav.stores": "پلورنځي",
+  "marketplace.nav.categoriesHint": "د شته محصولاتو د لیدلو لپاره یوه کټګوري وټاکئ.",
+  "marketplace.nav.storesHint": "د بازارلینک غوره پلورنځي وګورئ. د ټولو پلورنځیو د پلټنې بشپړ لېست به جلا ورزیات شي.",
+  "marketplace.nav.emptyCategories": "لا کومه کټګوري نشته.",
+  "marketplace.nav.emptyStores": "لا غوره پلورنځي نشته.",
+  "marketplace.nav.browseProducts": "محصولات وګورئ",
   "marketplace.title": "بازار",
   "marketplace.description":
     "د بازار بنسټیز جوړښت د منظور شوې بازار مرحلې لپاره ساتل شوی.",

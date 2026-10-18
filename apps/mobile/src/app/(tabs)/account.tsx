@@ -8,10 +8,11 @@ import type { TranslationKey } from "@bazaarlink/localization";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Alert, Pressable, View } from "react-native";
 
 import { useAuth } from "@/auth/provider";
 import { AccountMenuRow, AccountSection } from "@/components/account/AccountMenu";
+import { AccountQuickActions } from "@/components/account/AccountQuickActions";
 import { ProfileAvatar } from "@/components/account/ProfileAvatar";
 import { GuestAccountContent } from "@/components/account/GuestAccountContent";
 import { sellerAccountEntry } from "@/account/navigation";
@@ -104,6 +105,30 @@ export default function AccountScreen() {
     const sellerEntry = sellerAccountEntry(
       user.roles, storeStatus, currentStore !== null
     );
+
+    const confirmSignOut = () => {
+      if (busy) return;
+      Alert.alert(
+        t("account.phase8.signOutTitle"),
+        t("account.phase8.signOutPrompt"),
+        [
+          { text: t("support.hub.cancel"), style: "cancel" },
+          {
+            text: t("auth.signOut"),
+            style: "destructive",
+            onPress: () => {
+              setBusy(true);
+              void logout()
+                .catch(() => Alert.alert(
+                  t("account.phase8.signOutPartialTitle"),
+                  t("account.phase8.signOutPartialHint")
+                ))
+                .finally(() => setBusy(false));
+            }
+          }
+        ]
+      );
+    };
 
     const openSeller = () => {
       if (sellerEntry === "workspace") {
@@ -215,6 +240,44 @@ export default function AccountScreen() {
             ) : null}
           </View>
         </Card>
+
+        {user.email && !user.emailVerified ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("account.phase8.verifyEmailAction")}
+            accessibilityHint={t("account.phase8.verifyEmailHint")}
+            onPress={() => router.push("/account/security")}
+            style={({ pressed }) => ({
+              padding: theme.spacing.md,
+              borderRadius: theme.radii.md,
+              borderWidth: 1,
+              borderColor: theme.colors.warning,
+              backgroundColor: theme.colors.warningSoft,
+              opacity: pressed ? theme.opacity.pressed : 1,
+              flexDirection: isRTL ? "row-reverse" : "row",
+              alignItems: "center",
+              gap: theme.spacing.sm
+            })}
+          >
+            <Ionicons name="mail-unread-outline" size={24} color={theme.colors.warning} />
+            <View style={{ flex: 1, gap: theme.spacing.xxs }}>
+              <AppText variant="label">{t("account.phase8.verifyEmailAction")}</AppText>
+              <AppText variant="caption" tone="muted">
+                {t("account.phase8.verifyEmailHint")}
+              </AppText>
+            </View>
+            <Ionicons
+              name={isRTL ? "chevron-back" : "chevron-forward"}
+              color={theme.colors.warning} size={20}
+            />
+          </Pressable>
+        ) : null}
+
+        <AccountQuickActions
+          onOrders={() => router.push("/(tabs)/orders")}
+          onSaved={() => router.push("/account/wishlist")}
+          onSupport={() => router.push("/support")}
+        />
 
         <AccountSection title={t("account.section.shopping")}>
           {latestOrder ? (
@@ -359,12 +422,7 @@ export default function AccountScreen() {
             title={t("auth.signOut")}
             destructive
             disabled={busy}
-            onPress={() => {
-              setBusy(true);
-              void logout()
-                .catch(() => undefined)
-                .finally(() => setBusy(false));
-            }}
+            onPress={confirmSignOut}
             last
           />
         </Card>

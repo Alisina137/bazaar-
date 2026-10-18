@@ -287,4 +287,35 @@ describe("authentication routes", () => {
     expect(response.json().session).toBeUndefined();
   });
 
+  it("requires auth and refuses malformed security tokens or passwords", async () => {
+    const app = buildApp({ authService: new FakeAuthService() });
+    apps.push(app);
+    const missing = await app.inject({ method: "GET", url: "/auth/sessions" });
+    expect(missing.statusCode).toBe(401);
+    for (const [url, payload] of [
+      ["/auth/password-reset/confirm", { code: "x", newPassword: "secure-new-password" }],
+      ["/auth/email-verification/confirm", { code: "not-a-token" }],
+      ["/auth/change-password", { currentPassword: "x", newPassword: "short" }]
+    ] as const) {
+      const result = await app.inject({
+        method: "POST", url, headers: { authorization: "Bearer " + success.session.token },
+        payload
+      });
+      expect(result.statusCode).toBe(400);
+    }
+  });
+
+  it("does not disclose whether recovery email exists when request is accepted", async () => {
+    const mock = new FakeAuthService();
+
+    const app = buildApp({ authService: mock });
+    apps.push(app);
+    const response = await app.inject({
+      method: "POST", url: "/auth/password-reset/request",
+      payload: { email: "someone@example.com" }
+    });
+    expect(response.statusCode).toBe(202);
+    expect(response.json()).toEqual({ accepted: true });
+  });
+
 });

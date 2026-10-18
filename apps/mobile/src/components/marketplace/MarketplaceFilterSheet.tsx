@@ -176,8 +176,9 @@ export function MarketplaceFilterSheet({
                   <TextField label={t("marketplace.filter.minPrice")}
                     value={draft.minPrice} onChangeText={value => onChange({ minPrice: value })}
                     keyboardType="decimal-pad" forceLTR
-                    error={priceError ? t("marketplace.phase3." +
-                      (priceError === "range" ? "priceRangeError" : "priceError")) : undefined}
+                    error={priceError ? t(priceError === "range"
+                      ? "marketplace.phase3.priceRangeError"
+                      : "marketplace.phase3.priceError") : undefined}
                   />
                 </View>
                 <View style={{ flex: 1 }}>

@@ -97,3 +97,15 @@ test("Recent-product write queue propagates failed clears and remains usable", a
   ]);
   assert.deepEqual(Array.from(await exports.getRecentProductIds()), []);
 });
+
+test("Wishlist and recent history expose real back navigation with mirrored arrows", () => {
+  for (const name of ["wishlist.tsx", "recently-viewed.tsx"]) {
+    const page = read("apps/mobile/src/app/account/" + name);
+    assert.match(page, /<AccountBackLink \/>/);
+  }
+  const back = read("apps/mobile/src/components/account/AccountBackLink.tsx");
+  assert.match(back, /router\.back\(\)/);
+  assert.match(back, /accessibilityRole="button"/);
+  assert.match(back, /minHeight: 48/);
+  assert.match(back, /isRTL \? "arrow-forward-outline" : "arrow-back-outline"/);
+});

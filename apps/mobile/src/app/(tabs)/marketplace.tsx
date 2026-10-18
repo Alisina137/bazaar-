@@ -494,6 +494,8 @@ export default function MarketplaceScreen() {
   // applied request, not from edits the shopper has not confirmed.
   const restoreDraftFromApplied = (input: BrowseMarketplaceInput | null) => {
     setCategoryId(input?.categoryId);
+    setStoreId(input?.storeId);
+    setBrand(input?.brand);
     setProvince(input?.province ?? "");
     setMinPrice(input?.minPrice !== undefined ? String(input.minPrice) : "");
     setMaxPrice(input?.maxPrice !== undefined ? String(input.maxPrice) : "");

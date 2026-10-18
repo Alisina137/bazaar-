@@ -119,7 +119,7 @@ export default function CheckoutScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { status, sessionToken } = useAuth();
-  const { formatAfn, t } = useLocalization();
+  const { isRTL, formatAfn, t } = useLocalization();
 
   const [cart, setCart] = useState<CartResponse | null>(null);
   const [addresses, setAddresses] = useState<CustomerAddressRecord[]>([]);
@@ -425,7 +425,7 @@ export default function CheckoutScreen() {
     <Screen>
       <View
         style={{
-          flexDirection: "row",
+          flexDirection: isRTL ? "row-reverse" : "row",
           justifyContent: "space-between",
           gap: theme.spacing.sm
         }}
@@ -510,7 +510,7 @@ export default function CheckoutScreen() {
                 <View
                   key={item.id}
                   style={{
-                    flexDirection: "row",
+                    flexDirection: isRTL ? "row-reverse" : "row",
                     justifyContent: "space-between",
                     gap: theme.spacing.md
                   }}
@@ -859,7 +859,7 @@ function CheckoutSteps({
   paymentReady: boolean;
 }) {
   const theme = useAppTheme();
-  const { t } = useLocalization();
+  const { t, isRTL } = useLocalization();
 
   return (
     <Card muted>
@@ -874,7 +874,7 @@ function CheckoutSteps({
           <View
             key={String(key)}
             style={{
-              flexDirection: "row",
+              flexDirection: isRTL ? "row-reverse" : "row",
               gap: theme.spacing.sm,
               alignItems: "center"
             }}
@@ -901,11 +901,12 @@ function SummaryRow({
   emphasized?: boolean;
 }) {
   const theme = useAppTheme();
+  const { isRTL } = useLocalization();
 
   return (
     <View
       style={{
-        flexDirection: "row",
+        flexDirection: isRTL ? "row-reverse" : "row",
         justifyContent: "space-between",
         gap: theme.spacing.md
       }}

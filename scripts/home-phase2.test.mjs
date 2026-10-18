@@ -20,7 +20,7 @@ test("Home has editable search with debounced suggestions and direct results nav
   assert.match(home, /pathname: "\/marketplace\/store\/\[handle\]"/);
   assert.match(hook, /setTimeout\(\(\) => \{/);
   assert.match(hook, /clearTimeout\(timeout\)/);
-  assert.match(hook, /if \\(active\\) \\{\\s*setSuggestions/);
+  assert.match(hook, /if \(active\) \{\s*setSuggestions/);
   assert.match(hook, /resolvedQuery === normalized/);
 });
 

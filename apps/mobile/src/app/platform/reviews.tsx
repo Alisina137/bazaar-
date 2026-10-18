@@ -25,7 +25,7 @@ import {
 export default function PlatformReviewModerationScreen() {
   const theme = useAppTheme();
   const { sessionToken } = useAuth();
-  const { t } = useLocalization();
+  const { isRTL, t } = useLocalization();
   const [items, setItems] = useState<ReviewModerationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [reason, setReason] = useState("");
@@ -91,7 +91,7 @@ export default function PlatformReviewModerationScreen() {
         items.map((item) => (
           <Card key={item.report.id}>
             <View style={{ gap: theme.spacing.md }}>
-              <View style={{ flexDirection: "row", gap: theme.spacing.sm, flexWrap: "wrap" }}>
+              <View style={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm, flexWrap: "wrap" }}>
                 <Badge label={"★ " + item.review.rating} tone="primary" />
                 <Badge label={t("trust.verifiedPurchase")} tone="success" />
                 <Badge

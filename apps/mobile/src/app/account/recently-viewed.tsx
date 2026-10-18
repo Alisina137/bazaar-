@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { Alert, View } from "react-native";
 
 import { AppText, Button, Card, Screen, StateView } from "@/components/ui";
+import { AccountBackLink } from "@/components/account/AccountBackLink";
 import { MarketplaceProductCard } from "@/components/marketplace/MarketplaceProductCard";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
@@ -80,6 +81,7 @@ export default function RecentlyViewedScreen() {
 
   return (
     <Screen contentStyle={{ gap: theme.spacing.lg }}>
+      <AccountBackLink />
       <AppText variant="heading">{t("account.shopping.recent")}</AppText>
       <AppText tone="muted">{t("account.shopping.recentDescription")}</AppText>
       {loading ? (

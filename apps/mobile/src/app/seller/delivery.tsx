@@ -74,7 +74,7 @@ export default function SellerDeliveryScreen() {
   const theme = useAppTheme();
   const { status: authStatus, sessionToken } = useAuth();
   const { currentStore } = useStores();
-  const { formatAfn, formatNumber, t } = useLocalization();
+  const { isRTL, formatAfn, formatNumber, t } = useLocalization();
 
   const [config, setConfig] =
     useState<StoreDeliveryConfigurationResponse | null>(null);
@@ -625,7 +625,7 @@ export default function SellerDeliveryScreen() {
             >
               <View
                 style={{
-                  flexDirection: "row",
+                  flexDirection: isRTL ? "row-reverse" : "row",
                   flexWrap: "wrap",
                   gap: theme.spacing.sm
                 }}
@@ -650,7 +650,7 @@ export default function SellerDeliveryScreen() {
               </AppText>
               <View
                 style={{
-                  flexDirection: "row",
+                  flexDirection: isRTL ? "row-reverse" : "row",
                   flexWrap: "wrap",
                   gap: theme.spacing.sm
                 }}
@@ -898,7 +898,7 @@ export default function SellerDeliveryScreen() {
             >
               <View
                 style={{
-                  flexDirection: "row",
+                  flexDirection: isRTL ? "row-reverse" : "row",
                   flexWrap: "wrap",
                   gap: theme.spacing.sm
                 }}
@@ -926,7 +926,7 @@ export default function SellerDeliveryScreen() {
               </AppText>
               <View
                 style={{
-                  flexDirection: "row",
+                  flexDirection: isRTL ? "row-reverse" : "row",
                   flexWrap: "wrap",
                   gap: theme.spacing.sm
                 }}
@@ -1120,14 +1120,14 @@ function WeekdayPicker({
   onToggle: (day: number) => void;
 }) {
   const theme = useAppTheme();
-  const { t } = useLocalization();
+  const { isRTL, t } = useLocalization();
 
   return (
     <View style={{ gap: theme.spacing.sm }}>
       <AppText variant="label">{t("delivery.weekdays")}</AppText>
       <View
         style={{
-          flexDirection: "row",
+          flexDirection: isRTL ? "row-reverse" : "row",
           flexWrap: "wrap",
           gap: theme.spacing.sm
         }}

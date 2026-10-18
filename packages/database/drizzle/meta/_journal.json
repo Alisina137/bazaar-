@@ -99,6 +99,13 @@
       "when": 1791456390030,
       "tag": "0013_smiling_anthem",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792320000000,
+      "tag": "0014_customer_profile",
+      "breakpoints": true
     }
   ]
 }

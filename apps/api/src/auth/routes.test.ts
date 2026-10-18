@@ -52,6 +52,13 @@ class FakeAuthService implements AuthServiceContract {
     };
   }
 
+  async updateProfile(token: string, input: { displayName: string | null; phone: string | null; avatarColor: "teal" | "blue" | "purple" | "orange" }) {
+    if (token !== success.session.token) {
+      throw new AuthError("invalid_session", 401);
+    }
+    return { user: { ...success.user, ...input } };
+  }
+
   async logout(token: string): Promise<void> {
     if (token !== success.session.token) {
       throw new AuthError("invalid_session", 401);
@@ -240,4 +247,44 @@ describe("authentication routes", () => {
 
     expect(logoutResponse.statusCode).toBe(204);
   });
+  it("requires login to update a customer profile", async () => {
+    const app = buildApp({ authService: new FakeAuthService() });
+    apps.push(app);
+    const response = await app.inject({
+      method: "PATCH", url: "/auth/profile",
+      payload: { displayName: "New Name", phone: "+93 700 123456", avatarColor: "blue" }
+    });
+    expect(response.statusCode).toBe(401);
+    expect(response.json()).toEqual({ error: { code: "invalid_session" } });
+  });
+
+  it("rejects role escalation and unverified email changes on profile", async () => {
+    const app = buildApp({ authService: new FakeAuthService() });
+    apps.push(app);
+    for (const additionalField of [{ roles: ["super_admin"] }, { email: "new@example.com" }]) {
+      const response = await app.inject({
+        method: "PATCH", url: "/auth/profile",
+        headers: { authorization: "Bearer " + success.session.token },
+        payload: { displayName: "Person", phone: null, avatarColor: "teal", ...additionalField }
+      });
+      expect(response.statusCode).toBe(400);
+      expect(response.json()).toEqual({ error: { code: "invalid_request" } });
+    }
+  });
+
+  it("returns the updated profile without exposing the session token", async () => {
+    const app = buildApp({ authService: new FakeAuthService() });
+    apps.push(app);
+    const response = await app.inject({
+      method: "PATCH", url: "/auth/profile",
+      headers: { authorization: "Bearer " + success.session.token },
+      payload: { displayName: "New Name", phone: "+93 700 123456", avatarColor: "orange" }
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.json().user.displayName).toBe("New Name");
+    expect(response.json().user.phone).toBe("+93 700 123456");
+    expect(response.json().user.roles).toEqual(["customer"]);
+    expect(response.json().session).toBeUndefined();
+  });
+
 });

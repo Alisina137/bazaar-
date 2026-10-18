@@ -58,7 +58,8 @@ test("profile and menu provide accessible and live RTL navigation affordances", 
   const screen = read("apps/mobile/src/app/(tabs)/account.tsx");
   const menu = read("apps/mobile/src/components/account/AccountMenu.tsx");
   assert.match(screen, /user\.displayName\?\.trim\(\)/);
-  assert.match(screen, /initial/);
+  assert.match(screen, /<ProfileAvatar/);
+  assert.match(read("apps/mobile/src/components/account/ProfileAvatar.tsx"), /initial/);
   assert.match(screen, /accessibilityState=\{\{ expanded: showAccess \}\}/);
   assert.match(screen, /flexDirection: isRTL \? "row-reverse" : "row"/);
   assert.match(menu, /accessibilityRole=\{onPress \? "button" : "text"\}/);

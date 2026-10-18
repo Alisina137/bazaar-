@@ -12,6 +12,7 @@ import { Pressable, View } from "react-native";
 import { useAuth } from "@/auth/provider";
 import { LanguageSwitcher } from "@/components/localization/LanguageSwitcher";
 import { AccountMenuRow, AccountSection } from "@/components/account/AccountMenu";
+import { ProfileAvatar } from "@/components/account/ProfileAvatar";
 import { GuestAccountContent } from "@/components/account/GuestAccountContent";
 import { sellerAccountEntry } from "@/account/navigation";
 import {
@@ -51,7 +52,7 @@ function modeKey(mode: AppMode): TranslationKey {
 export default function AccountScreen() {
   const router = useRouter();
   const theme = useAppTheme();
-  const { isRTL, locale, t } = useLocalization();
+  const { isRTL, t } = useLocalization();
   const { status, user, logout } = useAuth();
   const { status: storeStatus, currentStore, refresh: refreshStores } = useStores();
   const [showAccess, setShowAccess] = useState(false);
@@ -73,7 +74,6 @@ export default function AccountScreen() {
   if (status === "signedIn" && user) {
     const availableModes = getAvailableAppModes(user.roles);
     const displayName = user.displayName?.trim() || t("auth.signedInTitle");
-    const initial = user.displayName?.trim().slice(0, 1).toLocaleUpperCase(locale);
     const mainRole: AppRole =
       user.roles.find((role) => role !== "customer") ?? "customer";
     const isStaff = user.roles.includes("merchant_staff");
@@ -108,25 +108,15 @@ export default function AccountScreen() {
               alignItems: "center",
               gap: theme.spacing.md
             }}>
-              <View
-                accessible={false}
-                style={{
-                  width: 60, height: 60, borderRadius: theme.radii.full,
-                  backgroundColor: theme.colors.surface,
-                  borderWidth: 1, borderColor: theme.colors.borderStrong,
-                  alignItems: "center", justifyContent: "center"
-                }}
-              >
-                {initial ? (
-                  <AppText variant="title" tone="primary" align="center">
-                    {initial}
-                  </AppText>
-                ) : (
-                  <Ionicons name="person-outline" size={28} color={theme.colors.primary} />
-                )}
-              </View>
+              <ProfileAvatar name={user.displayName} color={user.avatarColor ?? "teal"} size={60} />
               <View style={{ flex: 1, gap: theme.spacing.xs, minWidth: 0 }}>
                 <AppText variant="heading" numberOfLines={2}>{displayName}</AppText>
+                {user.email ? (
+                  <AppText variant="caption" tone="muted"
+                    align={isRTL ? "right" : "left"}
+                    style={{ writingDirection: "ltr" }}
+                    numberOfLines={1}>{user.email}</AppText>
+                ) : null}
                 <View style={{
                   flexDirection: isRTL ? "row-reverse" : "row",
                   alignItems: "center", gap: theme.spacing.sm,
@@ -135,6 +125,20 @@ export default function AccountScreen() {
                   <Badge label={t(roleKey(mainRole))} tone="primary" />
                 </View>
               </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t("account.profile.edit")}
+                onPress={() => router.push("/account/profile")}
+                style={({ pressed }) => ({
+                  minWidth: 44, minHeight: 44,
+                  alignItems: "center", justifyContent: "center",
+                  borderRadius: theme.radii.md,
+                  backgroundColor: theme.colors.surface,
+                  opacity: pressed ? theme.opacity.pressed : 1
+                })}
+              >
+                <Ionicons name="create-outline" size={21} color={theme.colors.primary} />
+              </Pressable>
             </View>
             <Pressable
               accessibilityRole="button"
@@ -207,6 +211,12 @@ export default function AccountScreen() {
         </AccountSection>
 
         <AccountSection title={t("account.section.account")}>
+          <AccountMenuRow
+            icon="person-outline"
+            title={t("account.profile.title")}
+            subtitle={t("account.profile.menuHint")}
+            onPress={() => router.push("/account/profile")}
+          />
           <AccountMenuRow
             icon="location-outline"
             title={t("address.manage")}

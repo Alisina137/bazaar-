@@ -1,7 +1,8 @@
 import {
   appRoles,
   type AppRole,
-  type AuthUser
+  type AuthUser,
+  type UpdateAuthProfileInput
 } from "@bazaarlink/contracts";
 import {
   authAccounts,
@@ -44,6 +45,7 @@ export interface AuthRepository {
   findSession(tokenHash: string): Promise<SessionIdentity | null>;
   revokeSession(tokenHash: string, revokedAt: Date): Promise<void>;
   touchSession(sessionId: string, lastSeenAt: Date): Promise<void>;
+  updateProfile(userId: string, input: UpdateAuthProfileInput): Promise<AuthUser>;
 }
 
 function isUniqueViolation(error: unknown): boolean {
@@ -69,10 +71,17 @@ function sortRoles(roles: AppRole[]): AppRole[] {
   );
 }
 
+function isProfileColor(value: unknown): value is NonNullable<AuthUser["avatarColor"]> {
+  return value === "teal" || value === "blue" || value === "purple" || value === "orange";
+}
+
 function toAuthUser(
   row: {
     id: string;
     displayName: string | null;
+    phone?: string | null;
+    avatarColor?: string;
+    email?: string | null;
     preferredLocale: string;
     status: "active" | "suspended" | "disabled";
   },
@@ -81,6 +90,9 @@ function toAuthUser(
   return {
     id: row.id,
     displayName: row.displayName,
+    email: row.email ?? null,
+    phone: row.phone ?? null,
+    avatarColor: isProfileColor(row.avatarColor) ? row.avatarColor : "teal",
     preferredLocale: row.preferredLocale as AuthUser["preferredLocale"],
     status: row.status,
     roles: sortRoles(roles)
@@ -106,7 +118,10 @@ export class DatabaseAuthRepository implements AuthRepository {
       .select({
         accountId: authAccounts.id,
         passwordHash: authAccounts.passwordHash,
+        email: authAccounts.identifier,
         id: users.id,
+        phone: users.phone,
+        avatarColor: users.avatarColor,
         displayName: users.displayName,
         preferredLocale: users.preferredLocale,
         status: users.status
@@ -169,7 +184,7 @@ export class DatabaseAuthRepository implements AuthRepository {
           role: "customer"
         });
 
-        return toAuthUser(user, ["customer"]);
+        return toAuthUser({ ...user, email: input.email }, ["customer"]);
       });
     } catch (error) {
       if (isUniqueViolation(error)) {
@@ -196,6 +211,9 @@ export class DatabaseAuthRepository implements AuthRepository {
     const [row] = await this.db
       .select({
         sessionId: authSessions.id,
+        email: authAccounts.identifier,
+        phone: users.phone,
+        avatarColor: users.avatarColor,
         expiresAt: authSessions.expiresAt,
         lastSeenAt: authSessions.lastSeenAt,
         revokedAt: authSessions.revokedAt,
@@ -206,6 +224,10 @@ export class DatabaseAuthRepository implements AuthRepository {
       })
       .from(authSessions)
       .innerJoin(users, eq(authSessions.userId, users.id))
+      .leftJoin(authAccounts, and(
+        eq(authAccounts.userId, users.id),
+        eq(authAccounts.provider, "email_password")
+      ))
       .where(eq(authSessions.tokenHash, tokenHash))
       .limit(1);
 
@@ -235,4 +257,43 @@ export class DatabaseAuthRepository implements AuthRepository {
       .set({ lastSeenAt })
       .where(eq(authSessions.id, sessionId));
   }
+
+  async updateProfile(userId: string, input: UpdateAuthProfileInput): Promise<AuthUser> {
+    const [user] = await this.db
+      .update(users)
+      .set({
+        displayName: input.displayName,
+        phone: input.phone,
+        avatarColor: input.avatarColor,
+        updatedAt: new Date()
+      })
+      .where(and(eq(users.id, userId), eq(users.status, "active")))
+      .returning({
+        id: users.id,
+        displayName: users.displayName,
+        phone: users.phone,
+        avatarColor: users.avatarColor,
+        preferredLocale: users.preferredLocale,
+        status: users.status
+      });
+
+    if (!user) {
+      throw new Error("profile_user_not_active");
+    }
+
+    const [emailAccount] = await this.db
+      .select({ email: authAccounts.identifier })
+      .from(authAccounts)
+      .where(and(
+        eq(authAccounts.userId, userId),
+        eq(authAccounts.provider, "email_password")
+      ))
+      .limit(1);
+
+    return toAuthUser(
+      { ...user, email: emailAccount?.email ?? null },
+      await this.findRoles(userId)
+    );
+  }
+
 }

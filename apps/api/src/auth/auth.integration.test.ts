@@ -75,6 +75,21 @@ describe.skipIf(!hasDatabase)("database-backed authentication", () => {
       "merchant_owner"
     ]);
 
+    const edited = await service.updateProfile(registered.session.token, {
+      displayName: "Updated Integration User",
+      phone: "+93 700 000111",
+      avatarColor: "orange"
+    });
+    expect(edited.user.displayName).toBe("Updated Integration User");
+    expect(edited.user.phone).toBe("+93 700 000111");
+    expect(edited.user.email).toBe(email);
+    expect(edited.user.avatarColor).toBe("orange");
+
+    const persisted = await service.authenticateToken(registered.session.token);
+    expect(persisted.user.displayName).toBe("Updated Integration User");
+    expect(persisted.user.phone).toBe("+93 700 000111");
+    expect(persisted.user.avatarColor).toBe("orange");
+
     const loggedIn = await service.login({
       email,
       password: "integration-password"

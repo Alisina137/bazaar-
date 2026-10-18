@@ -23,6 +23,12 @@ const registerSchema = z
   })
   .strict();
 
+const profileSchema = z.object({
+  displayName: z.string().trim().min(1).max(160).nullable(),
+  phone: z.string().trim().regex(/^\+?[0-9 ()-]{7,24}$/).nullable(),
+  avatarColor: z.enum(["teal", "blue", "purple", "orange"])
+}).strict();
+
 const loginSchema = z
   .object({
     email: z.string().trim().email().max(320),
@@ -116,6 +122,25 @@ export function registerAuthRoutes(
 
     try {
       return await authService.authenticateToken(token);
+    } catch (error) {
+      return sendAuthError(reply, error);
+    }
+  });
+
+  app.patch("/auth/profile", {
+    config: { rateLimit: { max: 20, timeWindow: "10 minutes" } }
+  }, async (request, reply) => {
+    const token = getBearerToken(request);
+    if (!token) return reply.code(401).send(errorBody("invalid_session"));
+
+    const parsed = profileSchema.safeParse(request.body);
+    if (!parsed.success) return reply.code(400).send(errorBody("invalid_request"));
+    if (!authService.updateProfile) {
+      return reply.code(503).send(errorBody("service_unavailable"));
+    }
+
+    try {
+      return await authService.updateProfile(token, parsed.data);
     } catch (error) {
       return sendAuthError(reply, error);
     }

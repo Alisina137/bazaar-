@@ -41,6 +41,8 @@ export const users = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     displayName: varchar("display_name", { length: 160 }),
+    phone: varchar("phone", { length: 24 }),
+    avatarColor: varchar("avatar_color", { length: 16 }).default("teal").notNull(),
     preferredLocale: varchar("preferred_locale", { length: 10 })
       .default("fa-AF")
       .notNull(),

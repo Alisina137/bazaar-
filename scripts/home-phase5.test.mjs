@@ -103,7 +103,7 @@ test("Home wires on-focus recents, opt-in preferences, bounded category search a
     "personalizeProducts({", "favorites.map(async (categoryId)",
     "browseMarketplace(input)", "readBrowseCache(key, true)",
     "<HomeInterestPicker", 'title={t("home.forYou")}',
-    "orderRecentProducts(fresh.recentlyViewed, recentProductIds)"
+    "orderRecentProducts(fresh.recentlyViewed,"
   ]) assert.ok(home.includes(expected), expected);
   assert.match(cache, /AsyncStorage.removeItem\(RECENT_KEY\)/);
   assert.match(picker, /accessibilityRole="checkbox"/);

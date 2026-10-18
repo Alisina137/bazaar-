@@ -23,6 +23,10 @@ import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearch
 import { MarketplaceRecentSearches } from "@/components/marketplace/MarketplaceRecentSearches";
 import { MarketplaceSuggestions } from "@/components/marketplace/MarketplaceSuggestions";
 import { MarketplaceStoreCard } from "@/components/marketplace/MarketplaceStoreCard";
+import { MarketplaceFilterSheet, type MarketplaceFilterDraft } from "@/components/marketplace/MarketplaceFilterSheet";
+import { MarketplaceActiveFilters } from "@/components/marketplace/MarketplaceActiveFilters";
+import { MarketplaceSortBar } from "@/components/marketplace/MarketplaceSortBar";
+import { appliedFilterKeys, removeAppliedFilter, validatePriceRange, type AppliedFilterKey } from "@/marketplace/filter-utils";
 import {
   MarketplacePrimaryTabs, type MarketplaceView
 } from "@/components/marketplace/MarketplacePrimaryTabs";
@@ -32,8 +36,7 @@ import {
   Card,
   HorizontalLocaleScroll,
   Screen,
-  StateView,
-  TextField
+  StateView
 } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
@@ -131,7 +134,9 @@ export default function MarketplaceScreen() {
   const [storeId, setStoreId] = useState<string | undefined>(linkedStoreId);
   const [brand, setBrand] = useState<string | undefined>(linkedBrand);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [priceError, setPriceError] = useState<"invalid" | "range" | null>(null);
   const browseRequestId = useRef(0);
+  const lastRequestedBrowseInput = useRef<BrowseMarketplaceInput | null>(null);
   const homeRequestId = useRef(0);
   const activeHomeProvince = useRef<string | undefined>(undefined);
 
@@ -238,6 +243,7 @@ export default function MarketplaceScreen() {
       append = false
     ) => {
       const requestId = ++browseRequestId.current;
+      if (!append) lastRequestedBrowseInput.current = input;
       if (append) {
         setBrowseLoadingMore(true);
       } else {
@@ -345,13 +351,7 @@ export default function MarketplaceScreen() {
       const parsedMin = optionalPrice(minPrice);
       const parsedMax = optionalPrice(maxPrice);
 
-      if (
-        (minPrice.trim() && parsedMin === undefined) ||
-        (maxPrice.trim() && parsedMax === undefined) ||
-        (parsedMin !== undefined &&
-          parsedMax !== undefined &&
-          parsedMin > parsedMax)
-      ) {
+      if (validatePriceRange(minPrice, maxPrice)) {
         setBrowseError(new MarketplaceApiError("invalid_request"));
         return;
       }
@@ -492,14 +492,87 @@ export default function MarketplaceScreen() {
     }
   };
 
-  const categoryLabel = categoryId
-    ? home?.categories.find((category) => category.id === categoryId)
+  // Sheet fields are drafts. Every result chip is derived from the last
+  // applied request, not from edits the shopper has not confirmed.
+  const restoreDraftFromApplied = (input: BrowseMarketplaceInput | null) => {
+    setCategoryId(input?.categoryId);
+    setStoreId(input?.storeId);
+    setBrand(input?.brand);
+    setProvince(input?.province ?? "");
+    setMinPrice(input?.minPrice !== undefined ? String(input.minPrice) : "");
+    setMaxPrice(input?.maxPrice !== undefined ? String(input.maxPrice) : "");
+    setInStockOnly(input?.inStock === true);
+    setDealsOnly(input?.discount === true);
+    setMinRating(input?.minRating);
+    setVerifiedStoreOnly(input?.verifiedStore === true);
+  };
+
+  const changeFilterDraft = (patch: Partial<MarketplaceFilterDraft>) => {
+    if ("categoryId" in patch) setCategoryId(patch.categoryId);
+    if ("province" in patch && patch.province !== undefined) setProvince(patch.province);
+    if ("minPrice" in patch && patch.minPrice !== undefined) setMinPrice(patch.minPrice);
+    if ("maxPrice" in patch && patch.maxPrice !== undefined) setMaxPrice(patch.maxPrice);
+    if ("inStockOnly" in patch && patch.inStockOnly !== undefined) setInStockOnly(patch.inStockOnly);
+    if ("dealsOnly" in patch && patch.dealsOnly !== undefined) setDealsOnly(patch.dealsOnly);
+    if ("minRating" in patch) setMinRating(patch.minRating);
+    if ("verifiedStoreOnly" in patch && patch.verifiedStoreOnly !== undefined)
+      setVerifiedStoreOnly(patch.verifiedStoreOnly);
+    setPriceError(null);
+  };
+
+  const openFilters = () => {
+    restoreDraftFromApplied(browseInput);
+    setPriceError(null);
+    setFiltersOpen(true);
+  };
+
+  const cancelFilters = () => {
+    restoreDraftFromApplied(browseInput);
+    setPriceError(null);
+    setFiltersOpen(false);
+  };
+
+  const applyFilterDraft = () => {
+    const error = validatePriceRange(minPrice, maxPrice);
+    if (error) { setPriceError(error); return; }
+    setPriceError(null);
+    setFiltersOpen(false);
+    // Don't accidentally submit text typed in an unfinished search.
+    void applyBrowse({ q: browseInput?.q });
+  };
+
+  const removeFilter = (key: AppliedFilterKey) => {
+    if (!browseInput) return;
+    const next = removeAppliedFilter(browseInput, key);
+    restoreDraftFromApplied(next);
+    void executeBrowse(next);
+    if (key === "province") void loadHome();
+  };
+
+  const clearAppliedFilters = () => {
+    if (!browseInput) return;
+    const next: BrowseMarketplaceInput = {
+      ...(browseInput.q ? { q: browseInput.q } : {}),
+      sort: browseInput.sort ?? "relevance", offset: 0, limit: 20
+    };
+    restoreDraftFromApplied(next);
+    void executeBrowse(next);
+    void loadHome();
+  };
+
+  const changeSort = (nextSort: MarketplaceSort) => {
+    if (!browseInput) return;
+    setSort(nextSort);
+    void executeBrowse({ ...browseInput, sort: nextSort, offset: 0, limit: 20 });
+  };
+
+  const categoryLabel = browseInput?.categoryId
+    ? home?.categories.find(category => category.id === browseInput.categoryId)
     : undefined;
-  const childCategories = home?.categories.filter((category) => category.parentId === categoryId) ?? [];
-  const activeFilterCount = [
-    categoryId, storeId, brand, province.trim(), minPrice.trim(), maxPrice.trim(),
-    inStockOnly, dealsOnly, minRating !== undefined, verifiedStoreOnly
-  ].filter(Boolean).length;
+  const childCategories = home?.categories.filter(
+    category => category.parentId === browseInput?.categoryId
+  ) ?? [];
+  const activeFilterCount = appliedFilterKeys(browseInput).length;
 
   return (
     <Screen>
@@ -550,114 +623,36 @@ export default function MarketplaceScreen() {
             </View>
             {selectedView === "products" ? <Button
               variant="secondary"
-              onPress={() => setFiltersOpen((value) => !value)}
+              onPress={openFilters}
             >
               {t("marketplace.filters") + (activeFilterCount ? " · " + formatNumber(activeFilterCount) : "")}
             </Button> : null}
           </View>
 
-          {filtersOpen && selectedView === "products" ? (
-            <View style={{ gap: theme.spacing.md }}>
-              <TextField
-                label={t("marketplace.filter.province")}
-                value={province}
-                onChangeText={setProvince}
-              />
-              <View style={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm }}>
-                <View style={{ flex: 1 }}>
-                  <TextField
-                    label={t("marketplace.filter.minPrice")}
-                    value={minPrice}
-                    onChangeText={setMinPrice}
-                    keyboardType="decimal-pad"
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <TextField
-                    label={t("marketplace.filter.maxPrice")}
-                    value={maxPrice}
-                    onChangeText={setMaxPrice}
-                    keyboardType="decimal-pad"
-                  />
-                </View>
-              </View>
-
-              <Button
-                variant={inStockOnly ? "primary" : "secondary"}
-                onPress={() => setInStockOnly((value) => !value)}
-              >
-                {t("marketplace.filter.inStock")}
-              </Button>
-              <Button
-                variant={dealsOnly ? "primary" : "secondary"}
-                onPress={() => setDealsOnly((value) => !value)}
-              >
-                {t("marketplace.filter.deals")}
-              </Button>
-
-              <AppText variant="label">{t("marketplace.filter.rating")}</AppText>
-              <View style={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm, flexWrap: "wrap" }}>
-                {[3, 4, 5].map((value) => (
-                  <Button
-                    key={value}
-                    variant={minRating === value ? "primary" : "secondary"}
-                    onPress={() =>
-                      setMinRating((current) =>
-                        current === value ? undefined : value
-                      )
-                    }
-                  >
-                    {"★ " + value + "+"}
-                  </Button>
-                ))}
-              </View>
-              <Button
-                variant={verifiedStoreOnly ? "primary" : "secondary"}
-                onPress={() => setVerifiedStoreOnly((value) => !value)}
-              >
-                {t("marketplace.filter.verifiedStore")}
-              </Button>
-
-              <AppText variant="label">{t("marketplace.sort.label")}</AppText>
-              <HorizontalLocaleScroll showsHorizontalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"
-                contentContainerStyle={{ gap: theme.spacing.sm, flexDirection: isRTL ? "row-reverse" : "row" }}>
-              {(
-                [
-                  ["relevance", "marketplace.sort.relevance"],
-                  ["newest", "marketplace.sort.newest"],
-                  ["price_asc", "marketplace.sort.priceLowHigh"],
-                  ["price_desc", "marketplace.sort.priceHighLow"],
-                  ["rating", "marketplace.sort.rating"],
-                  ["popularity", "marketplace.sort.popularity"]
-                ] as const
-              ).map(([value, key]) => (
-                <Button
-                  key={value}
-                  variant={sort === value ? "primary" : "secondary"}
-                  onPress={() => setSort(value)}
-                >
-                  {t(key)}
-                </Button>
-              ))}
-              </HorizontalLocaleScroll>
-
-              <Button
-                fullWidth
-                onPress={() => {
-                  void applyBrowse();
-                  setFiltersOpen(false);
-                }}
-              >
-                {t("marketplace.applyFilters")}
-              </Button>
-              <Button variant="ghost" onPress={clearDiscovery}>
-                {t("marketplace.clearFilters")}
-              </Button>
-            </View>
-          ) : null}
         </View>
       </Card>
+
+      <MarketplaceFilterSheet
+        visible={filtersOpen && selectedView === "products"}
+        draft={{ categoryId, province, minPrice, maxPrice, inStockOnly,
+          dealsOnly, minRating, verifiedStoreOnly }}
+        categories={home?.categories ?? []}
+        priceError={priceError}
+        onChange={changeFilterDraft}
+        onReset={() => { restoreDraftFromApplied(null); setPriceError(null); }}
+        onCancel={cancelFilters}
+        onApply={applyFilterDraft}
+      />
+
+      {selectedView === "products" && browseInput ? (
+        <View style={{ gap: theme.spacing.md }}>
+          <MarketplaceSortBar value={browseInput.sort ?? "relevance"} onChange={changeSort} />
+          <MarketplaceActiveFilters input={browseInput}
+            categories={home?.categories ?? []}
+            onRemove={removeFilter}
+            onClear={clearAppliedFilters} />
+        </View>
+      ) : null}
 
       {selectedView !== "products" && homeLoading && !home ? (
         <StateView
@@ -691,7 +686,11 @@ export default function MarketplaceScreen() {
       {selectedView === "products" && browseError && !browse ? (
         <StateView kind="error" title={t("marketplace.errorTitle")}
           message={t(marketplaceErrorKey(browseError.code))}
-          actionLabel={t("marketplace.retry")} onAction={submitSearch} />
+          actionLabel={t("marketplace.retry")} onAction={() => {
+            if (lastRequestedBrowseInput.current)
+              void executeBrowse(lastRequestedBrowseInput.current);
+            else submitSearch();
+          }} />
       ) : null}
 
       {selectedView === "products" && browse ? (
@@ -733,8 +732,8 @@ export default function MarketplaceScreen() {
               kind="empty"
               title={t("marketplace.noResultsTitle")}
               message={t("marketplace.phase2.noResultsHelp")}
-              actionLabel={t("marketplace.clearFilters")}
-              onAction={clearDiscovery}
+              actionLabel={t(activeFilterCount > 0 ? "marketplace.clearFilters" : "marketplace.clearSearch")}
+              onAction={activeFilterCount > 0 ? clearAppliedFilters : clearDiscovery}
             />
           ) : (
             <View style={{ gap: theme.spacing.lg }}>
@@ -834,4 +833,3 @@ export default function MarketplaceScreen() {
     </Screen>
   );
 }
-

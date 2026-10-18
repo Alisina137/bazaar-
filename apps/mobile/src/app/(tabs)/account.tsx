@@ -11,7 +11,6 @@ import { useCallback, useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { useAuth } from "@/auth/provider";
-import { LanguageSwitcher } from "@/components/localization/LanguageSwitcher";
 import { AccountMenuRow, AccountSection } from "@/components/account/AccountMenu";
 import { ProfileAvatar } from "@/components/account/ProfileAvatar";
 import { GuestAccountContent } from "@/components/account/GuestAccountContent";
@@ -285,16 +284,13 @@ export default function AccountScreen() {
             subtitle={t("account.notificationsHint")}
             onPress={() => router.push("/notifications")}
           />
-          <View style={{ padding: theme.spacing.lg, gap: theme.spacing.sm }}>
-            <View style={{
-              flexDirection: isRTL ? "row-reverse" : "row",
-              alignItems: "center", gap: theme.spacing.sm
-            }}>
-              <Ionicons name="language-outline" size={20} color={theme.colors.primary} />
-              <AppText variant="label">{t("language.label")}</AppText>
-            </View>
-            <LanguageSwitcher compact />
-          </View>
+          <AccountMenuRow
+            icon="options-outline"
+            title={t("account.preferences.title")}
+            subtitle={t("account.preferences.menuHint")}
+            onPress={() => router.push("/account/preferences")}
+            last
+          />
         </AccountSection>
 
         <AccountSection title={t("account.section.business")}>

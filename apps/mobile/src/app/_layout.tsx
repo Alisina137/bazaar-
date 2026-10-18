@@ -12,15 +12,11 @@ import {
   AppThemeProvider,
   useAppTheme
 } from "@/design/theme";
-import {
-  LocalizationProvider,
-  useLocalization
-} from "@/localization/provider";
+import { LocalizationProvider } from "@/localization/provider";
 import { StoreProvider } from "@/store/provider";
 
 function RootNavigator() {
   const theme = useAppTheme();
-  const { direction } = useLocalization();
 
   return (
     <>
@@ -30,7 +26,9 @@ function RootNavigator() {
           headerShown: false,
           contentStyle: {
             backgroundColor: theme.colors.background,
-            direction
+            // Keep Yoga LTR: dynamic locale changes mirror rows explicitly.
+            // Inheriting native RTL here would undo row-reverse on Persian screens.
+            direction: "ltr"
           }
         }}
       >

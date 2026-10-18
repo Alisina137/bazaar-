@@ -9,7 +9,7 @@ import { MarketplaceProductCard } from "@/components/marketplace/MarketplaceProd
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 import {
-  getWishlist, removeWishlistProduct, WishlistApiError
+  getWishlist, removeWishlistProduct
 } from "@/account/wishlist-api";
 
 export default function WishlistScreen() {
@@ -21,6 +21,7 @@ export default function WishlistScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [reload, setReload] = useState(0);
 
   useFocusEffect(useCallback(() => {
     let active = true;
@@ -29,6 +30,7 @@ export default function WishlistScreen() {
       setLoading(false);
       return () => { active = false; };
     }
+    setItems([]);
     setLoading(true);
     setError(false);
     void getWishlist(sessionToken).then(data => {
@@ -39,7 +41,7 @@ export default function WishlistScreen() {
       if (active) setLoading(false);
     });
     return () => { active = false; };
-  }, [status, sessionToken]));
+  }, [status, sessionToken, reload]));
 
   const remove = async (id: string) => {
     if (!sessionToken || busyId) return;
@@ -48,9 +50,8 @@ export default function WishlistScreen() {
     try {
       await removeWishlistProduct(sessionToken, id);
       setItems(current => current.filter(product => product.id !== id));
-    } catch (e) {
-      if (e instanceof WishlistApiError) setError(true);
-      else setError(true);
+    } catch {
+      setError(true);
     } finally {
       setBusyId(null);
     }
@@ -83,7 +84,7 @@ export default function WishlistScreen() {
       {error ? (
         <Card>
           <AppText tone="danger">{t("account.shopping.loadError")}</AppText>
-          <Button variant="secondary" onPress={() => router.replace("/account/wishlist")}>
+          <Button variant="secondary" onPress={() => setReload(value => value + 1)}>
             {t("account.shopping.retry")}
           </Button>
         </Card>

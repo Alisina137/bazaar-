@@ -1808,3 +1808,12 @@ Automated implementation scope is committed as an integrated Phase 12 change. Gi
 - Ticket detail now shows an easy-to-read chronological conversation with actual author type and timestamps, clear status and linked-order shortcut; reply/close calls handle errors, close requires confirmation and closed threads are read-only. No fake agent or automated responses.
 - Translation keys added in English, Dari and Pashto. RTL/LTR row layout and application themes maintained. All support APIs remain authenticated, user-scoped as before; FAQ is static/offline content. No new database migration, credential or external service dependency.
 - Run `pnpm test:account-phase7` or the full `pnpm verify`. Manual acceptance in Expo Go remains: FAQ guest access, RTL text and search, ticket filters and reopening, real order context, network failure/retry, create/reply/close and cross-account privacy.
+
+## Account Phase 7 — help and support usability update (2026-10-18)
+
+- Existing Help & Support already had backed ticket creation, ticket search/status filters, ticket thread replies, close confirmation, FAQ search and content in English/Dari/Pashto. Phase 7 improves the working flows rather than replacing them with placeholder screens.
+- Account Help items now distinguish FAQ topic browsing and the support-ticket hub.
+- FAQ now has accessible topic chips (All, Orders, Shopping, Account, Selling), combined with existing full-text search, RTL layout, expand/collapse, and reset of both filters on no results.
+- Support hub prioritizes real tickets in `waiting_customer` status above normal listings and links directly to the most recently updated ticket needing a customer reply. It shows the actual count and subject from authenticated API data, not invented ticket numbers or queues. The existing account-safe ticket list, filters, forms, conversation and support notifications remain unchanged.
+- Includes phase-specific translations in English, Dari and Pashto, added assertions in existing `pnpm test:account-phase7` and standard `pnpm verify`.
+- No new database migration, permissions, prices, direct chat, or third-party support provider. Manual Expo Go QA still necessary in three languages for FAQ chip sizes, search/filter combination, real waiting-customer tickets and navigation.

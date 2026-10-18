@@ -341,13 +341,13 @@ export default function AccountScreen() {
           <AccountMenuRow
             icon="book-outline"
             title={t("support.faq.title")}
-            subtitle={t("support.hub.faqHint")}
+            subtitle={t("support.phase7.faqTopics")}
             onPress={() => router.push("/support/faq")}
           />
           <AccountMenuRow
             icon="help-circle-outline"
             title={t("account.support")}
-            subtitle={t("account.supportHint")}
+            subtitle={t("support.phase7.helpHint")}
             onPress={() => router.push("/support")}
             last
           />

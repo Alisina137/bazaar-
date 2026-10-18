@@ -69,3 +69,19 @@ test("FAQ and hub copy translated into English, Dari and Pashto", () => {
     }
   }
 });
+
+test("Phase 7 adds topic filtering and a prioritized customer-reply action", () => {
+  const faq = read("apps/mobile/src/app/support/faq.tsx");
+  const hub = read("apps/mobile/src/app/support/index.tsx");
+  assert.match(faq, /groupFilter === "all"/);
+  assert.match(faq, /setGroupFilter\(group\)/);
+  assert.match(faq, /accessibilityState=\{\{ selected: groupFilter === group \}\}/);
+  assert.match(hub, /const awaitingReply = useMemo/);
+  assert.match(hub, /openTicket\(awaitingReply\[0\]!\.id\)/);
+  for (const locale of ["en", "fa-AF", "ps-AF"]) {
+    const source = read("packages/localization/src/locales/" + locale + ".ts");
+    for (const key of ["replyNeeded", "waitingCount", "replyNow", "faqTopics", "helpHint"]) {
+      assert.ok(source.includes('"support.phase7.' + key + '"'), locale + " missing " + key);
+    }
+  }
+});

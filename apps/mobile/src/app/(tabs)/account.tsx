@@ -339,6 +339,12 @@ export default function AccountScreen() {
 
         <AccountSection title={t("account.section.help")}>
           <AccountMenuRow
+            icon="book-outline"
+            title={t("support.faq.title")}
+            subtitle={t("support.hub.faqHint")}
+            onPress={() => router.push("/support/faq")}
+          />
+          <AccountMenuRow
             icon="help-circle-outline"
             title={t("account.support")}
             subtitle={t("account.supportHint")}

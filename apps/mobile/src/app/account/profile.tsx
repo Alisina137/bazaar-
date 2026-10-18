@@ -176,6 +176,7 @@ export default function EditProfileScreen() {
               setSaved(false);
             }}
             keyboardType="phone-pad"
+            forceLTR
             autoComplete="tel"
             error={tried && !phoneValid ? t("account.profile.phoneInvalid") : undefined}
             helperText={t("account.profile.phoneHint")}

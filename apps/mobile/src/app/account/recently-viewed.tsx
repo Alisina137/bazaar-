@@ -1,7 +1,7 @@
 import type { MarketplaceProductSummary } from "@bazaarlink/contracts";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { View } from "react-native";
+import { Alert, View } from "react-native";
 
 import { AppText, Button, Card, Screen, StateView } from "@/components/ui";
 import { MarketplaceProductCard } from "@/components/marketplace/MarketplaceProductCard";
@@ -18,6 +18,7 @@ export default function RecentlyViewedScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [clearError, setClearError] = useState(false);
   const [reload, setReload] = useState(0);
 
   useFocusEffect(useCallback(() => {
@@ -50,12 +51,31 @@ export default function RecentlyViewedScreen() {
   const clear = async () => {
     if (clearing) return;
     setClearing(true);
+    setClearError(false);
     try {
       await clearRecentProductIds();
       setProducts([]);
+    } catch {
+      setClearError(true);
     } finally {
       setClearing(false);
     }
+  };
+
+  const confirmClear = () => {
+    if (clearing || products.length === 0) return;
+    Alert.alert(
+      t("account.phase8.clearHistoryTitle"),
+      t("account.phase8.clearHistoryPrompt"),
+      [
+        { text: t("support.hub.cancel"), style: "cancel" },
+        {
+          text: t("account.phase8.clearHistoryConfirm"),
+          style: "destructive",
+          onPress: () => { void clear(); }
+        }
+      ]
+    );
   };
 
   return (
@@ -85,9 +105,14 @@ export default function RecentlyViewedScreen() {
       ) : (
         <>
           <Button variant="secondary" disabled={clearing}
-            loading={clearing} onPress={() => void clear()}>
+            loading={clearing} onPress={confirmClear}>
             {t("account.shopping.clearRecent")}
           </Button>
+          {clearError ? (
+            <AppText accessibilityRole="alert" tone="danger">
+              {t("account.phase8.clearHistoryError")}
+            </AppText>
+          ) : null}
           {products.map(product => <MarketplaceProductCard product={product} key={product.id} />)}
         </>
       )}

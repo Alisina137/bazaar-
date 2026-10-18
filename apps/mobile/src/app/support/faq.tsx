@@ -30,14 +30,16 @@ export default function SupportFaqScreen() {
   const { isRTL, t } = useLocalization();
   const [query, setQuery] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [groupFilter, setGroupFilter] = useState<FaqGroup | "all">("all");
   const normalizedQuery = query.trim().toLocaleLowerCase();
 
   const filtered = useMemo(() =>
-    entries.filter(item => !normalizedQuery ||
+    entries.filter(item => groupFilter === "all" || item.group === groupFilter)
+      .filter(item => !normalizedQuery ||
       (t(item.question) + " " + t(item.answer) + " " +
         t(("support.faq.group." + item.group) as TranslationKey))
         .toLocaleLowerCase().includes(normalizedQuery)),
-    [normalizedQuery, t]
+    [groupFilter, normalizedQuery, t]
   );
 
   return (
@@ -56,11 +58,42 @@ export default function SupportFaqScreen() {
         autoCorrect={false}
         returnKeyType="search"
       />
+      <View style={{
+        flexDirection: isRTL ? "row-reverse" : "row",
+        gap: theme.spacing.sm,
+        flexWrap: "wrap"
+      }}>
+        {(["all", ...groups] as Array<FaqGroup | "all">).map(group => (
+          <Pressable key={group}
+            accessibilityRole="button"
+            accessibilityLabel={t(group === "all" ? "support.hub.all" :
+              (("support.faq.group." + group) as TranslationKey))}
+            accessibilityState={{ selected: groupFilter === group }}
+            onPress={() => { setGroupFilter(group); setExpanded(null); }}
+            style={({ pressed }) => ({
+              minHeight: 44,
+              paddingHorizontal: theme.spacing.md,
+              borderRadius: theme.radii.full,
+              borderWidth: groupFilter === group ? 2 : 1,
+              borderColor: groupFilter === group ? theme.colors.primary : theme.colors.border,
+              backgroundColor: groupFilter === group ? theme.colors.primarySoft : theme.colors.surface,
+              alignItems: "center", justifyContent: "center",
+              opacity: pressed ? theme.opacity.pressed : 1
+            })}
+          >
+            <AppText variant="caption"
+              tone={groupFilter === group ? "primary" : "default"}>
+              {t(group === "all" ? "support.hub.all" :
+                (("support.faq.group." + group) as TranslationKey))}
+            </AppText>
+          </Pressable>
+        ))}
+      </View>
       {filtered.length === 0 ? (
         <Card>
           <View style={{ gap: theme.spacing.sm }}>
             <AppText tone="muted">{t("support.faq.noResults")}</AppText>
-            <Button variant="secondary" onPress={() => setQuery("")}>
+            <Button variant="secondary" onPress={() => { setQuery(""); setGroupFilter("all"); }}>
               {t("support.hub.clearFilter")}
             </Button>
           </View>

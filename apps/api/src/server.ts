@@ -20,6 +20,8 @@ import { DatabaseStoreRepository } from "./store/repository.js";
 import { StoreService } from "./store/service.js";
 import { DatabaseMarketplaceRepository } from "./marketplace/repository.js";
 import { MarketplaceService } from "./marketplace/service.js";
+import { DatabaseWishlistRepository } from "./wishlist/repository.js";
+import { WishlistService } from "./wishlist/service.js";
 import { DatabaseCartPricingRepository } from "./cart-pricing/repository.js";
 import { CartPricingService } from "./cart-pricing/service.js";
 import { DatabaseDeliveryRepository } from "./delivery/repository.js";
@@ -109,6 +111,7 @@ const app = buildApp({
   storeService,
   catalogService,
   marketplaceService,
+  wishlistService,
   cartPricingService,
   deliveryService,
   paymentService,

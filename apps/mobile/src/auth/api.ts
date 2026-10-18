@@ -2,7 +2,9 @@ import type {
   AuthErrorCode,
   AuthErrorResponse,
   AuthSessionResponse,
-  AuthSuccessResponse
+  AuthSuccessResponse,
+  AuthProfileResponse,
+  UpdateAuthProfileInput
 } from "@bazaarlink/contracts";
 
 const REQUEST_TIMEOUT_MS = 10_000;
@@ -101,6 +103,14 @@ export function restoreSession(
     headers: {
       authorization: "Bearer " + token
     }
+  });
+}
+
+export function updateAccountProfile(token: string, input: UpdateAuthProfileInput): Promise<AuthProfileResponse> {
+  return requestJson<AuthProfileResponse>("/auth/profile", {
+    method: "PATCH",
+    headers: { authorization: "Bearer " + token },
+    body: JSON.stringify(input)
   });
 }
 

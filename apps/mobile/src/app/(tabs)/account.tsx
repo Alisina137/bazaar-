@@ -1,17 +1,15 @@
 import {
   getAvailableAppModes,
   type AppMode,
-  type AppRole,
-  type AuthErrorCode
+  type AppRole
 } from "@bazaarlink/contracts";
+import type { TranslationKey } from "@bazaarlink/localization";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 
-import {
-  useAuth
-} from "@/auth/provider";
+import { useAuth } from "@/auth/provider";
 import { LanguageSwitcher } from "@/components/localization/LanguageSwitcher";
 import { AccountMenuRow, AccountSection } from "@/components/account/AccountMenu";
 import { GuestAccountContent } from "@/components/account/GuestAccountContent";

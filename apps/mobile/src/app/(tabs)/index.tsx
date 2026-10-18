@@ -50,6 +50,7 @@ export default function HomeScreen() {
   const [favoriteListings, setFavoriteListings] = useState<MarketplaceProductSummary[]>([]);
   const [favoritesLoading, setFavoritesLoading] = useState(false);
   const lastProvince = useRef<ProvinceName | null | undefined>(undefined);
+  const recentRevision = useRef(0);
   const homeRef = useRef(home);
   homeRef.current = home;
   const { suggestions, suggestionsLoading } = useMarketplaceSuggestions(query);
@@ -82,6 +83,9 @@ export default function HomeScreen() {
   };
 
   const clearHistory = () => {
+    // Invalidate older in-flight Home replies immediately. Clearing storage
+    // is queued after earlier product-view writes and followed by a reload.
+    recentRevision.current += 1;
     setRecentIds([]);
     setHome((current) => current ? { ...current, recentlyViewed: [] } : current);
     void clearRecentProductIds().then(() => setRefreshKey((key) => key + 1));
@@ -109,8 +113,10 @@ export default function HomeScreen() {
       setError(false);
       const key = homeCacheKey(province ?? undefined);
       let fallback: MarketplaceHomeResponse | null = null;
+      const revisionAtStart = recentRevision.current;
       try {
-        const recentProductIds = await getRecentProductIds();
+        const recordedIds = await getRecentProductIds();
+        const recentProductIds = revisionAtStart === recentRevision.current ? recordedIds : [];
         if (!active) return;
         setRecentIds(recentProductIds);
 
@@ -120,7 +126,8 @@ export default function HomeScreen() {
         if (!active) return;
         fallback = saved ? {
           ...saved,
-          recentlyViewed: orderRecentProducts(saved.recentlyViewed, recentProductIds)
+          recentlyViewed: orderRecentProducts(saved.recentlyViewed,
+            revisionAtStart === recentRevision.current ? recentProductIds : [])
         } : null;
         if (fallback) {
           setHome(fallback);
@@ -136,9 +143,12 @@ export default function HomeScreen() {
         if (!active) return;
         setHome({
           ...fresh,
-          recentlyViewed: orderRecentProducts(fresh.recentlyViewed, recentProductIds)
+          recentlyViewed: orderRecentProducts(fresh.recentlyViewed,
+            revisionAtStart === recentRevision.current ? recentProductIds : [])
         });
         setCached(false);
+        // Save the complete public response, but every display reconciles
+        // recently-viewed against the currently permitted local ID list.
         void writeHomeCache(key, fresh);
       } catch {
         if (active) {

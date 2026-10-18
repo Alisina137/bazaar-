@@ -9,6 +9,15 @@ import type {
 const PREFIX = "bazaarlink.marketplace.v9.";
 const RECENT_KEY = PREFIX + "recent-products";
 const MAX_RECENT = 12;
+
+// Serialize local writes to prevent a delayed product-view write from restoring
+// items after Clear recent views, and to avoid losing simultaneous visits.
+let recentWriteQueue: Promise<void> = Promise.resolve();
+function queueRecentWrite(write: () => Promise<void>): Promise<void> {
+  const next = recentWriteQueue.then(write);
+  recentWriteQueue = next.catch(() => {});
+  return recentWriteQueue;
+}
 const CACHE_TTL_MS = 15 * 60 * 1000;
 const MAX_STALE_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000;
@@ -87,26 +96,29 @@ export async function getRecentProductIds(): Promise<string[]> {
   }
 }
 
-export async function clearRecentProductIds(): Promise<void> {
-  try {
-    await AsyncStorage.removeItem(RECENT_KEY);
-  } catch {
-    // Clearing local activity is best effort without breaking shopping.
-  }
+export function clearRecentProductIds(): Promise<void> {
+  return queueRecentWrite(async () => {
+    try {
+      await AsyncStorage.removeItem(RECENT_KEY);
+    } catch {
+      // Clearing local activity is best effort without breaking shopping.
+    }
+  });
 }
 
-export async function rememberProduct(productId: string): Promise<void> {
-  const current = await getRecentProductIds();
-  const next = [
-    productId,
-    ...current.filter((id) => id !== productId)
-  ].slice(0, MAX_RECENT);
-
-  try {
-    await AsyncStorage.setItem(RECENT_KEY, JSON.stringify(next));
-  } catch {
-    // Recent-view persistence is best effort.
-  }
+export function rememberProduct(productId: string): Promise<void> {
+  return queueRecentWrite(async () => {
+    const current = await getRecentProductIds();
+    const next = [
+      productId,
+      ...current.filter((id) => id !== productId)
+    ].slice(0, MAX_RECENT);
+    try {
+      await AsyncStorage.setItem(RECENT_KEY, JSON.stringify(next));
+    } catch {
+      // Recent-view persistence is best effort.
+    }
+  });
 }
 
 export function homeCacheKey(province?: string): string {

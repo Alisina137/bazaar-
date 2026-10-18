@@ -1703,3 +1703,11 @@ Automated implementation scope is committed as an integrated Phase 12 change. Gi
 - Horizontal product rails now use bounded FlatList virtualization, stable item IDs and inverted RTL direction.
 - Categories move ahead of the hero and New Arrivals/Discounts use an accessible, localized Show more / Show less expander to cut excessive default vertical scrolling. The exact same View all routes remain available.
 - Phase 1–6 APIs, stock/trust indicators, opt-in manual province selection, customer auth and multilingual RTL/LTR preserved. Device rendering still requires manual Expo Go acceptance testing.
+
+## Customer Home redesign — Phase 8 final QA hardening
+
+- Serializes local recent-view writes and clear operations to avoid AsyncStorage last-writer-wins races; Home uses a revision token when reading and showing recent products so asynchronous old snapshots cannot restore a just-cleared list.
+- Autocomplete results are associated with their query so obsolete product/store suggestions cannot display for a different search string.
+- Marketplace search clears the old result set as the next query starts and checks the active request ID even after async cached fallback. On a failed search, the browse-specific error is shown instead of stale products or a duplicated discovery page.
+- Marketplace general home response loading now has request-ID guards, explicit province-scope resets, and a single province-dependent effect rather than two competing initial requests.
+- Phase 8 Node regression tests exercise concurrent view writes, clear-history races, cache scope isolation, async guard invariants, and navigation/localization accessibility contracts. CI verifies build, typecheck, lint, API integration and migration checks; Android device acceptance remains a separate manual requirement.

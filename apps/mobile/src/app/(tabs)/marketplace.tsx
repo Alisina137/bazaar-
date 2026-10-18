@@ -115,6 +115,8 @@ export default function MarketplaceScreen() {
   const [brand, setBrand] = useState<string | undefined>(linkedBrand);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const browseRequestId = useRef(0);
+  const homeRequestId = useRef(0);
+  const activeHomeProvince = useRef<string | undefined>(undefined);
 
   const [browse, setBrowse] = useState<MarketplaceBrowseResponse | null>(null);
   const [browseInput, setBrowseInput] = useState<BrowseMarketplaceInput | null>(
@@ -128,6 +130,10 @@ export default function MarketplaceScreen() {
   const { suggestions, suggestionsLoading } = useMarketplaceSuggestions(query);
 
   const loadHome = useCallback(async (nearbyProvince?: string) => {
+    const requestId = ++homeRequestId.current;
+    const scopeChanged = activeHomeProvince.current !== nearbyProvince;
+    activeHomeProvince.current = nearbyProvince;
+    if (scopeChanged) setHome(null);
     setHomeLoading(true);
     setHomeError(null);
     setUsingCachedHome(false);
@@ -136,34 +142,41 @@ export default function MarketplaceScreen() {
 
     try {
       const recentProductIds = await getRecentProductIds();
+      if (requestId !== homeRequestId.current) return;
       const response = await marketplaceHome({
         ...(nearbyProvince ? { province: nearbyProvince } : {}),
         recentProductIds
       });
+      if (requestId !== homeRequestId.current) return;
 
       setHome(response);
-      await writeHomeCache(key, response);
+      void writeHomeCache(key, response);
     } catch (error) {
+      if (requestId !== homeRequestId.current) return;
       const safeError =
         error instanceof MarketplaceApiError
           ? error
           : new MarketplaceApiError("service_unavailable");
       const cached = await readHomeCache(key, true);
+      if (requestId !== homeRequestId.current) return;
 
       if (cached) {
         setHome(cached);
         setUsingCachedHome(true);
       } else {
+        setHome(null);
         setHomeError(safeError);
       }
     } finally {
-      setHomeLoading(false);
+      if (requestId === homeRequestId.current) setHomeLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    void loadHome();
-  }, [loadHome]);
+    // A single province-scoped request owns the Marketplace discovery Home.
+    // The latest response wins when deep links change in quick succession.
+    void loadHome(linkedProvince);
+  }, [loadHome, linkedProvince]);
 
   const rootCategories = useMemo(
     () => home?.categories.filter((category) => category.parentId === null) ?? [],
@@ -179,6 +192,10 @@ export default function MarketplaceScreen() {
       if (append) {
         setBrowseLoadingMore(true);
       } else {
+        // Do not present the previous query's product cards as if they
+        // matched the next set of filters while the network is pending.
+        setBrowse(null);
+        setBrowseInput(null);
         setBrowseLoading(true);
         setBrowseError(null);
         setUsingCachedBrowse(false);
@@ -217,6 +234,7 @@ export default function MarketplaceScreen() {
 
         if (!append) {
           const cached = await readBrowseCache(key, true);
+          if (requestId !== browseRequestId.current) return;
           if (cached) {
             setBrowse(cached);
             setBrowseInput(input);
@@ -258,11 +276,10 @@ export default function MarketplaceScreen() {
       ...(linkedProvince ? { province: linkedProvince } : {}),
       sort: validSort, offset: 0, limit: 20
     });
-    if (linkedProvince) void loadHome(linkedProvince);
   }, [
     linkedCategoryId, linkedQuery, linkedBrand, linkedStoreId,
     linkedSort, linkedDiscount, linkedProvince, validSort,
-    executeBrowse, loadHome
+    executeBrowse
   ]);
 
   const applyBrowse = useCallback(
@@ -302,6 +319,8 @@ export default function MarketplaceScreen() {
       await executeBrowse(next);
       if (next.province) {
         void loadHome(next.province);
+      } else {
+        void loadHome();
       }
     },
     [
@@ -342,6 +361,7 @@ export default function MarketplaceScreen() {
     setBrowse(null);
     setBrowseInput(null);
     setBrowseError(null);
+    setUsingCachedBrowse(false);
     if (linkedCategoryId || linkedQuery || linkedBrand || linkedStoreId ||
         linkedSort || linkedDiscount || linkedProvince) {
       router.replace("/(tabs)/marketplace");
@@ -530,7 +550,7 @@ export default function MarketplaceScreen() {
         </View>
       </Card>
 
-      {homeLoading && !home && !browse ? (
+      {homeLoading && !home && !browse && !browseLoading ? (
         <StateView
           kind="loading"
           title={t("marketplace.loadingTitle")}
@@ -538,7 +558,7 @@ export default function MarketplaceScreen() {
         />
       ) : null}
 
-      {homeError && !home && !browse ? (
+      {homeError && !home && !browse && !browseLoading && !browseError ? (
         <StateView
           kind="error"
           title={t("marketplace.errorTitle")}
@@ -633,7 +653,7 @@ export default function MarketplaceScreen() {
             {t("marketplace.backHome")}
           </Button>
         </View>
-      ) : home ? (
+      ) : browseLoading || browseError ? null : home ? (
         <View style={{ gap: theme.spacing["2xl"] }}>
           {rootCategories.length > 0 ? (
             <View style={{ gap: theme.spacing.md }}>

@@ -7,6 +7,7 @@ import { searchSuggestions } from "@/marketplace/api";
 export function useMarketplaceSuggestions(query: string) {
   const [suggestions, setSuggestions] = useState<MarketplaceSearchSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
+  const [resolvedQuery, setResolvedQuery] = useState("");
 
   useEffect(() => {
     const normalized = query.trim();
@@ -14,6 +15,7 @@ export function useMarketplaceSuggestions(query: string) {
     setSuggestions([]);
 
     if (normalized.length < 2) {
+      setResolvedQuery("");
       setLoading(false);
       return () => { active = false; };
     }
@@ -22,10 +24,16 @@ export function useMarketplaceSuggestions(query: string) {
     const timeout = setTimeout(() => {
       void searchSuggestions(normalized)
         .then((response) => {
-          if (active) setSuggestions(response.suggestions);
+          if (active) {
+            setSuggestions(response.suggestions);
+            setResolvedQuery(normalized);
+          }
         })
         .catch(() => {
-          if (active) setSuggestions([]);
+          if (active) {
+            setSuggestions([]);
+            setResolvedQuery(normalized);
+          }
         })
         .finally(() => {
           if (active) setLoading(false);
@@ -38,5 +46,12 @@ export function useMarketplaceSuggestions(query: string) {
     };
   }, [query]);
 
-  return { suggestions, suggestionsLoading: loading };
+  // Old suggestions never belong to newly typed text, even for the single
+  // frame before the previous effect's cleanup runs.
+  const normalized = query.trim();
+  const queryMatches = resolvedQuery === normalized;
+  return {
+    suggestions: queryMatches ? suggestions : [],
+    suggestionsLoading: normalized.length >= 2 && (loading || !queryMatches)
+  };
 }

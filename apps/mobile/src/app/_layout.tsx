@@ -35,6 +35,7 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="marketplace" />
         <Stack.Screen name="checkout" />
+        <Stack.Screen name="account" />
         <Stack.Screen name="seller" />
         <Stack.Screen name="reviews" />
         <Stack.Screen name="notifications" />

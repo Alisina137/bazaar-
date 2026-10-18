@@ -32,6 +32,8 @@ import { registerGrowthRoutes } from "./growth/routes.js";
 import type { GrowthServiceContract } from "./growth/service.js";
 import { registerPlatformRoutes } from "./platform/routes.js";
 import type { Database } from "@bazaarlink/database";
+import { registerWishlistRoutes } from "./wishlist/routes.js";
+import type { WishlistServiceContract } from "./wishlist/service.js";
 
 export interface AppDependencies {
   databaseHealthCheck?: () => Promise<void>;
@@ -47,6 +49,7 @@ export interface AppDependencies {
   communicationService?: CommunicationService;
   growthService?: GrowthServiceContract;
   platformDatabase?: Database;
+  wishlistService?: WishlistServiceContract;
 }
 
 export function buildApp(
@@ -166,6 +169,12 @@ export function buildApp(
       registerAuthRoutes(securedApp, dependencies.authService!);
       if (dependencies.platformDatabase) {
         registerPlatformRoutes(securedApp, dependencies.authService!, dependencies.platformDatabase);
+      }
+
+      if (dependencies.wishlistService) {
+        registerWishlistRoutes(
+          securedApp, dependencies.authService!, dependencies.wishlistService
+        );
       }
 
       if (dependencies.storeService) {

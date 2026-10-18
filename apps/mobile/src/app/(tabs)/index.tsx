@@ -74,6 +74,15 @@ export default function HomeScreen() {
     return () => { active = false; };
   }, []);
 
+  // A province changed in Account → Preferences must refresh Home on return.
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    void getDiscoveryProvince().then(value => {
+      if (active) setProvince(current => current === value ? current : value);
+    });
+    return () => { active = false; };
+  }, []));
+
   const saveFavorites = (next: string[]) => {
     const allowed = new Set(home?.categories.filter((item) => !item.parentId)
       .map((item) => item.id) ?? []);

@@ -364,6 +364,10 @@ export class CommunicationService implements BusinessNotificationEmitter {
     );
   }
 
+  async deactivatePushToken(userId: string, token: string): Promise<void> {
+    await this.repository.deactivatePushToken(userId, token);
+  }
+
   async createSupportTicket(
     userId: string,
     input: CreateSupportTicketInput

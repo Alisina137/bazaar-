@@ -1,4 +1,5 @@
 import Constants from "expo-constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import {
   createContext,
@@ -12,13 +13,14 @@ import {
 import { Platform } from "react-native";
 
 import { useAuth } from "@/auth/provider";
-import { registerPushToken } from "./api";
+import { deactivatePushToken, registerPushToken } from "./api";
 
-type PushStatus = "idle" | "enabled" | "unavailable";
+type PushStatus = "idle" | "enabled" | "disabled" | "unavailable";
 
 interface PushContextValue {
   status: PushStatus;
   enable: () => Promise<boolean>;
+  disable: () => Promise<boolean>;
 }
 
 const PushContext = createContext<PushContextValue | null>(null);
@@ -69,10 +71,22 @@ function internalDeepLink(value: unknown): string | null {
 
 export function NotificationProvider({ children }: PropsWithChildren) {
   const router = useRouter();
-  const { status: authStatus, sessionToken } = useAuth();
+  const { status: authStatus, sessionToken, user } = useAuth();
   const [status, setStatus] = useState<PushStatus>(
     remotePushSupported ? "idle" : "unavailable"
   );
+
+  // Preference is specific to the signed-in account on this device.
+  useEffect(() => {
+    if (!remotePushSupported) return;
+    let mounted = true;
+    setStatus("idle");
+    if (authStatus !== "signedIn" || !user) return;
+    void AsyncStorage.getItem("bazaarlink.push.v1." + user.id).then(saved => {
+      if (mounted && (saved === "enabled" || saved === "disabled")) setStatus(saved);
+    }).catch(() => undefined);
+    return () => { mounted = false; };
+  }, [authStatus, user?.id]);
 
   useEffect(() => {
     if (!remotePushSupported) return;
@@ -156,14 +170,39 @@ export function NotificationProvider({ children }: PropsWithChildren) {
       });
 
       setStatus("enabled");
+      if (user) {
+        await AsyncStorage.setItem("bazaarlink.push.v1." + user.id, "enabled").catch(() => undefined);
+      }
       return true;
     } catch {
       setStatus("unavailable");
       return false;
     }
-  }, [authStatus, sessionToken]);
+  }, [authStatus, sessionToken, user?.id]);
 
-  const value = useMemo(() => ({ status, enable }), [enable, status]);
+  const disable = useCallback(async () => {
+    if (!remotePushSupported || !sessionToken || !user) return false;
+    try {
+      const notifications = await loadNotifications();
+      if (!notifications) return false;
+      const permission = await notifications.getPermissionsAsync();
+      const projectId = Constants.expoConfig?.extra?.eas?.projectId ??
+        Constants.easConfig?.projectId;
+      // When notifications were never permitted, no Expo token could have been registered.
+      if (permission.status === "granted") {
+        if (!projectId) return false;
+        const pushToken = (await notifications.getExpoPushTokenAsync({ projectId })).data;
+        await deactivatePushToken(sessionToken, pushToken);
+      }
+      await AsyncStorage.setItem("bazaarlink.push.v1." + user.id, "disabled");
+      setStatus("disabled");
+      return true;
+    } catch {
+      return false;
+    }
+  }, [sessionToken, user?.id]);
+
+  const value = useMemo(() => ({ status, enable, disable }), [disable, enable, status]);
 
   return (
     <PushContext.Provider value={value}>

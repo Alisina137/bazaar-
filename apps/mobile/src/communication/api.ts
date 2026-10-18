@@ -93,6 +93,12 @@ export function registerPushToken(
   );
 }
 
+export function deactivatePushToken(token: string, pushToken: string): Promise<void> {
+  return requestJson("/notifications/push-token/disable", token, {
+    method: "POST", body: JSON.stringify({ token: pushToken })
+  });
+}
+
 export function createSupportTicket(
   token: string,
   input: CreateSupportTicketInput

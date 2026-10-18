@@ -50,7 +50,8 @@ test("account structure retains real routes, auth and role-scoped platform acces
   assert.match(screen, /<GuestAccountContent \/>/);
   assert.match(guest, /await login\(/);
   assert.match(guest, /await register\(/);
-  assert.match(screen, /<LanguageSwitcher compact \/>/);
+  assert.match(screen, /router\.push\("\/account\/preferences"\)/);
+  assert.match(read("apps/mobile/src/app/account/preferences.tsx"), /<LanguageSwitcher compact \/>/);
   assert.doesNotMatch(screen, /router\.push\("\/account\/edit"\)/);
 });
 

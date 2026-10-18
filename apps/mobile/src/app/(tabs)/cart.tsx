@@ -57,7 +57,7 @@ export default function CartScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { status, sessionToken } = useAuth();
-  const { isRTL, formatAfn, formatNumber, t } = useLocalization();
+  const { formatAfn, formatNumber, t } = useLocalization();
 
   const [cart, setCart] = useState<CartResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -301,7 +301,7 @@ function MerchantGroupCard({
   onRemoveCoupon: () => Promise<void>;
 }) {
   const theme = useAppTheme();
-  const { formatAfn, formatNumber, t } = useLocalization();
+  const { isRTL, formatAfn, formatNumber, t } = useLocalization();
   const [couponCode, setCouponCode] = useState(group.coupon?.code ?? "");
 
   return (

@@ -5,6 +5,7 @@ import { View } from "react-native";
 
 import { useAuth } from "@/auth/provider";
 import { AppText, Button, Card, Screen, StateView } from "@/components/ui";
+import { AccountBackLink } from "@/components/account/AccountBackLink";
 import { MarketplaceProductCard } from "@/components/marketplace/MarketplaceProductCard";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
@@ -79,6 +80,7 @@ export default function WishlistScreen() {
 
   return (
     <Screen contentStyle={{ gap: theme.spacing.lg }}>
+      <AccountBackLink />
       <AppText variant="heading">{t("account.shopping.wishlist")}</AppText>
       <AppText tone="muted">{t("account.shopping.wishlistDescription")}</AppText>
       {loading ? (

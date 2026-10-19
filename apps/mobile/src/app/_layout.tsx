@@ -37,10 +37,8 @@ function RootNavigator() {
         <Stack.Screen name="checkout" />
         <Stack.Screen name="account" />
         <Stack.Screen name="seller" />
-        <Stack.Screen name="reviews" />
         <Stack.Screen name="notifications" />
         <Stack.Screen name="support" />
-        <Stack.Screen name="platform" />
       </Stack>
     </>
   );

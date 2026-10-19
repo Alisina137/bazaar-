@@ -65,7 +65,6 @@ export default function CartScreen() {
   const [loading, setLoading] = useState(false);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
-  const [removedItem, setRemovedItem] = useState<{ productId: string; variantId?: string; quantity: number } | null>(null);
 
   const load = useCallback(async () => {
     if (status !== "signedIn" || !sessionToken) {
@@ -228,11 +227,8 @@ export default function CartScreen() {
                 text: t("cart.remove"),
                 style: "destructive",
                 onPress: () => {
-                  setRemovedItem(null);
                   void run("item:" + itemId, async token => {
-                    const result = await removeCartItem(token, itemId);
-                    setRemovedItem({ productId: item.productId, variantId: item.variantId ?? undefined, quantity: item.quantity });
-                    return result;
+                    return removeCartItem(token, itemId);
                   });
                 }
               }
@@ -286,7 +282,7 @@ export default function CartScreen() {
 
       <Button
         fullWidth
-        disabled={cart.hasBlockingIssues || busyKey !== null}
+        disabled={cart.hasBlockingIssues || busyKey !== null || loading}
         onPress={() => router.push("/checkout")}
       >
         {t("cart.checkout")}

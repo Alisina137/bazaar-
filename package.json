@@ -19,6 +19,7 @@
     "db:generate": "pnpm --filter @bazaarlink/database db:generate",
     "db:check": "pnpm --filter @bazaarlink/database db:check",
     "db:migrate": "pnpm --filter @bazaarlink/database db:migrate",
+    "db:seed:demo": "pnpm --filter @bazaarlink/database seed:demo",
     "db:health": "pnpm --filter @bazaarlink/database db:health",
     "db:studio": "pnpm --filter @bazaarlink/database db:studio",
     "lint": "eslint . --max-warnings=0",

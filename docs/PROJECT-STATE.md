@@ -1893,3 +1893,19 @@ Automated implementation scope is committed as an integrated Phase 12 change. Gi
 - Added opt-in scroll-position preservation to the shared `Screen` component; Marketplace opts in with a stable key. Other screens retain their prior behavior unless they pass a key.
 - Added `pnpm test:marketplace-phase6` and included it in `pnpm verify`. No new dependency, external image service, API route, or database migration was added.
 - **Manual QA still required:** low-end Android with long product lists and multiple pages; pull-to-refresh on all three Marketplace tabs; cached store results online/offline; failed pagination retry; scroll restoration after navigating to product/store details; and Dari/Pashto RTL, English LTR, light/dark theme, and small-screen layouts.
+
+
+## Marketplace Phase 7 — Advanced shopping: product comparison
+
+### Implementation
+
+- Added a device-local comparison list that deduplicates product IDs, serializes concurrent writes, and caps the list at four products.
+- Added add/remove comparison actions to product detail screens and a persistent count/open action.
+- Added a comparison screen showing price, discount price, rating/review count, stock availability, seller, seller location, and category, with per-item removal, clear-all, retry, and browse-more actions.
+- Added English, Dari, and Pashto translations and wired focused regression tests into `pnpm verify`.
+- Comparison is device-local and does not require an account or database migration. Product details are fetched from the existing marketplace API.
+
+### Verification
+
+- Automated focused tests are defined in `scripts/marketplace-phase7.test.mjs` and run through `pnpm test:marketplace-phase7`.
+- Device QA remains recommended for RTL/LTR layout, narrow screens, offline/error recovery, and comparison persistence across app restarts.

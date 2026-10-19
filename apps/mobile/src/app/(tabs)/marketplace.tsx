@@ -20,6 +20,7 @@ import {
 } from "react-native";
 
 import { MarketplaceProductGrid } from "@/components/marketplace/MarketplaceProductGrid";
+import { MarketplaceDiscoverySkeleton } from "@/components/marketplace/MarketplaceDiscoverySkeleton";
 import { MarketplaceCategoryTile } from "@/components/marketplace/MarketplaceCategoryTile";
 import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox";
 import { MarketplaceRecentSearches } from "@/components/marketplace/MarketplaceRecentSearches";
@@ -779,11 +780,7 @@ export default function MarketplaceScreen() {
       ) : null}
 
       {selectedView !== "products" && homeLoading && !home ? (
-        <StateView
-          kind="loading"
-          title={t("marketplace.loadingTitle")}
-          message={t("marketplace.loadingMessage")}
-        />
+        <MarketplaceDiscoverySkeleton title={t("marketplace.loadingTitle")} count={6} />
       ) : null}
 
       {selectedView !== "products" && homeError && !home ? (
@@ -806,7 +803,7 @@ export default function MarketplaceScreen() {
         </Card>
       ) : null}
 
-      {selectedView === "products" && browseLoading && !browse ? <StateView kind="loading" title={t("marketplace.searching")} /> : null}
+      {selectedView === "products" && browseLoading && !browse ? <MarketplaceDiscoverySkeleton title={t("marketplace.searching")} /> : null}
       {selectedView === "products" && browseError && !browse ? (
         <StateView kind="error" title={t("marketplace.errorTitle")}
           message={t(marketplaceErrorKey(browseError.code))}
@@ -992,7 +989,7 @@ export default function MarketplaceScreen() {
             />
           ) : null}
           {storeDirectoryLoading && !storeDirectory ? (
-            <StateView kind="loading" title={t("marketplace.phase5.loadingStores")} />
+            <MarketplaceDiscoverySkeleton title={t("marketplace.phase5.loadingStores")} variant="store" />
           ) : null}
           {storeDirectory && storeDirectory.stores.length > 0 ? (
             <View style={{ gap: theme.spacing.md }}>

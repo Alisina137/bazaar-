@@ -17,7 +17,7 @@ import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 import { browseMarketplace, marketplaceHome } from "@/marketplace/api";
 import { browseCacheKey, clearRecentProductIds, getRecentProductIds, homeCacheKey, readBrowseCache, readHomeCache, writeBrowseCache, writeHomeCache } from "@/marketplace/cache";
-import { getDiscoveryProvince, provinceName, setDiscoveryProvince, type ProvinceName } from "@/marketplace/provinces";
+import { getDiscoveryProvince, provinceName, type ProvinceName } from "@/marketplace/provinces";
 import { getFavoriteCategories, setFavoriteCategories } from "@/marketplace/preferences";
 import { orderRecentProducts, personalizeProducts } from "@/marketplace/personalize";
 
@@ -94,11 +94,6 @@ export default function HomeScreen() {
   const requestRefresh = () => {
     setRefreshRequested(true);
     setRefreshKey((key) => key + 1);
-  };
-
-  const chooseProvince = (next: ProvinceName | null) => {
-    setProvince(next);
-    void setDiscoveryProvince(next);
   };
 
   useFocusEffect(useCallback(() => {

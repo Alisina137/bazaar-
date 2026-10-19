@@ -126,16 +126,13 @@ export default function MarketplaceCompareScreen() {
               const location = isProvinceName(product.store.province)
                 ? provinceName(product.store.province, locale)
                 : product.store.province;
-              const rating = product.averageRating === null
-                ? t("marketplace.compare.rating") + ": —"
-                : t("marketplace.compare.rating") + ": " + formatNumber(product.averageRating);
               return (
                 <Card key={product.id}>
                   <View style={{ gap: theme.spacing.sm }}>
                     <AppText variant="title">{product.name}</AppText>
-                    <AppText variant="heading" tone="primary">{formatAfn(product.price)}</AppText>
+                    <AppText variant="heading" tone="primary">{t("marketplace.compare.price")}: {formatAfn(product.price)}</AppText>
                     {product.compareAtPrice !== null && product.compareAtPrice > product.price ? (
-                      <AppText variant="caption" tone="muted">{t("marketplace.compare.discount")}: {formatAfn(product.price)}</AppText>
+                      <AppText variant="caption" tone="muted">{t("marketplace.compare.originalPrice")}: {formatAfn(product.compareAtPrice)}</AppText>
                     ) : null}
                     <View style={{ gap: theme.spacing.xs }}>
                       <AppText>{t("marketplace.compare.rating")}: {product.averageRating === null ? "—" : formatNumber(product.averageRating)}</AppText>

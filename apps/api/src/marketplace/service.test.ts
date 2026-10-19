@@ -83,6 +83,10 @@ function repository(
         activeProductCount: 1
       }
     ],
+    directoryStores: async input => ({
+      stores: [{ store: summary.store, activeProductCount: 1 }],
+      pageInfo: { offset: input.offset, limit: input.limit, total: 1, hasMore: false }
+    }),
     suggestions: async () => [
       {
         type: "product",
@@ -178,6 +182,30 @@ describe("MarketplaceService", () => {
     const provincial = await service.home({ province: "Kabul", recentProductIds: [] });
     expect(provincial.nearby).toEqual([summary]);
     expect(queries.filter((query) => query.province === "Kabul")).toHaveLength(1);
+  });
+
+  it("passes store directory search and paging to the repository", async () => {
+    const calls: Array<{ query?: string; province?: string; offset: number; limit: number }> = [];
+    const service = new MarketplaceService(repository({
+      directoryStores: async input => {
+        calls.push(input);
+        return {
+          stores: [{ store: summary.store, activeProductCount: 1 }],
+          pageInfo: { offset: input.offset, limit: input.limit, total: 1, hasMore: false }
+        };
+      }
+    }));
+
+    const result = await service.directoryStores({
+      query: "test",
+      province: "Kabul",
+      offset: 20,
+      limit: 20
+    });
+
+    expect(calls).toEqual([{ query: "test", province: "Kabul", offset: 20, limit: 20 }]);
+    expect(result.pageInfo.offset).toBe(20);
+    expect(result.stores[0]?.store.handle).toBe("test-store");
   });
 
   it("returns authoritative pagination from repository counts", async () => {

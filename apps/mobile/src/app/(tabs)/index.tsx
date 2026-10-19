@@ -1,28 +1,23 @@
-import type { MarketplaceHomeResponse, MarketplaceProductSummary, MarketplaceSearchSuggestion } from "@bazaarlink/contracts";
+import type { MarketplaceHomeResponse, MarketplaceProductSummary } from "@bazaarlink/contracts";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, View, useWindowDimensions } from "react-native";
 
 import { useAuth } from "@/auth/provider";
-import { MarketplaceCategoryTile } from "@/components/marketplace/MarketplaceCategoryTile";
-import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox";
-import { MarketplaceSuggestions } from "@/components/marketplace/MarketplaceSuggestions";
 import { MarketplaceStoreCard } from "@/components/marketplace/MarketplaceStoreCard";
 import { HomeDealSpotlight } from "@/components/marketplace/HomeDealSpotlight";
 import { HomeProductRail } from "@/components/marketplace/HomeProductRail";
-import { HomeProvinceSelector } from "@/components/marketplace/HomeProvinceSelector";
 import { HomeInterestPicker } from "@/components/marketplace/HomeInterestPicker";
 import { HomeHeroBanner } from "@/components/marketplace/HomeHeroBanner";
 import { HomeLoadingSkeleton } from "@/components/marketplace/HomeLoadingSkeleton";
 import { HomeSectionHeader } from "@/components/marketplace/HomeSectionHeader";
-import { AppText, HorizontalLocaleScroll, Screen, StateView } from "@/components/ui";
+import { AppText, Screen, StateView } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 import { browseMarketplace, marketplaceHome } from "@/marketplace/api";
 import { browseCacheKey, clearRecentProductIds, getRecentProductIds, homeCacheKey, readBrowseCache, readHomeCache, writeBrowseCache, writeHomeCache } from "@/marketplace/cache";
-import { useMarketplaceSuggestions } from "@/marketplace/useMarketplaceSuggestions";
-import { getDiscoveryProvince, provinceName, setDiscoveryProvince, type ProvinceName } from "@/marketplace/provinces";
+import { getDiscoveryProvince, provinceName, type ProvinceName } from "@/marketplace/provinces";
 import { getFavoriteCategories, setFavoriteCategories } from "@/marketplace/preferences";
 import { orderRecentProducts, personalizeProducts } from "@/marketplace/personalize";
 
@@ -40,7 +35,6 @@ export default function HomeScreen() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [refreshRequested, setRefreshRequested] = useState(false);
   const [showMoreSections, setShowMoreSections] = useState(false);
-  const [query, setQuery] = useState("");
   const [province, setProvince] = useState<ProvinceName | null>(null);
   const [provinceLoaded, setProvinceLoaded] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -51,7 +45,6 @@ export default function HomeScreen() {
   const recentRevision = useRef(0);
   const homeRef = useRef(home);
   homeRef.current = home;
-  const { suggestions, suggestionsLoading } = useMarketplaceSuggestions(query);
 
   useEffect(() => {
     let active = true;
@@ -101,11 +94,6 @@ export default function HomeScreen() {
   const requestRefresh = () => {
     setRefreshRequested(true);
     setRefreshKey((key) => key + 1);
-  };
-
-  const chooseProvince = (next: ProvinceName | null) => {
-    setProvince(next);
-    void setDiscoveryProvince(next);
   };
 
   useFocusEffect(useCallback(() => {
@@ -224,37 +212,6 @@ export default function HomeScreen() {
     discount?: "true";
     province?: string;
   } = {}) => router.push({ pathname: "/(tabs)/marketplace", params });
-  const goToCategory = (categoryId: string) => {
-    setQuery("");
-    router.push({
-      pathname: "/(tabs)/marketplace",
-      params: { categoryId }
-    });
-  };
-  const submitSearch = () => {
-    const q = query.trim();
-    if (q) {
-      router.push({ pathname: "/(tabs)/marketplace", params: { q } });
-      setQuery("");
-    } else {
-      openMarketplace();
-    }
-  };
-  const selectSuggestion = (suggestion: MarketplaceSearchSuggestion) => {
-    setQuery("");
-    if (suggestion.type === "product") {
-      router.push({ pathname: "/marketplace/product/[productId]", params: { productId: suggestion.id } });
-    } else if (suggestion.type === "category") {
-      goToCategory(suggestion.id);
-    } else if (suggestion.type === "store" && suggestion.handle) {
-      router.push({ pathname: "/marketplace/store/[handle]", params: { handle: suggestion.handle } });
-    } else if (suggestion.type === "store") {
-      router.push({ pathname: "/(tabs)/marketplace", params: { storeId: suggestion.id } });
-    } else {
-      router.push({ pathname: "/(tabs)/marketplace", params: { brand: suggestion.label } });
-    }
-  };
-  const rootCategories = home?.categories.filter((item) => !item.parentId).slice(0, 8) ?? [];
   const featuredStores = home?.featuredStores.slice(0, 6) ?? [];
   const spotlight = home?.deals.find((item) => item.inStock && item.hasDiscount);
   const personalized = personalizeProducts({
@@ -265,7 +222,6 @@ export default function HomeScreen() {
     province
   });
   const hasContent = Boolean(home && (
-    rootCategories.length ||
     featuredStores.length ||
     home.recommended.length || home.popular.length ||
     home.nearby.length || home.newest.length ||
@@ -311,48 +267,18 @@ export default function HomeScreen() {
         <View style={{ flex: 1, minWidth: 0 }}>
           <AppText variant="heading" numberOfLines={1}>{t("common.brandName")}</AppText>
         </View>
-        {iconAction("cart-outline", t("nav.cart"), () => router.push("/(tabs)/cart"))}
+        {iconAction("cart-outline", t("nav.cart"), () => router.push({ pathname: "/(tabs)/shopping", params: { section: "cart" } }))}
         {iconAction("notifications-outline", t("account.notifications"), () =>
           router.push(status === "signedIn" ? "/notifications" : "/(tabs)/account"))}
       </View>
 
-      <View style={{
-        flexDirection: isRTL ? "row-reverse" : "row",
-        flexWrap: "wrap", gap: theme.spacing.sm, alignItems: "center"
-      }}>
-        <HomeProvinceSelector value={province} onChange={chooseProvince} />
-        <HomeInterestPicker
-          categories={home?.categories.filter((item) => !item.parentId) ?? []}
-          favorites={favorites}
-          recentCount={recentIds.length}
-          onSave={saveFavorites}
-          onClearHistory={clearHistory}
-        />
-      </View>
-
-      <View style={{ gap: theme.spacing.xs }}>
-        <MarketplaceSearchBox value={query} onChangeText={setQuery} onSubmit={submitSearch} />
-        <MarketplaceSuggestions
-          query={query}
-          items={suggestions}
-          loading={suggestionsLoading}
-          categories={home?.categories}
-          onSelect={selectSuggestion}
-          onSearchAll={submitSearch}
-        />
-      </View>
-
-      {rootCategories.length > 0 ? (
-        <View style={{ gap: theme.spacing.md }}>
-          <HomeSectionHeader title={t("marketplace.categories")} icon="grid-outline" onViewAll={openMarketplace} />
-          <HorizontalLocaleScroll showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm, paddingVertical: theme.spacing.xs }}>
-            {rootCategories.map((category) => (
-              <MarketplaceCategoryTile key={category.id} category={category} onPress={() => goToCategory(category.id)} />
-            ))}
-          </HorizontalLocaleScroll>
-        </View>
-      ) : null}
+      <HomeInterestPicker
+        categories={home?.categories.filter((item) => !item.parentId) ?? []}
+        favorites={favorites}
+        recentCount={recentIds.length}
+        onSave={saveFavorites}
+        onClearHistory={clearHistory}
+      />
 
       {spotlight ? (
         <HomeDealSpotlight product={spotlight} />

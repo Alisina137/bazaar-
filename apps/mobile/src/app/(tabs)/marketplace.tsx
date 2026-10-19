@@ -36,7 +36,6 @@ import {
   AppText,
   Button,
   Card,
-  HorizontalLocaleScroll,
   Screen,
   StateView
 } from "@/components/ui";
@@ -166,6 +165,7 @@ export default function MarketplaceScreen() {
     append?: boolean;
   }) => {
     const requestId = ++storeDirectoryRequestId.current;
+    if (!input.append) setStoreDirectory(null);
     setStoreDirectoryLoading(true);
     setStoreDirectoryError(false);
     try {

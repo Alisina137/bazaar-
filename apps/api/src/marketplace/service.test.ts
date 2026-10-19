@@ -185,7 +185,7 @@ describe("MarketplaceService", () => {
   });
 
   it("passes store directory search and paging to the repository", async () => {
-    const calls: Array<{ query?: string; province?: string; offset: number; limit: number }> = [];
+    const calls: Array<{ query?: string | undefined; province?: string | undefined; offset: number; limit: number }> = [];
     const service = new MarketplaceService(repository({
       directoryStores: async input => {
         calls.push(input);

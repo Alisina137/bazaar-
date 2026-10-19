@@ -4,6 +4,7 @@ export const psAfMessages = {
   "nav.home": "کور",
   "nav.marketplace": "بازار",
   "nav.shopping": "پېرودنې",
+  "shopping.subtitle": "خپله ټوکرۍ او فرمایشونه اداره کړئ",
   "nav.cart": "ټوکرۍ",
   "nav.orders": "فرمایشونه",
   "nav.account": "حساب",

@@ -171,6 +171,7 @@ export default function MarketplaceScreen() {
   }) => {
     const requestId = ++storeDirectoryRequestId.current;
     const cacheKey = storeDirectoryCacheKey(input.q, input.offset);
+    let cached: MarketplaceStoreDirectoryResponse | null = null;
     if (!input.append) {
       setStoreDirectory(null);
       setUsingCachedStoreDirectory(false);
@@ -178,11 +179,15 @@ export default function MarketplaceScreen() {
     setStoreDirectoryLoading(true);
     setStoreDirectoryError(false);
 
-    // Read cache alongside the request so previously browsed results can
-    // appear quickly on slow connections; request ids prevent stale searches winning.
-    const cachedPromise = input.append
-      ? Promise.resolve(null)
-      : readStoreDirectoryCache(cacheKey, true);
+    if (!input.append) {
+      cached = await readStoreDirectoryCache(cacheKey, true);
+      if (requestId !== storeDirectoryRequestId.current) return;
+      if (cached) {
+        setStoreDirectory(cached);
+        setUsingCachedStoreDirectory(true);
+      }
+    }
+
     try {
       const response = await marketplaceStores({
         ...(input.q ? { q: input.q } : {}),
@@ -209,31 +214,15 @@ export default function MarketplaceScreen() {
       }
     } catch {
       if (requestId !== storeDirectoryRequestId.current) return;
-      if (!input.append) {
-        const cached = await cachedPromise;
-        if (requestId !== storeDirectoryRequestId.current) return;
-        if (cached) {
-          setStoreDirectory(cached);
-          setUsingCachedStoreDirectory(true);
-        }
+      if (!input.append && cached) {
+        setStoreDirectory(cached);
+        setUsingCachedStoreDirectory(true);
       }
       setStoreDirectoryError(true);
     } finally {
       if (requestId === storeDirectoryRequestId.current) setStoreDirectoryLoading(false);
     }
-
-    // Populate a cold/slow screen from cache without letting it overwrite
-    // a newer server response.
-    if (!input.append) {
-      void cachedPromise.then(cached => {
-        if (cached && requestId === storeDirectoryRequestId.current &&
-            storeDirectoryRequestId.current > 0) {
-          setStoreDirectory(current => current ?? cached);
-          setUsingCachedStoreDirectory(current => current || !storeDirectory);
-        }
-      });
-    }
-  }, [storeDirectory]);
+  }, []);
 
   const submitStoreSearch = () => {
     const submitted = normalizeSearchTerm(storeSearchText);

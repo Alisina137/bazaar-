@@ -1502,7 +1502,7 @@ export const enMessages = {
   "marketplace.compare.description": "Compare prices, ratings, availability, and sellers side by side.",
   "marketplace.compare.add": "Add to compare",
   "marketplace.compare.remove": "Remove from compare",
-  "marketplace.compare.open": "Compare ({count})",
+  "marketplace.compare.open": "Compare",
   "marketplace.compare.full": "You can compare up to 4 products at a time. Remove one to add another.",
   "marketplace.compare.empty": "No products selected to compare yet.",
   "marketplace.compare.addMore": "Browse products",

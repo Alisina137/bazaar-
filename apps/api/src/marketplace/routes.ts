@@ -80,6 +80,13 @@ const productParamsSchema = z.object({
   productId: uuidSchema
 });
 
+const storeDirectoryQuerySchema = z.object({
+  q: z.string().trim().min(1).max(120).optional(),
+  province: z.string().trim().min(1).max(100).optional(),
+  offset: z.coerce.number().int().min(0).max(100_000).default(0),
+  limit: z.coerce.number().int().min(1).max(50).default(20)
+}).strict();
+
 const storeParamsSchema = z.object({
   handle: z.string().trim().min(1).max(80)
 });
@@ -259,6 +266,26 @@ export function registerMarketplaceRoutes(
       }
     }
   );
+
+  app.get("/marketplace/stores", {
+    config: { rateLimit: { max: 120, timeWindow: "1 minute" } }
+  }, async (request, reply) => {
+    const query = storeDirectoryQuerySchema.safeParse(request.query);
+    if (!query.success) {
+      return reply.code(400).send(errorBody("invalid_request"));
+    }
+
+    try {
+      return await service.directoryStores({
+        ...(query.data.q ? { query: query.data.q } : {}),
+        ...(query.data.province ? { province: query.data.province } : {}),
+        offset: query.data.offset,
+        limit: query.data.limit
+      });
+    } catch (error) {
+      return sendError(reply, error);
+    }
+  });
 
   app.get("/marketplace/stores/:handle", async (request, reply) => {
     const params = storeParamsSchema.safeParse(request.params);

@@ -5,7 +5,8 @@ import type {
   MarketplaceHomeResponse,
   MarketplaceProductDetailResponse,
   MarketplaceSearchSuggestionsResponse,
-  MarketplaceStorePageResponse
+  MarketplaceStorePageResponse,
+  MarketplaceStoreDirectoryResponse
 } from "@bazaarlink/contracts";
 
 import { MarketplaceError } from "./errors.js";
@@ -35,6 +36,12 @@ export interface MarketplaceServiceContract {
     recentProductIds: string[];
   }): Promise<MarketplaceHomeResponse>;
   browse(query: MarketplaceBrowseQuery): Promise<MarketplaceBrowseResponse>;
+  directoryStores(input: {
+    query?: string | undefined;
+    province?: string | undefined;
+    offset: number;
+    limit: number;
+  }): Promise<MarketplaceStoreDirectoryResponse>;
   suggestions(query: string): Promise<MarketplaceSearchSuggestionsResponse>;
   product(productId: string): Promise<MarketplaceProductDetailResponse>;
   recordView(productId: string): Promise<void>;
@@ -130,6 +137,15 @@ export class MarketplaceService implements MarketplaceServiceContract {
         hasMore: query.offset + result.products.length < result.total
       }
     };
+  }
+
+  async directoryStores(input: {
+    query?: string | undefined;
+    province?: string | undefined;
+    offset: number;
+    limit: number;
+  }): Promise<MarketplaceStoreDirectoryResponse> {
+    return this.repository.directoryStores(input);
   }
 
   async suggestions(

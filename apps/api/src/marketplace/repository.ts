@@ -5,6 +5,7 @@ import type {
   MarketplaceProductSummary,
   MarketplaceSearchSuggestion,
   MarketplaceStorePageResponse,
+  MarketplaceStoreDirectoryResponse,
   MarketplaceStoreSummary,
   MarketplaceVariantSummary,
   PublicStoreRecord
@@ -290,6 +291,12 @@ export interface MarketplaceRepository {
     query: MarketplaceBrowseQuery
   ): Promise<{ products: MarketplaceProductSummary[]; total: number }>;
   featuredStores(limit: number): Promise<MarketplaceFeaturedStore[]>;
+  directoryStores(input: {
+    query?: string | undefined;
+    province?: string | undefined;
+    offset: number;
+    limit: number;
+  }): Promise<MarketplaceStoreDirectoryResponse>;
   suggestions(query: string, limit: number): Promise<MarketplaceSearchSuggestion[]>;
   findProduct(productId: string): Promise<MarketplaceProductDetail | null>;
   relatedProducts(
@@ -519,16 +526,17 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
     }
 
     if (query.categoryId) {
-      conditions.push(
-        or(
-          eq(products.marketplaceCategoryId, query.categoryId),
-          sql`${products.marketplaceCategoryId} in (
-            select id from ${platformCategories}
-            where ${platformCategories.parentId} = ${query.categoryId}
-              and ${platformCategories.active} = true
-          )`
-        )!
-      );
+      conditions.push(sql`${products.marketplaceCategoryId} in (
+        with recursive category_tree(id) as (
+          select id from platform_categories
+          where id = ${query.categoryId} and active = true
+          union all
+          select child.id from platform_categories child
+          inner join category_tree parent on child.parent_id = parent.id
+          where child.active = true
+        )
+        select id from category_tree
+      )`);
     }
 
     if (query.minPrice !== undefined) {
@@ -730,6 +738,78 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
       verificationLevel: phoneVerified
         ? "phone_verified" as const
         : "unverified" as const
+    };
+  }
+
+  async directoryStores(input: {
+    query?: string | undefined;
+    province?: string | undefined;
+    offset: number;
+    limit: number;
+  }): Promise<MarketplaceStoreDirectoryResponse> {
+    const conditions: SQL[] = [eq(stores.status, "published")];
+
+    if (input.query) {
+      const term = `%${input.query.trim()}%`;
+      conditions.push(or(
+        ilike(stores.name, term),
+        ilike(stores.handle, term),
+        ilike(stores.province, term),
+        ilike(stores.cityDistrict, term),
+        ilike(stores.category, term)
+      )!);
+    }
+    if (input.province) {
+      conditions.push(ilike(stores.province, input.province.trim()));
+    }
+
+    const activeProductCount = sql<number>`(
+      select count(*)::int
+      from ${products}
+      where ${products.storeId} = ${stores.id}
+        and ${products.status} in ('active', 'out_of_stock')
+    )`;
+    const where = and(...conditions);
+    const [rows, totalRows] = await Promise.all([
+      this.db.select({ store: stores, activeProductCount })
+        .from(stores)
+        .where(where)
+        .orderBy(desc(activeProductCount), asc(stores.name))
+        .limit(input.limit)
+        .offset(input.offset),
+      this.db.select({ value: count() }).from(stores).where(where)
+    ]);
+
+    const results: MarketplaceFeaturedStore[] = await Promise.all(
+      rows.map(async ({ store, activeProductCount: productCount }) => ({
+        store: {
+          id: store.id,
+          name: store.name,
+          handle: store.handle,
+          province: store.province,
+          cityDistrict: store.cityDistrict,
+          logoUrl: store.logoUrl,
+          coverImageUrl: store.coverImageUrl,
+          description: store.description,
+          preferredLocale:
+            store.preferredLocale === "ps-AF" || store.preferredLocale === "en"
+              ? store.preferredLocale
+              : "fa-AF",
+          trust: await this.trustForStore(store.id)
+        },
+        activeProductCount: Number(productCount ?? 0)
+      }))
+    );
+
+    const total = totalRows[0]?.value ?? 0;
+    return {
+      stores: results,
+      pageInfo: {
+        offset: input.offset,
+        limit: input.limit,
+        total,
+        hasMore: input.offset + results.length < total
+      }
     };
   }
 

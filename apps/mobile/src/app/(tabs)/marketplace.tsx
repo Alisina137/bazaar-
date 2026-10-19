@@ -3,7 +3,8 @@ import type {
   MarketplaceCategoryRecord,
   MarketplaceHomeResponse,
   MarketplaceSearchSuggestion,
-  MarketplaceSort
+  MarketplaceSort,
+  MarketplaceStoreDirectoryResponse
 } from "@bazaarlink/contracts";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -14,6 +15,7 @@ import {
   useState
 } from "react";
 import {
+  TextInput,
   View
 } from "react-native";
 
@@ -34,7 +36,6 @@ import {
   AppText,
   Button,
   Card,
-  HorizontalLocaleScroll,
   Screen,
   StateView
 } from "@/components/ui";
@@ -43,6 +44,7 @@ import { useLocalization } from "@/localization/provider";
 import {
   browseMarketplace,
   marketplaceHome,
+  marketplaceStores,
   MarketplaceApiError,
   type BrowseMarketplaceInput
 } from "@/marketplace/api";
@@ -117,6 +119,14 @@ export default function MarketplaceScreen() {
   const [homeError, setHomeError] = useState<MarketplaceApiError | null>(null);
   const [usingCachedHome, setUsingCachedHome] = useState(false);
 
+  const [storeSearchText, setStoreSearchText] = useState("");
+  const [storeDirectoryQuery, setStoreDirectoryQuery] = useState("");
+  const [storeDirectory, setStoreDirectory] = useState<MarketplaceStoreDirectoryResponse | null>(null);
+  const [storeDirectoryLoading, setStoreDirectoryLoading] = useState(false);
+  const [storeDirectoryError, setStoreDirectoryError] = useState(false);
+  const storeDirectoryRequestId = useRef(0);
+  const [categoryParentId, setCategoryParentId] = useState<string | null>(null);
+
   const [query, setQuery] = useState(linkedQuery ?? "");
   const [dismissedQuery, setDismissedQuery] = useState<string | null>(linkedQuery?.trim() ?? null);
   const [searchFocused, setSearchFocused] = useState(false);
@@ -148,6 +158,57 @@ export default function MarketplaceScreen() {
   const [browseLoadingMore, setBrowseLoadingMore] = useState(false);
   const [browseError, setBrowseError] = useState<MarketplaceApiError | null>(null);
   const [usingCachedBrowse, setUsingCachedBrowse] = useState(false);
+
+  const loadStoreDirectory = useCallback(async (input: {
+    q?: string | undefined;
+    offset: number;
+    append?: boolean;
+  }) => {
+    const requestId = ++storeDirectoryRequestId.current;
+    if (!input.append) setStoreDirectory(null);
+    setStoreDirectoryLoading(true);
+    setStoreDirectoryError(false);
+    try {
+      const response = await marketplaceStores({
+        ...(input.q ? { q: input.q } : {}),
+        offset: input.offset,
+        limit: 20
+      });
+      if (requestId !== storeDirectoryRequestId.current) return;
+      if (input.append) {
+        setStoreDirectory(current => {
+          if (!current) return response;
+          const known = new Set(current.stores.map(item => item.store.id));
+          return {
+            ...response,
+            stores: [
+              ...current.stores,
+              ...response.stores.filter(item => !known.has(item.store.id))
+            ]
+          };
+        });
+      } else {
+        setStoreDirectory(response);
+      }
+    } catch {
+      if (requestId === storeDirectoryRequestId.current) setStoreDirectoryError(true);
+    } finally {
+      if (requestId === storeDirectoryRequestId.current) setStoreDirectoryLoading(false);
+    }
+  }, []);
+
+  const submitStoreSearch = () => {
+    const submitted = normalizeSearchTerm(storeSearchText);
+    setStoreDirectoryQuery(submitted);
+    void loadStoreDirectory({ q: submitted || undefined, offset: 0 });
+  };
+
+  const selectMarketplaceView = (view: MarketplaceView) => {
+    setSelectedView(view);
+    if (view === "stores" && !storeDirectory && !storeDirectoryLoading) {
+      void loadStoreDirectory({ q: storeDirectoryQuery || undefined, offset: 0 });
+    }
+  };
 
   const { suggestions, suggestionsLoading } = useMarketplaceSuggestions(query);
 
@@ -235,6 +296,13 @@ export default function MarketplaceScreen() {
   const rootCategories = useMemo(
     () => home?.categories.filter((category) => category.parentId === null) ?? [],
     [home]
+  );
+  const activeCategory = home?.categories.find(category => category.id === categoryParentId);
+  const visibleCategories = useMemo(
+    () => categoryParentId
+      ? home?.categories.filter(category => category.parentId === categoryParentId) ?? []
+      : rootCategories,
+    [categoryParentId, home, rootCategories]
   );
 
   const executeBrowse = useCallback(
@@ -459,6 +527,15 @@ export default function MarketplaceScreen() {
     });
   };
 
+  const browseCategoryHierarchy = (id: string) => {
+    const children = home?.categories.filter(category => category.parentId === id) ?? [];
+    if (children.length > 0) {
+      setCategoryParentId(id);
+      return;
+    }
+    chooseCategory(id);
+  };
+
   const chooseCategory = (id: string) => {
     setSelectedView("products");
     setQuery("");
@@ -580,7 +657,7 @@ export default function MarketplaceScreen() {
 
       <MarketplacePrimaryTabs
         selected={selectedView}
-        onSelect={setSelectedView}
+        onSelect={selectMarketplaceView}
       />
 
       <Card>
@@ -772,22 +849,34 @@ export default function MarketplaceScreen() {
 
       {selectedView === "categories" && home ? (
         <View style={{ gap: theme.spacing.md }}>
-          <AppText variant="heading">{t("marketplace.nav.categories")}</AppText>
+          <AppText variant="heading">
+            {activeCategory ? localizedCategoryName(activeCategory, locale) : t("marketplace.nav.categories")}
+          </AppText>
           <AppText variant="caption" tone="muted">
             {t("marketplace.nav.categoriesHint")}
           </AppText>
-          {rootCategories.length > 0 ? (
+          {activeCategory ? (
+            <View style={{ gap: theme.spacing.sm }}>
+              <Button variant="secondary" onPress={() => setCategoryParentId(activeCategory.parentId)}>
+                {t("marketplace.phase5.backToCategories")}
+              </Button>
+              <Button onPress={() => chooseCategory(activeCategory.id)}>
+                {t("marketplace.phase5.viewCategoryProducts")}
+              </Button>
+            </View>
+          ) : null}
+          {visibleCategories.length > 0 ? (
             <View style={{
               flexDirection: isRTL ? "row-reverse" : "row",
               flexWrap: "wrap", justifyContent: "space-between",
               gap: theme.spacing.sm
             }}>
-              {rootCategories.map(category => (
+              {visibleCategories.map(category => (
                 <MarketplaceCategoryTile
                   key={category.id}
                   grid
                   category={category}
-                  onPress={() => chooseCategory(category.id)}
+                  onPress={() => browseCategoryHierarchy(category.id)}
                 />
               ))}
             </View>
@@ -802,32 +891,96 @@ export default function MarketplaceScreen() {
         </View>
       ) : null}
 
-      {selectedView === "stores" && home ? (
+      {selectedView === "stores" ? (
         <View style={{ gap: theme.spacing.md }}>
           <AppText variant="heading">{t("marketplace.nav.stores")}</AppText>
           <AppText variant="caption" tone="muted">
-            {t("marketplace.nav.storesHint")}
+            {t("marketplace.phase5.storesHint")}
           </AppText>
-          {home.featuredStores.length > 0 ? (
-            <HorizontalLocaleScroll
-              showsHorizontalScrollIndicator
-              contentContainerStyle={{ gap: theme.spacing.md }}
-            >
-              {home.featuredStores.map(featured => (
-                <MarketplaceStoreCard
-                  key={featured.store.id}
-                  featured={featured}
-                />
-              ))}
-            </HorizontalLocaleScroll>
-          ) : (
+          <View style={{ flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center", gap: theme.spacing.sm }}>
+            <View style={{ flex: 1 }}>
+              <TextInput
+                accessibilityLabel={t("marketplace.phase5.storeSearchLabel")}
+                placeholder={t("marketplace.phase5.storeSearchPlaceholder")}
+                placeholderTextColor={theme.colors.textMuted}
+                value={storeSearchText}
+                onChangeText={setStoreSearchText}
+                onSubmitEditing={submitStoreSearch}
+                returnKeyType="search"
+                maxLength={120}
+                style={{
+                  minHeight: 48, borderWidth: 1, borderColor: theme.colors.border,
+                  borderRadius: theme.radii.md, paddingHorizontal: theme.spacing.md,
+                  color: theme.colors.text, backgroundColor: theme.colors.surface,
+                  textAlign: isRTL ? "right" : "left"
+                }}
+              />
+            </View>
+            <Button onPress={submitStoreSearch} loading={storeDirectoryLoading && !storeDirectory}>
+              {t("marketplace.searchAction")}
+            </Button>
+          </View>
+          {storeDirectoryQuery ? (
+            <AppText variant="caption" tone="muted">
+              {t("marketplace.phase5.storeResultsFor") + ' "' + storeDirectoryQuery + '"'}
+            </AppText>
+          ) : null}
+          {storeDirectoryError && !storeDirectory ? (
+            <StateView
+              kind="error"
+              title={t("marketplace.errorTitle")}
+              message={t("marketplace.error.serviceUnavailable")}
+              actionLabel={t("marketplace.retry")}
+              onAction={() => loadStoreDirectory({ q: storeDirectoryQuery || undefined, offset: 0 })}
+            />
+          ) : null}
+          {storeDirectoryLoading && !storeDirectory ? (
+            <StateView kind="loading" title={t("marketplace.phase5.loadingStores")} />
+          ) : null}
+          {storeDirectory && storeDirectory.stores.length > 0 ? (
+            <View style={{ gap: theme.spacing.md }}>
+              <AppText variant="caption" tone="muted">
+                {t("marketplace.phase5.storeCount") + ": " + formatNumber(storeDirectory.pageInfo.total)}
+              </AppText>
+              <View style={{
+                flexDirection: isRTL ? "row-reverse" : "row",
+                flexWrap: "wrap", justifyContent: "space-between",
+                rowGap: theme.spacing.md
+              }}>
+                {storeDirectory.stores.map(featured => (
+                  <MarketplaceStoreCard key={featured.store.id} featured={featured} grid />
+                ))}
+              </View>
+              {storeDirectory.pageInfo.hasMore ? (
+                <Button variant="secondary" loading={storeDirectoryLoading}
+                  onPress={() => loadStoreDirectory({
+                    q: storeDirectoryQuery || undefined,
+                    offset: storeDirectory.stores.length,
+                    append: true
+                  })}>
+                  {t("marketplace.loadMore")}
+                </Button>
+              ) : null}
+            </View>
+          ) : null}
+          {storeDirectory && storeDirectory.stores.length === 0 && !storeDirectoryLoading ? (
             <StateView
               kind="empty"
-              title={t("marketplace.nav.emptyStores")}
-              actionLabel={t("marketplace.nav.browseProducts")}
-              onAction={() => setSelectedView("products")}
+              title={t("marketplace.phase5.noStoresTitle")}
+              message={t("marketplace.phase5.noStoresMessage")}
+              actionLabel={t("marketplace.phase5.clearStoreSearch")}
+              onAction={() => {
+                setStoreSearchText("");
+                setStoreDirectoryQuery("");
+                void loadStoreDirectory({ offset: 0 });
+              }}
             />
-          )}
+          ) : null}
+          {storeDirectoryError && storeDirectory ? (
+            <AppText variant="caption" tone="danger" accessibilityRole="alert">
+              {t("marketplace.error.serviceUnavailable")}
+            </AppText>
+          ) : null}
         </View>
       ) : null}
     </Screen>

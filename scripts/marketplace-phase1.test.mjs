@@ -35,7 +35,7 @@ test("Selecting a category or searching opens Products while preserving the curr
   assert.match(page, /const chooseCategory = \(id: string\) => \{\s*setSelectedView\("products"\)/);
   assert.match(page, /if \(!linkedCategoryId && !linkedQuery/);
   assert.match(page, /setSelectedView\("products"\);\s*setCategoryId\(linkedCategoryId\)/);
-  assert.match(page, /onSelect=\{setSelectedView\}/);
+  assert.match(page, /onSelect=\{selectMarketplaceView\}/);
   assert.match(page, /onPress=\{\(\) => chooseCategory\(category\.id\)\}/);
   assert.match(page, /setCategoryId\(id\)/);
   assert.match(page, /router\.push\(\{ pathname: "\/marketplace\/product\/\[productId\]"/);
@@ -43,16 +43,17 @@ test("Selecting a category or searching opens Products while preserving the curr
   assert.match(page, /selectedView === "products" && browse/);
 });
 
-test("Category and featured store tabs only render real API-backed content", () => {
+test("Category hierarchy and full store directory only render real API-backed content", () => {
   const page = read("apps/mobile/src/app/(tabs)/marketplace.tsx");
   assert.match(page, /home\?\.categories\.filter\(\(category\) => category\.parentId === null\)/);
   assert.match(page, /selectedView === "categories" && home/);
-  assert.match(page, /rootCategories\.map\(category =>/);
-  assert.match(page, /selectedView === "stores" && home/);
-  assert.match(page, /home\.featuredStores\.map\(featured =>/);
+  assert.match(page, /visibleCategories\.map\(category =>/);
+  assert.match(page, /selectedView === "stores" \? \(/);
+  assert.match(page, /marketplaceStores\(/);
+  assert.match(page, /storeDirectory\.stores\.map\(featured =>/);
   assert.match(page, /<MarketplaceStoreCard/);
-  assert.match(page, /marketplace\.nav\.emptyStores/);
-  assert.match(page, /marketplace\.nav\.storesHint/);
+  assert.match(page, /marketplace\.phase5\.noStoresTitle/);
+  assert.match(page, /marketplace\.phase5\.storesHint/);
   assert.doesNotMatch(page, /dummyStores|mockCategories|exampleProduct/);
 });
 

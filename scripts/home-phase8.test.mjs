@@ -105,7 +105,8 @@ test("live search results never display cards from a previous query or stale cac
   assert.match(market, /const cached = await readBrowseCache\(key, true\);\s*if \(requestId !== browseRequestId\.current\) return/);
   assert.match(market, /selectedView === "products" && browse \?/);
   assert.match(market, /selectedView === "categories" && home \?/);
-  assert.match(market, /selectedView === "stores" && home \?/);
+  assert.match(market, /selectedView === "stores" \? \(/);
+  assert.match(market, /loadStoreDirectory/);
   assert.match(hook, /const queryMatches = resolvedQuery === normalized/);
   assert.match(hook, /suggestions: queryMatches \? suggestions : \[\]/);
 });

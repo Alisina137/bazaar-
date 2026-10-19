@@ -7,7 +7,8 @@ import type {
   MarketplaceProductDetailResponse,
   MarketplaceSearchSuggestionsResponse,
   MarketplaceSort,
-  MarketplaceStorePageResponse
+  MarketplaceStorePageResponse,
+  MarketplaceStoreDirectoryResponse
 } from "@bazaarlink/contracts";
 
 const REQUEST_TIMEOUT_MS = 12_000;
@@ -175,6 +176,22 @@ export function recordMarketplaceView(productId: string): Promise<void> {
   return requestJson<void>(
     "/marketplace/products/" + encodeURIComponent(productId) + "/view",
     { method: "POST" }
+  );
+}
+
+export function marketplaceStores(input: {
+  q?: string | undefined;
+  province?: string | undefined;
+  offset?: number | undefined;
+  limit?: number | undefined;
+} = {}): Promise<MarketplaceStoreDirectoryResponse> {
+  return requestJson<MarketplaceStoreDirectoryResponse>(
+    "/marketplace/stores" + queryString({
+      q: input.q,
+      province: input.province,
+      offset: input.offset ?? 0,
+      limit: input.limit ?? 20
+    })
   );
 }
 

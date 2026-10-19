@@ -1872,3 +1872,13 @@ Automated implementation scope is committed as an integrated Phase 12 change. Gi
 - New labels and hints translated in English, Dari and Pashto, and cards respect RTL/LTR and light/dark theme tokens.
 - Pure presentation regressions and structural UI regressions run via `pnpm test:marketplace-phase4`, added to `pnpm verify`. No new API route, database migration, service, or permission change is introduced.
 - **Device QA outstanding:** Expo Go on 320px and 430px Android, Dari/Pashto RTL and English LTR, all themes, product photo loading/broken URLs, large price/long titles, sale vs non-sale, reviews/no reviews, stock badge, card tap vs Save tap; guest redirection; saved restore across navigation; signed-in update failures; store grid saved actions and logout/account changes.
+
+
+## Marketplace Phase 5 — Category hierarchy and store discovery (2026-10-19)
+
+- The Categories tab now supports real nested category navigation: shoppers drill into child categories, move back to the parent, or explicitly open products for the selected parent category. Selecting a leaf category opens its real filtered product results. Existing product-tab subcategory navigation, filters, search and deep links remain available.
+- The Stores tab now uses a public, server-backed directory endpoint at `GET /marketplace/stores`, rather than only displaying the featured-store rail. It searches published stores by name, public handle, province, city/district and business category; supports optional province scoping and bounded pagination (20 per mobile request, API maximum 50); and returns real product counts and phone-verification state.
+- The directory displays all published stores, including stores with no public products yet, and sorts by public product count then store name. Search results use the same public store page navigation and do not expose owner-only fields, unpublished stores, phone numbers or private data. Rate limiting and strict query validation protect the endpoint.
+- Store search, empty/error/retry states, pagination, category navigation, and directory labels are translated in English, Dari and Pashto. RTL/LTR layout and theme tokens are preserved; no GPS inference or new permissions are introduced.
+- Added `pnpm test:marketplace-phase5` and included it in `pnpm verify`. No database migration or schema change is needed.
+- Manual Expo Go QA remains required: deeply nested categories and back navigation; opening parent products vs leaf category products; store search by name/handle/location/category; empty directory and empty search; pagination without duplicates; API offline/retry; long Dari/Pashto labels; 320–430dp layouts and light/dark themes.

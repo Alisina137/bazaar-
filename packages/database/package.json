@@ -24,6 +24,7 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:health": "tsx scripts/health.ts",
     "db:studio": "drizzle-kit studio --config drizzle.config.ts",
+    "seed:demo": "tsx scripts/seed-demo.ts",
     "admin:bootstrap": "tsx scripts/bootstrap-admin.ts"
   },
   "dependencies": {

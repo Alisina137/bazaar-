@@ -48,11 +48,12 @@ test("Category and featured store tabs only render real API-backed content", () 
   assert.match(page, /home\?\.categories\.filter\(\(category\) => category\.parentId === null\)/);
   assert.match(page, /selectedView === "categories" && home/);
   assert.match(page, /rootCategories\.map\(category =>/);
-  assert.match(page, /selectedView === "stores" && home/);
-  assert.match(page, /home\.featuredStores\.map\(featured =>/);
+  assert.match(page, /selectedView === "stores" \? \(/);
+  assert.match(page, /marketplaceStores\(/);
+  assert.match(page, /storeDirectory\.stores\.map\(featured =>/);
   assert.match(page, /<MarketplaceStoreCard/);
   assert.match(page, /marketplace\.nav\.emptyStores/);
-  assert.match(page, /marketplace\.nav\.storesHint/);
+  assert.match(page, /marketplace\.phase5\.storesHint/);
   assert.doesNotMatch(page, /dummyStores|mockCategories|exampleProduct/);
 });
 

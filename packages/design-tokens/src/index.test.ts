@@ -27,6 +27,13 @@ describe("design tokens", () => {
     expect(ordered).toEqual([...ordered].sort((a, b) => a - b));
   });
 
+  it("uses sky blue primary branding in both appearances", () => {
+    expect(lightColors.primary).toBe("#0369A1");
+    expect(lightColors.primarySoft).toBe("#E0F2FE");
+    expect(darkColors.primary).toBe("#7DD3FC");
+    expect(darkColors.primarySoft).toBe("#0C4A6E");
+  });
+
   it("exposes matching semantic color contracts for light and dark themes", () => {
     expect(Object.keys(lightColors).sort()).toEqual(Object.keys(darkColors).sort());
     expect(themes.light.colors.background).not.toBe(themes.light.colors.text);

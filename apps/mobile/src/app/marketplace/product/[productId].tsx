@@ -65,7 +65,7 @@ export default function MarketplaceProductScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { status: authStatus, sessionToken, user } = useAuth();
-  const { isRTL, formatAfn, t } = useLocalization();
+  const { isRTL, formatAfn, formatNumber, t } = useLocalization();
 
   const [data, setData] = useState<MarketplaceProductDetailResponse | null>(
     null

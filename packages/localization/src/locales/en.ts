@@ -1,6 +1,7 @@
 export const enMessages = {
   "nav.home": "Home",
   "nav.marketplace": "Marketplace",
+  "nav.shopping": "Shopping",
   "nav.cart": "Cart",
   "nav.orders": "Orders",
   "nav.account": "Account",

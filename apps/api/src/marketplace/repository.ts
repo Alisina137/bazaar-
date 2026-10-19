@@ -526,16 +526,17 @@ export class DatabaseMarketplaceRepository implements MarketplaceRepository {
     }
 
     if (query.categoryId) {
-      conditions.push(
-        or(
-          eq(products.marketplaceCategoryId, query.categoryId),
-          sql`${products.marketplaceCategoryId} in (
-            select id from ${platformCategories}
-            where ${platformCategories.parentId} = ${query.categoryId}
-              and ${platformCategories.active} = true
-          )`
-        )!
-      );
+      conditions.push(sql`${products.marketplaceCategoryId} in (
+        with recursive category_tree(id) as (
+          select id from platform_categories
+          where id = ${query.categoryId} and active = true
+          union all
+          select child.id from platform_categories child
+          inner join category_tree parent on child.parent_id = parent.id
+          where child.active = true
+        )
+        select id from category_tree
+      )`);
     }
 
     if (query.minPrice !== undefined) {

@@ -1505,6 +1505,7 @@ export const faAfMessages = {
   "marketplace.compare.empty": "هنوز محصولی برای مقایسه انتخاب نشده است.",
   "marketplace.compare.addMore": "مشاهده محصولات",
   "marketplace.compare.clear": "پاک کردن مقایسه",
+  "marketplace.compare.originalPrice": "قیمت اصلی",
   "marketplace.compare.price": "قیمت",
   "marketplace.compare.discount": "قیمت تخفیف‌خورده",
   "marketplace.compare.rating": "امتیاز",

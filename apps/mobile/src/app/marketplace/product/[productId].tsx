@@ -51,6 +51,7 @@ import {
 } from "@/marketplace/cache";
 import { marketplaceErrorKey } from "@/marketplace/messages";
 import { productReviews } from "@/trust/api";
+import { addCompareProduct, getCompareProductIds, removeCompareProduct } from "@/marketplace/compare";
 
 function storefrontBaseUrl() {
   return (
@@ -84,6 +85,8 @@ export default function MarketplaceProductScreen() {
   const [wishlisted, setWishlisted] = useState(false);
   const [wishlistBusy, setWishlistBusy] = useState(false);
   const [wishlistError, setWishlistError] = useState(false);
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [compareFull, setCompareFull] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -118,6 +121,32 @@ export default function MarketplaceProductScreen() {
     }
   };
 
+
+  useEffect(() => {
+    let active = true;
+    void getCompareProductIds().then(ids => {
+      if (active) setCompareIds(ids);
+    });
+    return () => { active = false; };
+  }, [productId]);
+
+  const toggleCompare = async () => {
+    if (!productId) return;
+    setCompareFull(false);
+    try {
+      if (compareIds.includes(productId)) {
+        await removeCompareProduct(productId);
+        setCompareIds(current => current.filter(id => id !== productId));
+      } else {
+        const added = await addCompareProduct(productId);
+        const ids = await getCompareProductIds();
+        setCompareIds(ids);
+        setCompareFull(!added);
+      }
+    } catch {
+      setCompareFull(true);
+    }
+  };
 
   useEffect(() => {
     if (!productId) {
@@ -302,6 +331,12 @@ export default function MarketplaceProductScreen() {
           <Button variant="ghost" disabled={wishlistBusy}
             loading={wishlistBusy} onPress={() => void toggleWishlist()}>
             {t(wishlisted ? "account.shopping.saved" : "account.shopping.save")}
+          </Button>
+          <Button variant="ghost" onPress={() => void toggleCompare()}>
+            {t(compareIds.includes(productId ?? "") ? "marketplace.compare.remove" : "marketplace.compare.add")}
+          </Button>
+          <Button variant="ghost" onPress={() => router.push("/marketplace/compare")}>
+            {t("marketplace.compare.open")} ({formatNumber(compareIds.length)})
           </Button>
         <Button
           variant="ghost"

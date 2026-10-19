@@ -13,6 +13,7 @@ import {
   useState
 } from "react";
 import {
+  Alert,
   Image,
   View
 } from "react-native";
@@ -64,6 +65,7 @@ export default function CartScreen() {
   const [loading, setLoading] = useState(false);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
+  const [removedItem, setRemovedItem] = useState<{ productId: string; variantId?: string; quantity: number } | null>(null);
 
   const load = useCallback(async () => {
     if (status !== "signedIn" || !sessionToken) {
@@ -97,7 +99,7 @@ export default function CartScreen() {
     key: string,
     action: (token: string) => Promise<CartResponse>
   ) => {
-    if (!sessionToken) return;
+    if (!sessionToken || busyKey !== null) return;
 
     setBusyKey(key);
     setErrorKey(null);
@@ -217,11 +219,25 @@ export default function CartScreen() {
               updateCartItem(token, itemId, { quantity })
             )
           }
-          onRemove={(itemId) =>
-            run("item:" + itemId, (token) =>
-              removeCartItem(token, itemId)
-            )
-          }
+          onRemove={(itemId) => {
+            const item = group.items.find(entry => entry.id === itemId);
+            if (!item) return;
+            Alert.alert(t("cart.remove"), item.name, [
+              { text: t("support.hub.cancel"), style: "cancel" },
+              {
+                text: t("cart.remove"),
+                style: "destructive",
+                onPress: () => {
+                  setRemovedItem(null);
+                  void run("item:" + itemId, async token => {
+                    const result = await removeCartItem(token, itemId);
+                    setRemovedItem({ productId: item.productId, variantId: item.variantId ?? undefined, quantity: item.quantity });
+                    return result;
+                  });
+                }
+              }
+            ]);
+          }}
           onApplyCoupon={(code) =>
             run("coupon:" + group.store.id, (token) =>
               applyCartCoupon(token, {

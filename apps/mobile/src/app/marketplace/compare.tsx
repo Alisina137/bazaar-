@@ -133,7 +133,7 @@ export default function MarketplaceCompareScreen() {
                     <AppText variant="title">{product.name}</AppText>
                     <AppText variant="heading" tone="primary">{t("marketplace.compare.price")}: {formatAfn(product.price)}</AppText>
                     {hasDiscount ? (
-                      <AppText variant="caption" tone="muted">{t("marketplace.compare.originalPrice")}: {formatAfn(product.compareAtPrice)}</AppText>
+                      <AppText variant="caption" tone="muted">{t("marketplace.compare.originalPrice")}: {formatAfn(product.compareAtPrice ?? product.price)}</AppText>
                     ) : null}
                     <View style={{ gap: theme.spacing.xs }}>
                       <AppText>{t("marketplace.compare.rating")}: {product.averageRating === null ? "—" : formatNumber(product.averageRating)}</AppText>

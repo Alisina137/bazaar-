@@ -52,7 +52,7 @@ test("Category hierarchy and full store directory only render real API-backed co
   assert.match(page, /marketplaceStores\(/);
   assert.match(page, /storeDirectory\.stores\.map\(featured =>/);
   assert.match(page, /<MarketplaceStoreCard/);
-  assert.match(page, /marketplace\.nav\.emptyStores/);
+  assert.match(page, /marketplace\.phase5\.noStoresTitle/);
   assert.match(page, /marketplace\.phase5\.storesHint/);
   assert.doesNotMatch(page, /dummyStores|mockCategories|exampleProduct/);
 });

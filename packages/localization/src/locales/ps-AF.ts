@@ -3,6 +3,7 @@ import type { TranslationKey } from "./en";
 export const psAfMessages = {
   "nav.home": "کور",
   "nav.marketplace": "بازار",
+  "nav.shopping": "پېرودنې",
   "nav.cart": "ټوکرۍ",
   "nav.orders": "فرمایشونه",
   "nav.account": "حساب",

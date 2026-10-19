@@ -53,22 +53,23 @@ export default function CustomerTabsLayout() {
       }}
     />,
     <Tabs.Screen
-      key="cart"
-      name="cart"
+      key="shopping"
+      name="shopping"
       options={{
-        title: t("nav.cart"),
-        tabBarAccessibilityLabel: t("nav.cart"),
-        tabBarIcon: tabIcon("cart", "cart-outline")
+        title: t("nav.shopping"),
+        tabBarAccessibilityLabel: t("nav.shopping"),
+        tabBarIcon: tabIcon("bag-handle", "bag-handle-outline")
       }}
     />,
     <Tabs.Screen
-      key="orders"
+      key="cart-hidden"
+      name="cart"
+      options={{ href: null }}
+    />,
+    <Tabs.Screen
+      key="orders-hidden"
       name="orders"
-      options={{
-        title: t("nav.orders"),
-        tabBarAccessibilityLabel: t("nav.orders"),
-        tabBarIcon: tabIcon("receipt", "receipt-outline")
-      }}
+      options={{ href: null }}
     />,
     <Tabs.Screen
       key="account"

@@ -3,6 +3,7 @@ import type { TranslationKey } from "./en";
 export const faAfMessages = {
   "nav.home": "خانه",
   "nav.marketplace": "بازار",
+  "nav.shopping": "خریدها",
   "nav.cart": "سبد خرید",
   "nav.orders": "سفارش‌ها",
   "nav.account": "حساب",

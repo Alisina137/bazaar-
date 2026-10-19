@@ -359,6 +359,9 @@ export default function MarketplaceProductScreen() {
       {wishlistError ? (
         <AppText tone="danger" accessibilityRole="alert">{t("account.shopping.saveError")}</AppText>
       ) : null}
+      {compareFull ? (
+        <AppText tone="danger" accessibilityRole="alert">{t("marketplace.compare.full")}</AppText>
+      ) : null}
 
       {cached ? (
         <Card muted>

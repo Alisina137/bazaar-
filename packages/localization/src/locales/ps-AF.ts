@@ -1505,6 +1505,7 @@ export const psAfMessages = {
   "marketplace.compare.empty": "تر اوسه د پرتلې لپاره محصولات نه دي ټاکل شوي.",
   "marketplace.compare.addMore": "محصولات لټول",
   "marketplace.compare.clear": "پرتله پاکول",
+  "marketplace.compare.originalPrice": "اصلي بیه",
   "marketplace.compare.price": "بیه",
   "marketplace.compare.discount": "تخفیفي بیه",
   "marketplace.compare.rating": "نمره",

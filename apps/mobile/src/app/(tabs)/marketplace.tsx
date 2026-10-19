@@ -54,6 +54,9 @@ import {
   homeCacheKey,
   readBrowseCache,
   readHomeCache,
+  readStoreDirectoryCache,
+  storeDirectoryCacheKey,
+  writeStoreDirectoryCache,
   writeBrowseCache,
   writeHomeCache
 } from "@/marketplace/cache";
@@ -124,6 +127,7 @@ export default function MarketplaceScreen() {
   const [storeDirectory, setStoreDirectory] = useState<MarketplaceStoreDirectoryResponse | null>(null);
   const [storeDirectoryLoading, setStoreDirectoryLoading] = useState(false);
   const [storeDirectoryError, setStoreDirectoryError] = useState(false);
+  const [usingCachedStoreDirectory, setUsingCachedStoreDirectory] = useState(false);
   const storeDirectoryRequestId = useRef(0);
   const [categoryParentId, setCategoryParentId] = useState<string | null>(null);
 
@@ -156,6 +160,7 @@ export default function MarketplaceScreen() {
   );
   const [browseLoading, setBrowseLoading] = useState(false);
   const [browseLoadingMore, setBrowseLoadingMore] = useState(false);
+  const [browseLoadMoreError, setBrowseLoadMoreError] = useState(false);
   const [browseError, setBrowseError] = useState<MarketplaceApiError | null>(null);
   const [usingCachedBrowse, setUsingCachedBrowse] = useState(false);
 
@@ -165,9 +170,19 @@ export default function MarketplaceScreen() {
     append?: boolean;
   }) => {
     const requestId = ++storeDirectoryRequestId.current;
-    if (!input.append) setStoreDirectory(null);
+    const cacheKey = storeDirectoryCacheKey(input.q, input.offset);
+    if (!input.append) {
+      setStoreDirectory(null);
+      setUsingCachedStoreDirectory(false);
+    }
     setStoreDirectoryLoading(true);
     setStoreDirectoryError(false);
+
+    // Read cache alongside the request so previously browsed results can
+    // appear quickly on slow connections; request ids prevent stale searches winning.
+    const cachedPromise = input.append
+      ? Promise.resolve(null)
+      : readStoreDirectoryCache(cacheKey, true);
     try {
       const response = await marketplaceStores({
         ...(input.q ? { q: input.q } : {}),
@@ -189,13 +204,36 @@ export default function MarketplaceScreen() {
         });
       } else {
         setStoreDirectory(response);
+        setUsingCachedStoreDirectory(false);
+        void writeStoreDirectoryCache(cacheKey, response);
       }
     } catch {
-      if (requestId === storeDirectoryRequestId.current) setStoreDirectoryError(true);
+      if (requestId !== storeDirectoryRequestId.current) return;
+      if (!input.append) {
+        const cached = await cachedPromise;
+        if (requestId !== storeDirectoryRequestId.current) return;
+        if (cached) {
+          setStoreDirectory(cached);
+          setUsingCachedStoreDirectory(true);
+        }
+      }
+      setStoreDirectoryError(true);
     } finally {
       if (requestId === storeDirectoryRequestId.current) setStoreDirectoryLoading(false);
     }
-  }, []);
+
+    // Populate a cold/slow screen from cache without letting it overwrite
+    // a newer server response.
+    if (!input.append) {
+      void cachedPromise.then(cached => {
+        if (cached && requestId === storeDirectoryRequestId.current &&
+            storeDirectoryRequestId.current > 0) {
+          setStoreDirectory(current => current ?? cached);
+          setUsingCachedStoreDirectory(current => current || !storeDirectory);
+        }
+      });
+    }
+  }, [storeDirectory]);
 
   const submitStoreSearch = () => {
     const submitted = normalizeSearchTerm(storeSearchText);
@@ -313,6 +351,7 @@ export default function MarketplaceScreen() {
       const requestId = ++browseRequestId.current;
       if (!append) lastRequestedBrowseInput.current = input;
       if (append) {
+        setBrowseLoadMoreError(false);
         setBrowseLoadingMore(true);
       } else {
         // Do not present the previous query's product cards as if they
@@ -331,6 +370,7 @@ export default function MarketplaceScreen() {
         if (requestId !== browseRequestId.current) return;
 
         if (append) {
+          setBrowseLoadMoreError(false);
           setBrowse((current) => {
             if (!current) return response;
             const known = new Set(current.products.map((product) => product.id));
@@ -355,7 +395,9 @@ export default function MarketplaceScreen() {
             ? error
             : new MarketplaceApiError("service_unavailable");
 
-        if (!append) {
+        if (append) {
+          setBrowseLoadMoreError(true);
+        } else {
           const cached = await readBrowseCache(key, true);
           if (requestId !== browseRequestId.current) return;
           if (cached) {
@@ -643,6 +685,18 @@ export default function MarketplaceScreen() {
     void executeBrowse({ ...browseInput, sort: nextSort, offset: 0, limit: 20 });
   };
 
+  const refreshMarketplace = () => {
+    if (selectedView === "stores") {
+      void loadStoreDirectory({ q: storeDirectoryQuery || undefined, offset: 0 });
+    } else if (selectedView === "products") {
+      const current = browseInput ?? lastRequestedBrowseInput.current;
+      if (current) void executeBrowse({ ...current, offset: 0, limit: 20 });
+      else void executeBrowse({ sort: "relevance", offset: 0, limit: 20 });
+    } else {
+      void loadHome(linkedProvince);
+    }
+  };
+
   const categoryLabel = browseInput?.categoryId
     ? home?.categories.find(category => category.id === browseInput.categoryId)
     : undefined;
@@ -652,7 +706,11 @@ export default function MarketplaceScreen() {
   const activeFilterCount = appliedFilterKeys(browseInput).length;
 
   return (
-    <Screen>
+    <Screen
+      refreshing={selectedView === "stores" ? storeDirectoryLoading : selectedView === "products" ? browseLoading : homeLoading}
+      onRefresh={refreshMarketplace}
+      scrollKey="marketplace-main"
+    >
       <AppText variant="heading">{t("marketplace.title")}</AppText>
 
       <MarketplacePrimaryTabs
@@ -751,7 +809,7 @@ export default function MarketplaceScreen() {
         />
       ) : null}
 
-      {(selectedView === "products" ? usingCachedBrowse : usingCachedHome) ? (
+      {(selectedView === "products" ? usingCachedBrowse : selectedView === "stores" ? usingCachedStoreDirectory : usingCachedHome) ? (
         <Card muted>
           <AppText variant="caption" tone="muted">
             {t("marketplace.cachedNotice")}
@@ -834,6 +892,13 @@ export default function MarketplaceScreen() {
               ) : null}
             </View>
           )}
+
+          {browseLoadMoreError && browseInput ? (
+            <View style={{ gap: theme.spacing.sm }}>
+              <AppText tone="danger" accessibilityRole="alert">{t("marketplace.error.serviceUnavailable")}</AppText>
+              <Button variant="secondary" loading={browseLoadingMore} onPress={() => void executeBrowse({ ...browseInput, offset: browse.products.length }, true)}>{t("marketplace.retry")}</Button>
+            </View>
+          ) : null}
 
           {browseError ? (
             <AppText tone="danger">
@@ -920,6 +985,9 @@ export default function MarketplaceScreen() {
               {t("marketplace.searchAction")}
             </Button>
           </View>
+          {usingCachedStoreDirectory ? (
+            <Card muted><AppText variant="caption" tone="muted">{t("marketplace.cachedNotice")}</AppText></Card>
+          ) : null}
           {storeDirectoryQuery ? (
             <AppText variant="caption" tone="muted">
               {t("marketplace.phase5.storeResultsFor") + ' "' + storeDirectoryQuery + '"'}

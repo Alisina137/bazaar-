@@ -238,7 +238,7 @@ export default function CartScreen() {
         />
       ))}
 
-      <Card>
+      <Card muted>
         <View style={{ gap: theme.spacing.md }}>
           <AppText variant="title">{t("cart.summary")}</AppText>
           <PriceRow
@@ -311,11 +311,15 @@ function MerchantGroupCard({
   return (
     <Card>
       <View style={{ gap: theme.spacing.lg }}>
-        <View style={{ gap: theme.spacing.xs }}>
-          <AppText variant="title">{group.store.name}</AppText>
-          <AppText variant="caption" tone="muted">
-            {group.store.province} · {group.store.cityDistrict}
-          </AppText>
+        <View style={{ flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center", gap: theme.spacing.sm, paddingBottom: theme.spacing.sm, borderBottomWidth: 1, borderBottomColor: theme.colors.border }}>
+          <Ionicons name="storefront-outline" size={20} color={theme.colors.primary} />
+          <View style={{ flex: 1, gap: theme.spacing.xs }}>
+            <AppText variant="title">{group.store.name}</AppText>
+            <AppText variant="caption" tone="muted">
+              {group.store.province} · {group.store.cityDistrict}
+            </AppText>
+          </View>
+          <Badge label={formatNumber(group.items.length)} tone="neutral" />
         </View>
 
         {group.items.map((item) => (

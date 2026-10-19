@@ -1500,7 +1500,7 @@ export const faAfMessages = {
   "marketplace.compare.description": "قیمت، امتیاز، موجودی و فروشندگان را در کنار هم مقایسه کنید.",
   "marketplace.compare.add": "افزودن به مقایسه",
   "marketplace.compare.remove": "حذف از مقایسه",
-  "marketplace.compare.open": "مقایسه ({count})",
+  "marketplace.compare.open": "مقایسه",
   "marketplace.compare.full": "در هر بار حداکثر ۴ محصول را مقایسه کنید. برای افزودن محصول دیگر، یکی را حذف نمایید.",
   "marketplace.compare.empty": "هنوز محصولی برای مقایسه انتخاب نشده است.",
   "marketplace.compare.addMore": "مشاهده محصولات",

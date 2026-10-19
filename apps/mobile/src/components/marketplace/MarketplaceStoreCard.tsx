@@ -9,9 +9,10 @@ import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 
 export function MarketplaceStoreCard({
-  featured
+  featured, grid = false
 }: {
   featured: MarketplaceFeaturedStore;
+  grid?: boolean;
 }) {
   const router = useRouter();
   const theme = useAppTheme();
@@ -29,7 +30,7 @@ export function MarketplaceStoreCard({
         params: { handle: store.handle }
       })}
       style={({ pressed }) => ({
-        width: 210,
+        width: grid ? "48%" : 210,
         overflow: "hidden",
         borderWidth: 1,
         borderColor: theme.colors.border,

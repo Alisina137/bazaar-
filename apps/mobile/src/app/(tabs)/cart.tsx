@@ -1,3 +1,4 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import type {
   CartResponse,
   MerchantCartGroup
@@ -57,7 +58,7 @@ export default function CartScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const { status, sessionToken } = useAuth();
-  const { formatAfn, formatNumber, t } = useLocalization();
+  const { formatAfn, formatNumber, isRTL, t } = useLocalization();
 
   const [cart, setCart] = useState<CartResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -183,8 +184,11 @@ export default function CartScreen() {
   }
 
   return (
-    <Screen>
-      <AppText variant="heading">{t("cart.title")}</AppText>
+    <Screen scrollKey="shopping-cart" refreshing={loading} onRefresh={() => { void load(); }} contentStyle={{ gap: theme.spacing.lg }}>
+      <View style={{ flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center", justifyContent: "space-between" }}>
+        <AppText variant="heading">{t("cart.title")}</AppText>
+        <Badge label={formatNumber(cart.itemCount) + " " + t("cart.itemCount")} tone="neutral" />
+      </View>
 
       {cart.priceChanged ? (
         <Card muted>
@@ -266,7 +270,7 @@ export default function CartScreen() {
 
       <Button
         fullWidth
-        disabled={cart.hasBlockingIssues}
+        disabled={cart.hasBlockingIssues || busyKey !== null}
         onPress={() => router.push("/checkout")}
       >
         {t("cart.checkout")}
@@ -335,13 +339,17 @@ function MerchantGroupCard({
                   source={{ uri: item.imageUrl }}
                   accessibilityLabel={item.name}
                   style={{
-                    width: 72,
-                    height: 72,
+                    width: 88,
+                    height: 88,
                     borderRadius: theme.radii.md,
                     backgroundColor: theme.colors.surfaceMuted
                   }}
                 />
-              ) : null}
+              ) : (
+                <View style={{ width: 88, height: 88, borderRadius: theme.radii.md, backgroundColor: theme.colors.surfaceMuted, justifyContent: "center", alignItems: "center" }}>
+                  <Ionicons name="image-outline" size={30} color={theme.colors.textMuted} />
+                </View>
+              )}
               <View style={{ flex: 1, gap: theme.spacing.xs }}>
                 <AppText variant="heading">{item.name}</AppText>
                 {item.variantTitle ? (
@@ -349,7 +357,7 @@ function MerchantGroupCard({
                     {item.variantTitle}
                   </AppText>
                 ) : null}
-                <AppText>{formatAfn(item.lineTotal)}</AppText>
+                <AppText variant="bodyStrong" tone="primary">{formatAfn(item.lineTotal)}</AppText>
               </View>
             </View>
 

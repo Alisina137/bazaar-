@@ -1909,3 +1909,12 @@ Automated implementation scope is committed as an integrated Phase 12 change. Gi
 
 - Automated focused tests are defined in `scripts/marketplace-phase7.test.mjs` and run through `pnpm test:marketplace-phase7`.
 - Device QA remains recommended for RTL/LTR layout, narrow screens, offline/error recovery, and comparison persistence across app restarts.
+
+
+## Marketplace Phase 8 — Final shopping UX and reliability (2026-10-19)
+
+- Product details now refresh the comparison selection on focus, including when returning from the comparison screen. The add/remove control is disabled while a write is in progress and reads the latest persisted selection before deciding whether to add or remove; rapid taps cannot race duplicate writes.
+- Comparison now distinguishes an actually empty saved list from failed product requests: a failed request displays retry without incorrectly telling shoppers that no products are selected. The selected count reflects persisted IDs, including temporarily unavailable products.
+- Clear and remove actions cannot overlap, and both update the selected count after successful persistence.
+- Added `pnpm test:marketplace-phase8` to the repository verification chain. No database schema or API changes.
+- **Manual release checks remain:** low-end Android and small screen, slow/offline network, English LTR/Dari and Pashto RTL, dark/light mode, compare list persistence, product detail return navigation, and purchase/wishlist flows. Automated checks are not a substitute for physical-device QA.

@@ -19,6 +19,7 @@ export default function MarketplaceCompareScreen() {
   const theme = useAppTheme();
   const { t, isRTL, locale, formatAfn, formatNumber } = useLocalization();
   const [products, setProducts] = useState<MarketplaceProductDetail[]>([]);
+  const [selectedCount, setSelectedCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -30,6 +31,7 @@ export default function MarketplaceCompareScreen() {
     setError(false);
     try {
       const ids = await getCompareProductIds();
+      if (active()) setSelectedCount(ids.length);
       const results = await Promise.all(ids.map(async id => {
         try {
           const result = await marketplaceProduct(id);
@@ -56,11 +58,12 @@ export default function MarketplaceCompareScreen() {
   }, [load, reload]));
 
   const remove = async (id: string) => {
-    if (busyId) return;
+    if (busyId || clearing) return;
     setBusyId(id);
     try {
       await removeCompareProduct(id);
       setProducts(current => current.filter(product => product.id !== id));
+      setSelectedCount(current => Math.max(0, current - 1));
     } catch {
       setError(true);
     } finally {
@@ -69,11 +72,12 @@ export default function MarketplaceCompareScreen() {
   };
 
   const clear = async () => {
-    if (clearing) return;
+    if (clearing || busyId) return;
     setClearing(true);
     try {
       await clearCompareProducts();
       setProducts([]);
+      setSelectedCount(0);
       setError(false);
     } catch {
       setError(true);
@@ -102,7 +106,7 @@ export default function MarketplaceCompareScreen() {
       {loading ? (
         <StateView kind="loading" title={t("account.shopping.loading")} message={t("account.shopping.loadingHint")} />
       ) : null}
-      {!loading && products.length === 0 ? (
+      {!loading && !error && selectedCount === 0 ? (
         <Card>
           <View style={{ gap: theme.spacing.md }}>
             <AppText>{t("marketplace.compare.empty")}</AppText>
@@ -120,7 +124,7 @@ export default function MarketplaceCompareScreen() {
       ) : null}
       {!loading && products.length > 0 ? (
         <>
-          <AppText variant="caption" tone="muted">{formatNumber(products.length)} / 4</AppText>
+          <AppText variant="caption" tone="muted">{formatNumber(selectedCount)} / 4</AppText>
           <View style={{ gap: theme.spacing.md }}>
             {products.map(product => {
               const location = isProvinceName(product.store.province)
@@ -147,7 +151,7 @@ export default function MarketplaceCompareScreen() {
                       pathname: "/marketplace/product/[productId]",
                       params: { productId: product.id }
                     })}>{t("marketplace.phase4.openDetails")}</Button>
-                    <Button variant="ghost" disabled={busyId !== null} loading={busyId === product.id}
+                    <Button variant="ghost" disabled={busyId !== null || clearing} loading={busyId === product.id}
                       onPress={() => void remove(product.id)}>{t("marketplace.compare.removeItem")}</Button>
                   </View>
                 </Card>
@@ -155,7 +159,7 @@ export default function MarketplaceCompareScreen() {
             })}
           </View>
           <View style={{ gap: theme.spacing.sm }}>
-            <Button variant="secondary" disabled={clearing} loading={clearing} onPress={() => void clear()}>
+            <Button variant="secondary" disabled={clearing || busyId !== null} loading={clearing} onPress={() => void clear()}>
               {t("marketplace.compare.clear")}
             </Button>
             <Button onPress={() => router.replace("/(tabs)/marketplace")}>{t("marketplace.compare.addMore")}</Button>

@@ -5,10 +5,12 @@ import type {
 } from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
 import {
+  useFocusEffect,
   useLocalSearchParams,
   useRouter
 } from "expo-router";
 import {
+  useCallback,
   useEffect,
   useMemo,
   useState
@@ -87,6 +89,7 @@ export default function MarketplaceProductScreen() {
   const [wishlistError, setWishlistError] = useState(false);
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [compareFull, setCompareFull] = useState(false);
+  const [compareBusy, setCompareBusy] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -122,21 +125,24 @@ export default function MarketplaceProductScreen() {
   };
 
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     let active = true;
+    setCompareFull(false);
     void getCompareProductIds().then(ids => {
       if (active) setCompareIds(ids);
     });
     return () => { active = false; };
-  }, [productId]);
+  }, [productId]));
 
   const toggleCompare = async () => {
-    if (!productId) return;
+    if (!productId || compareBusy) return;
+    setCompareBusy(true);
     setCompareFull(false);
     try {
-      if (compareIds.includes(productId)) {
+      const latestIds = await getCompareProductIds();
+      if (latestIds.includes(productId)) {
         await removeCompareProduct(productId);
-        setCompareIds(current => current.filter(id => id !== productId));
+        setCompareIds(await getCompareProductIds());
       } else {
         const added = await addCompareProduct(productId);
         const ids = await getCompareProductIds();
@@ -145,6 +151,8 @@ export default function MarketplaceProductScreen() {
       }
     } catch {
       setCompareFull(true);
+    } finally {
+      setCompareBusy(false);
     }
   };
 
@@ -332,10 +340,10 @@ export default function MarketplaceProductScreen() {
             loading={wishlistBusy} onPress={() => void toggleWishlist()}>
             {t(wishlisted ? "account.shopping.saved" : "account.shopping.save")}
           </Button>
-          <Button variant="ghost" onPress={() => void toggleCompare()}>
+          <Button variant="ghost" disabled={compareBusy} loading={compareBusy} onPress={() => void toggleCompare()}>
             {t(compareIds.includes(productId ?? "") ? "marketplace.compare.remove" : "marketplace.compare.add")}
           </Button>
-          <Button variant="ghost" onPress={() => router.push("/marketplace/compare")}>
+          <Button variant="ghost" disabled={compareBusy} onPress={() => router.push("/marketplace/compare")}>
             {t("marketplace.compare.open")} ({formatNumber(compareIds.length)})
           </Button>
         <Button

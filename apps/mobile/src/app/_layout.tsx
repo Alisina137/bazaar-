@@ -31,15 +31,7 @@ function RootNavigator() {
             direction: "ltr"
           }
         }}
-      >
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="marketplace" />
-        <Stack.Screen name="checkout" />
-        <Stack.Screen name="account" />
-        <Stack.Screen name="seller" />
-        <Stack.Screen name="notifications" />
-        <Stack.Screen name="support" />
-      </Stack>
+      />
     </>
   );
 }

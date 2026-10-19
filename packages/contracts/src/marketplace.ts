@@ -107,6 +107,16 @@ export interface MarketplaceCategoriesResponse {
   categories: MarketplaceCategoryRecord[];
 }
 
+export interface MarketplaceStoreDirectoryResponse {
+  stores: MarketplaceFeaturedStore[];
+  pageInfo: {
+    offset: number;
+    limit: number;
+    total: number;
+    hasMore: boolean;
+  };
+}
+
 export interface MarketplaceHomeResponse {
   categories: MarketplaceCategoryRecord[];
   recommended: MarketplaceProductSummary[];

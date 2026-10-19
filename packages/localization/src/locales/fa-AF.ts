@@ -4,6 +4,7 @@ export const faAfMessages = {
   "nav.home": "خانه",
   "nav.marketplace": "بازار",
   "nav.shopping": "خریدها",
+  "shopping.subtitle": "سبد خرید و سفارش‌های خود را مدیریت کنید",
   "nav.cart": "سبد خرید",
   "nav.orders": "سفارش‌ها",
   "nav.account": "حساب",

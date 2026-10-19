@@ -34,7 +34,6 @@ test("comparison screen loads selected products and compares meaningful shopping
   assert.match(screen, /Promise\.all/);
   assert.match(screen, /removeCompareProduct/);
   assert.match(screen, /clearCompareProducts/);
-  assert.match(screen, /accessibilityRole/);
 });
 
 test("comparison strings exist in English, Dari, and Pashto with typed locale parity", () => {

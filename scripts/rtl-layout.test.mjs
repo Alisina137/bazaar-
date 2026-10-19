@@ -78,6 +78,9 @@ test("shopping, checkout, support, moderation and seller horizontal rows mirror 
   ]) {
     assert.match(read(path), /flexDirection: isRTL \? "row-reverse" : "row"/, path);
   }
+  const marketplace = read("apps/mobile/src/app/(tabs)/marketplace.tsx");
+  assert.match(marketplace, /flexDirection: isRTL \? "row-reverse" : "row"/);
+  assert.match(marketplace, /storeDirectory\.stores\.map\(featured =>/);
 });
 
 test("horizontal carousels start with the first item on the right in RTL", () => {
@@ -88,7 +91,6 @@ test("horizontal carousels start with the first item on the right in RTL", () =>
   assert.match(rail, /key=\{isRTL \? "rtl" : "ltr"\}/);
   for (const path of [
     "apps/mobile/src/app/(tabs)/index.tsx",
-    "apps/mobile/src/app/(tabs)/marketplace.tsx",
     "apps/mobile/src/app/marketplace/product/[productId].tsx",
     "apps/mobile/src/app/marketplace/store/[handle].tsx"
   ]) {

@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from "react";
+import { useRef, type PropsWithChildren } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -6,6 +6,9 @@ import {
   ScrollView,
   StyleSheet,
   View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  type ScrollView as ScrollViewType,
   type StyleProp,
   type ViewStyle
 } from "react-native";
@@ -13,8 +16,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAppTheme } from "@/design/theme";
 
+const savedScrollOffsets = new Map<string, number>();
+
 export interface ScreenProps extends PropsWithChildren {
   scrollable?: boolean;
+  /** Preserve a scroll position when a screen with the same key is revisited. */
+  scrollKey?: string;
   contentStyle?: StyleProp<ViewStyle>;
   refreshing?: boolean;
   onRefresh?: (() => void) | undefined;
@@ -23,14 +30,34 @@ export interface ScreenProps extends PropsWithChildren {
 export function Screen({
   children,
   scrollable = true,
+  scrollKey,
   contentStyle,
   refreshing = false,
   onRefresh
 }: ScreenProps) {
   const theme = useAppTheme();
+  const scrollRef = useRef<ScrollViewType>(null);
+  const restoredKey = useRef<string | null>(null);
+
+  const restoreScrollPosition = () => {
+    if (!scrollKey || restoredKey.current === scrollKey) return;
+    restoredKey.current = scrollKey;
+    const offset = savedScrollOffsets.get(scrollKey) ?? 0;
+    if (offset > 0) {
+      requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: offset, animated: false }));
+    }
+  };
+
+  const rememberScrollPosition = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (scrollKey) savedScrollOffsets.set(scrollKey, event.nativeEvent.contentOffset.y);
+  };
 
   const content = scrollable ? (
     <ScrollView
+      ref={scrollRef}
+      onScroll={rememberScrollPosition}
+      scrollEventThrottle={100}
+      onContentSizeChange={restoreScrollPosition}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="on-drag"
       refreshControl={onRefresh ? (

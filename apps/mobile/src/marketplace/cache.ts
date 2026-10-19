@@ -3,7 +3,8 @@ import type {
   MarketplaceBrowseResponse,
   MarketplaceHomeResponse,
   MarketplaceProductDetailResponse,
-  MarketplaceStorePageResponse
+  MarketplaceStorePageResponse,
+  MarketplaceStoreDirectoryResponse
 } from "@bazaarlink/contracts";
 
 const PREFIX = "bazaarlink.marketplace.v9.";
@@ -146,6 +147,10 @@ export function storeCacheKey(handle: string, offset: number): string {
   return "store:" + handle.toLowerCase() + ":" + offset;
 }
 
+export function storeDirectoryCacheKey(query?: string, offset = 0): string {
+  return "store-directory:" + stableKey({ q: query?.trim().toLowerCase() || undefined, offset });
+}
+
 export function readHomeCache(
   key: string,
   allowStale = false
@@ -198,6 +203,21 @@ export function readStoreCache(
 export function writeStoreCache(
   key: string,
   value: MarketplaceStorePageResponse
+): Promise<void> {
+  return writeCache(key, value);
+}
+
+
+export function readStoreDirectoryCache(
+  key: string,
+  allowStale = false
+): Promise<MarketplaceStoreDirectoryResponse | null> {
+  return readCache<MarketplaceStoreDirectoryResponse>(key, allowStale);
+}
+
+export function writeStoreDirectoryCache(
+  key: string,
+  value: MarketplaceStoreDirectoryResponse
 ): Promise<void> {
   return writeCache(key, value);
 }

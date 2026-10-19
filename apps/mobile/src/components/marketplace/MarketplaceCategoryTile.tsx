@@ -1,6 +1,6 @@
 import type { MarketplaceCategoryRecord } from "@bazaarlink/contracts";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useState, type ComponentProps } from "react";
+import { memo, useState, type ComponentProps } from "react";
 import { Image, Pressable, View } from "react-native";
 
 import { AppText } from "@/components/ui/AppText";
@@ -26,7 +26,7 @@ function categoryIcon(category: MarketplaceCategoryRecord): IconName {
   return "grid-outline";
 }
 
-export function MarketplaceCategoryTile({
+function MarketplaceCategoryTileInner({
   category, onPress, grid = false
 }: {
   category: MarketplaceCategoryRecord;
@@ -87,3 +87,5 @@ export function MarketplaceCategoryTile({
     </Pressable>
   );
 }
+
+export const MarketplaceCategoryTile = memo(MarketplaceCategoryTileInner);

@@ -1,7 +1,7 @@
 import type { MarketplaceProductSummary } from "@bazaarlink/contracts";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { ActivityIndicator, Image, Pressable, View } from "react-native";
 
 import { AppText } from "@/components/ui/AppText";
@@ -21,7 +21,7 @@ interface MarketplaceProductCardProps {
   saveDisabled?: boolean | undefined;
 }
 
-export function MarketplaceProductCard({
+function MarketplaceProductCardInner({
   product, compact = false, grid = false, onSavePress,
   saved = false, saving = false, saveDisabled = false
 }: MarketplaceProductCardProps) {
@@ -254,3 +254,5 @@ export function MarketplaceProductCard({
     </View>
   );
 }
+
+export const MarketplaceProductCard = memo(MarketplaceProductCardInner);

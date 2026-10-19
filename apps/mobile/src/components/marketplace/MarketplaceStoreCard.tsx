@@ -1,14 +1,14 @@
 import type { MarketplaceFeaturedStore } from "@bazaarlink/contracts";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Image, Pressable, View } from "react-native";
 
 import { AppText } from "@/components/ui/AppText";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 
-export function MarketplaceStoreCard({
+function MarketplaceStoreCardInner({
   featured, grid = false
 }: {
   featured: MarketplaceFeaturedStore;
@@ -121,3 +121,5 @@ export function MarketplaceStoreCard({
     </Pressable>
   );
 }
+
+export const MarketplaceStoreCard = memo(MarketplaceStoreCardInner);

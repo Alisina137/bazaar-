@@ -1882,3 +1882,14 @@ Automated implementation scope is committed as an integrated Phase 12 change. Gi
 - Store search, empty/error/retry states, pagination, category navigation, and directory labels are translated in English, Dari and Pashto. RTL/LTR layout and theme tokens are preserved; no GPS inference or new permissions are introduced.
 - Added `pnpm test:marketplace-phase5` and included it in `pnpm verify`. No database migration or schema change is needed.
 - Manual Expo Go QA remains required: deeply nested categories and back navigation; opening parent products vs leaf category products; store search by name/handle/location/category; empty directory and empty search; pagination without duplicates; API offline/retry; long Dari/Pashto labels; 320–430dp layouts and light/dark themes.
+
+
+## Marketplace Phase 6 — Performance and resilient browsing (2026-10-19)
+
+- Memoized the shared product, category, and store cards so parent-screen state changes do not automatically rerender unchanged card props. Existing native image loading, stable image frames, and URL-keyed image failure state remain in place.
+- Added lightweight accessible product/store/category loading skeletons to reduce blank-layout jumps during first loads.
+- Added query-scoped local caching for the first page of store-directory results using the existing shared cache envelope and policy (15-minute fresh TTL, up to seven days for explicit stale/offline fallback). Stale directory content is visibly marked with the existing cached-data notice; the server remains authoritative and refresh replaces the cache.
+- Added pull-to-refresh to Marketplace: Products refreshes the current applied query from offset 0; Categories refreshes category/home data; Stores refreshes the current directory query. Failed product pagination now shows an actionable retry instead of silently leaving the shopper stuck.
+- Added opt-in scroll-position preservation to the shared `Screen` component; Marketplace opts in with a stable key. Other screens retain their prior behavior unless they pass a key.
+- Added `pnpm test:marketplace-phase6` and included it in `pnpm verify`. No new dependency, external image service, API route, or database migration was added.
+- **Manual QA still required:** low-end Android with long product lists and multiple pages; pull-to-refresh on all three Marketplace tabs; cached store results online/offline; failed pagination retry; scroll restoration after navigating to product/store details; and Dari/Pashto RTL, English LTR, light/dark theme, and small-screen layouts.

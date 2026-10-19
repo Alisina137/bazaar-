@@ -1507,6 +1507,7 @@ export const enMessages = {
   "marketplace.compare.empty": "No products selected to compare yet.",
   "marketplace.compare.addMore": "Browse products",
   "marketplace.compare.clear": "Clear comparison",
+  "marketplace.compare.originalPrice": "Original price",
   "marketplace.compare.price": "Price",
   "marketplace.compare.discount": "Discount price",
   "marketplace.compare.rating": "Rating",

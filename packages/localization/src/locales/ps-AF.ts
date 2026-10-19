@@ -1500,7 +1500,7 @@ export const psAfMessages = {
   "marketplace.compare.description": "بیې، نمرې، موجودي او پلورونکي څنګ په څنګ پرتله کړئ.",
   "marketplace.compare.add": "پرتلې ته زیاتول",
   "marketplace.compare.remove": "له پرتلې لرې کول",
-  "marketplace.compare.open": "پرتله ({count})",
+  "marketplace.compare.open": "پرتله",
   "marketplace.compare.full": "په یو وخت کې تر ۴ محصولاتو پرتله کولی شئ. د بل محصول لپاره یو لرې کړئ.",
   "marketplace.compare.empty": "تر اوسه د پرتلې لپاره محصولات نه دي ټاکل شوي.",
   "marketplace.compare.addMore": "محصولات لټول",

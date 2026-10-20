@@ -387,50 +387,34 @@ export default function MarketplaceProductScreen() {
   };
 
   return (
-    <Screen contentStyle={{ paddingBottom: theme.spacing["2xl"] * 2 }}>
-      <View
-        style={{
-          flexDirection: isRTL ? "row-reverse" : "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: theme.spacing.sm
-        }}
-      >
-        <Button
-          variant="ghost"
-          onPress={() => router.back()}
-        >
-          {t("marketplace.back")}
-        </Button>
+    <Screen contentStyle={{ gap: theme.spacing.lg, paddingBottom: theme.spacing["3xl"] }}>
+      <View style={{
+        flexDirection: isRTL ? "row-reverse" : "row",
+        alignItems: "center", justifyContent: "space-between",
+        gap: theme.spacing.sm
+      }}>
+        <ProductAction icon={isRTL ? "arrow-forward" : "arrow-back"}
+          label={t("marketplace.back")} onPress={() => router.back()} />
         <View style={{
           flexDirection: isRTL ? "row-reverse" : "row",
-          alignItems: "center", gap: theme.spacing.xs
+          gap: theme.spacing.sm, alignItems: "center"
         }}>
-          <Button variant="ghost" disabled={wishlistBusy}
-            loading={wishlistBusy} onPress={() => void toggleWishlist()}>
-            {t(wishlisted ? "account.shopping.saved" : "account.shopping.save")}
-          </Button>
-          <Button variant="ghost" disabled={compareBusy} loading={compareBusy} onPress={() => void toggleCompare()}>
-            {t(compareIds.includes(productId ?? "") ? "marketplace.compare.remove" : "marketplace.compare.add")}
-          </Button>
-          <Button variant="ghost" disabled={compareBusy} onPress={() => router.push("/marketplace/compare")}>
-            {t("marketplace.compare.open")} ({formatNumber(compareIds.length)})
-          </Button>
-        <Button
-          variant="ghost"
-          onPress={() => {
-            void Share.share({
-              message:
-                product.name +
-                " — " +
-                storefrontBaseUrl() +
-                "/product/" +
-                product.id
-            });
-          }}
-        >
-          {t("marketplace.share")}
-        </Button>
+          <ProductAction
+            icon={wishlisted ? "heart" : "heart-outline"}
+            label={t(wishlisted ? "account.shopping.saved" : "account.shopping.save")}
+            selected={wishlisted} busy={wishlistBusy}
+            onPress={() => { void toggleWishlist(); }} />
+          <ProductAction icon="git-compare-outline"
+            label={t(compareIds.includes(product.id) ? "marketplace.compare.remove" : "marketplace.compare.add")}
+            selected={compareIds.includes(product.id)} busy={compareBusy}
+            onPress={() => { void toggleCompare(); }} />
+          <ProductAction icon="share-social-outline"
+            label={t("marketplace.share")}
+            onPress={() => {
+              void Share.share({
+                message: product.name + " — " + storefrontBaseUrl() + "/product/" + product.id
+              });
+            }} />
         </View>
       </View>
 
@@ -440,104 +424,56 @@ export default function MarketplaceProductScreen() {
       {compareFull ? (
         <AppText tone="danger" accessibilityRole="alert">{t("marketplace.compare.full")}</AppText>
       ) : null}
-
       {cached ? (
         <Card muted>
-          <AppText variant="caption" tone="muted">
-            {t("marketplace.cachedNotice")}
-          </AppText>
+          <AppText variant="caption" tone="muted">{t("marketplace.cachedNotice")}</AppText>
         </Card>
       ) : null}
 
-      <HorizontalLocaleScroll
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: theme.spacing.sm }}
-      >
-        {product.images.length > 0 ? (
-          product.images.map((image) => (
-            <Image
-              key={image.id}
-              source={{ uri: image.url }}
-              accessibilityLabel={image.altText ?? product.name}
-              resizeMode="cover"
-              style={{
-                width: 320,
-                height: 320,
-                borderRadius: theme.radii.lg,
-                backgroundColor: theme.colors.surfaceMuted
-              }}
-            />
-          ))
-        ) : product.imageUrl ? (
-          <Image
-            source={{ uri: product.imageUrl }}
-            accessibilityLabel={product.name}
-            resizeMode="cover"
-            style={{
-              width: 320,
-              height: 320,
-              borderRadius: theme.radii.lg,
-              backgroundColor: theme.colors.surfaceMuted
-            }}
-          />
-        ) : (
-          <Card
-            muted
-            style={{
-              width: 320,
-              height: 240,
-              alignItems: "center",
-              justifyContent: "center"
-            }}
-          >
-            <AppText tone="muted">
-              {t("marketplace.imageUnavailable")}
-            </AppText>
-          </Card>
-        )}
-      </HorizontalLocaleScroll>
+      <ProductImageGallery
+        key={product.id + ":" + (selectedVariantId ?? "")}
+        images={galleryImages}
+        productName={product.name}
+      />
 
-      <View style={{ gap: theme.spacing.sm }}>
-        <View
-          style={{
-            flexDirection: isRTL ? "row-reverse" : "row",
-            flexWrap: "wrap",
-            gap: theme.spacing.sm
-          }}
-        >
-          <Badge
-            label={
-              available
-                ? t("marketplace.inStock")
-                : t("marketplace.outOfStock")
-            }
-            tone={available ? "success" : "warning"}
-          />
-          {product.hasDiscount ? (
-            <Badge label={t("marketplace.dealBadge")} tone="primary" />
+      <View style={{ gap: theme.spacing.md }}>
+        {categoryName ? (
+          <AppText variant="caption" tone="primary">{categoryName}</AppText>
+        ) : null}
+        <AppText variant="heading">{product.name}</AppText>
+        {product.brand ? (
+          <AppText tone="muted" variant="label">{product.brand}</AppText>
+        ) : null}
+        <View style={{
+          flexDirection: isRTL ? "row-reverse" : "row",
+          flexWrap: "wrap", alignItems: "center", gap: theme.spacing.sm
+        }}>
+          <Badge label={available ? t("marketplace.inStock") : t("marketplace.outOfStock")}
+            tone={available ? "success" : "warning"} />
+          {savingPercent !== null && savingPercent > 0 ? (
+            <Badge label={"−" + formatNumber(savingPercent) + "%"} tone="primary" />
+          ) : null}
+          {ratingAverage !== null && ratingCount > 0 ? (
+            <View style={{
+              flexDirection: isRTL ? "row-reverse" : "row",
+              alignItems: "center", gap: theme.spacing.xs
+            }}>
+              <Ionicons name="star" size={16} color={theme.colors.warning} />
+              <AppText variant="label">{formatNumber(ratingAverage)}</AppText>
+              <AppText variant="caption" tone="muted">
+                {"(" + formatNumber(ratingCount) + ")"}
+              </AppText>
+            </View>
           ) : null}
         </View>
-        <AppText variant="display">{product.name}</AppText>
-        {product.brand ? (
-          <AppText tone="muted">{product.brand}</AppText>
-        ) : null}
-        <View
-          style={{
-            flexDirection: isRTL ? "row-reverse" : "row",
-            alignItems: "baseline",
-            flexWrap: "wrap",
-            gap: theme.spacing.sm
-          }}
-        >
-          <AppText variant="title">{formatAfn(price)}</AppText>
-          {product.hasDiscount && product.compareAtPrice !== null ? (
-            <AppText
-              variant="body"
-              tone="muted"
-              style={{ textDecorationLine: "line-through" }}
-            >
-              {formatAfn(product.compareAtPrice)}
+        <View style={{
+          flexDirection: isRTL ? "row-reverse" : "row",
+          alignItems: "baseline", flexWrap: "wrap", gap: theme.spacing.md
+        }}>
+          <AppText variant="title" tone="primary">{formatAfn(price)}</AppText>
+          {originalPrice !== null ? (
+            <AppText variant="body" tone="muted" style={{ textDecorationLine: "line-through" }}>
+              {formatAfn(originalPrice)}
             </AppText>
           ) : null}
         </View>

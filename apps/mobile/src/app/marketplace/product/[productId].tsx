@@ -406,7 +406,7 @@ export default function MarketplaceProductScreen() {
             onPress={() => { void toggleWishlist(); }} />
           <ProductAction icon="git-compare-outline"
             label={t(compareIds.includes(product.id) ? "marketplace.compare.remove" : "marketplace.compare.add")}
-            selected={compareIds.includes(product.id)} busy={compareBusy}
+            selected={compareIds.includes(product.id)} busy={compareBusy} disabled={compareBusy}
             onPress={() => { void toggleCompare(); }} />
           <ProductAction icon="share-social-outline"
             label={t("marketplace.share")}

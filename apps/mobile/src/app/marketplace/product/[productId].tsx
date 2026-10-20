@@ -482,29 +482,55 @@ export default function MarketplaceProductScreen() {
       {product.variants.length > 0 ? (
         <Card>
           <View style={{ gap: theme.spacing.md }}>
-            <AppText variant="heading">
-              {t("marketplace.product.variants")}
+            <AppText variant="heading">{t("marketplace.product.variants")}</AppText>
+            <AppText variant="caption" tone="muted">
+              {t("marketplace.product.optionsHint")}
             </AppText>
-            {product.variants.map((variant) => (
-              <Button
-                key={variant.id}
-                variant={
-                  selectedVariantId === variant.id
-                    ? "primary"
-                    : "secondary"
-                }
-                disabled={!variant.available || !variant.inStock}
-                onPress={() => setSelectedVariantId(variant.id)}
-              >
-                {variant.title}
-                {variant.priceOverride !== null
-                  ? " · " + formatAfn(variant.priceOverride)
-                  : ""}
-                {!variant.inStock
-                  ? " · " + t("marketplace.outOfStock")
-                  : ""}
-              </Button>
-            ))}
+            <View style={{
+              flexDirection: isRTL ? "row-reverse" : "row",
+              flexWrap: "wrap", gap: theme.spacing.sm
+            }}>
+              {product.variants.map(variant => {
+                const selected = selectedVariantId === variant.id;
+                const selectable = variant.available && variant.inStock;
+                return (
+                  <Pressable
+                    key={variant.id}
+                    accessibilityRole="radio"
+                    accessibilityLabel={variant.title}
+                    accessibilityState={{ checked: selected, disabled: !selectable }}
+                    disabled={!selectable}
+                    onPress={() => {
+                      setSelectedVariantId(variant.id);
+                      setPurchaseError(null);
+                      setAddedToCart(false);
+                    }}
+                    style={({ pressed }) => ({
+                      minWidth: "46%", flexGrow: 1, minHeight: 50,
+                      paddingHorizontal: theme.spacing.md,
+                      paddingVertical: theme.spacing.sm,
+                      gap: theme.spacing.xs,
+                      justifyContent: "center", alignItems: "center",
+                      borderRadius: theme.radii.md, borderWidth: selected ? 2 : 1,
+                      borderColor: selected ? theme.colors.primary : theme.colors.border,
+                      backgroundColor: selected ? theme.colors.primarySoft : theme.colors.surface,
+                      opacity: !selectable ? theme.opacity.disabled : pressed ? theme.opacity.pressed : 1
+                    })}
+                  >
+                    <AppText variant="label" align="center"
+                      tone={selected ? "primary" : "default"}>{variant.title}</AppText>
+                    {variant.priceOverride !== null ? (
+                      <AppText variant="caption" align="center">{formatAfn(variant.priceOverride)}</AppText>
+                    ) : null}
+                    {!selectable ? (
+                      <AppText variant="caption" align="center" tone="muted">
+                        {t("marketplace.outOfStock")}
+                      </AppText>
+                    ) : null}
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
         </Card>
       ) : null}

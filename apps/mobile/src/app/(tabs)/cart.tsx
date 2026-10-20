@@ -312,7 +312,7 @@ function MerchantGroupCard({
   group: MerchantCartGroup;
   busyKey: string | null;
   onUpdate: (itemId: string, quantity: number) => Promise<void>;
-  onRemove: (itemId: string) => Promise<void>;
+  onRemove: (itemId: string) => void;
   onApplyCoupon: (code: string) => Promise<void>;
   onRemoveCoupon: () => Promise<void>;
 }) {

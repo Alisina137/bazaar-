@@ -1,14 +1,18 @@
 import type {
   OrderRecord,
   PaymentMethod,
-  ReviewEligibilityRecord
+  ReviewEligibilityRecord,
+  SupportTicketRecord
 } from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useRef, useState } from "react";
 import { Alert, Linking, View } from "react-native";
 
 import { useAuth } from "@/auth/provider";
+import { createSupportTicket, supportTickets, CommunicationApiError } from "@/communication/api";
+import { communicationErrorKey, supportStatusKey } from "@/communication/messages";
+import { addCartItem } from "@/cart-pricing/api";
 import {
   AppText,
   Badge,
@@ -30,6 +34,7 @@ import {
   orderStateKey
 } from "@/order/messages";
 import { reviewEligibility } from "@/trust/api";
+import { canOpenReturnReview, openReturnCase, relatedReturnCases, RETURN_REVIEW_PREFIX } from "@/order/return-policy";
 
 function paymentMethodKey(method: PaymentMethod): TranslationKey {
   switch (method) {
@@ -54,50 +59,76 @@ export default function CustomerOrderDetailScreen() {
   const [order, setOrder] = useState<OrderRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const actionInFlight = useRef(false);
+  const loadEpoch = useRef(0);
+  const loadedOrderIdentity = useRef<string | null>(null);
   const [reason, setReason] = useState("");
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
   const [reviewItems, setReviewItems] = useState<ReviewEligibilityRecord[]>([]);
+  const [supportReason, setSupportReason] = useState("");
+  const [returnCases, setReturnCases] = useState<SupportTicketRecord[]>([]);
+  const [caseHistoryError, setCaseHistoryError] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
+    if (actionInFlight.current) return;
+    const requestId = ++loadEpoch.current;
     if (
       status !== "signedIn" ||
       !sessionToken ||
       !orderId
     ) {
+      loadedOrderIdentity.current = null;
+      setOrder(null);
+      setReturnCases([]);
+      setReviewItems([]);
       setLoading(false);
       return;
     }
 
+    const identity = sessionToken + ":" + orderId;
+    if (loadedOrderIdentity.current !== identity) {
+      setOrder(null);
+      setReturnCases([]);
+      setReviewItems([]);
+      loadedOrderIdentity.current = identity;
+    }
     setLoading(true);
     setErrorKey(null);
     try {
-      const [nextOrder, eligibility] = await Promise.all([
+      const [nextOrder, eligibility, caseHistory] = await Promise.all([
         getCustomerOrder(sessionToken, orderId),
-        reviewEligibility(sessionToken, orderId).catch(() => ({ items: [] }))
+        reviewEligibility(sessionToken, orderId).catch(() => ({ items: [] })),
+        supportTickets(sessionToken).catch(() => null)
       ]);
+      if (requestId !== loadEpoch.current) return;
       setOrder(nextOrder);
       setReviewItems(eligibility.items);
+      setCaseHistoryError(caseHistory === null);
+      setReturnCases(caseHistory ? relatedReturnCases(caseHistory.tickets, nextOrder.id) : []);
     } catch (error) {
+      if (requestId !== loadEpoch.current) return;
       const safe =
         error instanceof OrderApiError
           ? error
           : new OrderApiError("service_unavailable");
       setErrorKey(orderErrorKey(safe.code));
     } finally {
-      setLoading(false);
+      if (requestId === loadEpoch.current) setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    void load();
   }, [orderId, sessionToken, status]);
 
+  useFocusEffect(useCallback(() => {
+    void load();
+    return () => { loadEpoch.current += 1; };
+  }, [load]));
+
   const cancel = async () => {
-    if (!sessionToken || !orderId || !reason.trim()) {
+    if (actionInFlight.current || !sessionToken || !orderId || !reason.trim() || order?.state !== "pending_confirmation") {
       setErrorKey("order.error.invalidRequest");
       return;
     }
 
+    actionInFlight.current = true;
     setBusy(true);
     setErrorKey(null);
     try {
@@ -107,6 +138,7 @@ export default function CustomerOrderDetailScreen() {
         })
       );
       setReason("");
+      Alert.alert(t("order.customer.cancelTitle"), t("order.shopping.cancelled"));
     } catch (error) {
       const safe =
         error instanceof OrderApiError
@@ -114,6 +146,74 @@ export default function CustomerOrderDetailScreen() {
           : new OrderApiError("service_unavailable");
       setErrorKey(orderErrorKey(safe.code));
     } finally {
+      actionInFlight.current = false;
+      setBusy(false);
+    }
+  };
+
+  const requestReview = async () => {
+    if (actionInFlight.current || !sessionToken || !order || !canOpenReturnReview(order.state) ||
+        caseHistoryError || openReturnCase(returnCases, order.id) || supportReason.trim().length < 5) return;
+    actionInFlight.current = true;
+    setBusy(true);
+    setErrorKey(null);
+    try {
+      const ticket = await createSupportTicket(sessionToken, {
+        category: "order",
+        orderId: order.id,
+        subject: RETURN_REVIEW_PREFIX + order.orderNumber,
+        message: "Order: " + order.orderNumber + "\nRequest: " + supportReason.trim()
+      });
+      setSupportReason("");
+      setReturnCases(previous => [ticket, ...previous]);
+      router.push({ pathname: "/support/[ticketId]", params: { ticketId: ticket.id } });
+    } catch (cause) {
+      Alert.alert(t("order.shopping.returnTitle"), t(communicationErrorKey(
+        cause instanceof CommunicationApiError ? cause.code : "service_unavailable"
+      )));
+    } finally {
+      actionInFlight.current = false;
+      setBusy(false);
+    }
+  };
+
+  const reorder = async () => {
+    if (actionInFlight.current || !sessionToken || !order || !order.items.length) return;
+    actionInFlight.current = true;
+    setBusy(true);
+    setErrorKey(null);
+    let added = 0;
+    let changed = false;
+    const failed: string[] = [];
+    try {
+      // The existing cart API rechecks live stock, product visibility and prices.
+      // A partial success is explicitly reported: it is never presented as an order.
+      for (const item of order.items) {
+        try {
+          const cart = await addCartItem(sessionToken, {
+            productId: item.productId,
+            variantId: item.variantId,
+            quantity: item.quantity
+          });
+          added += 1;
+          const current = cart.groups.flatMap(group => group.items)
+            .find(candidate => candidate.productId === item.productId && candidate.variantId === item.variantId);
+          if (current && Math.abs(current.unitPrice - item.unitPrice) >= 0.005) changed = true;
+        } catch {
+          failed.push(item.productName);
+        }
+      }
+      if (added === 0) {
+        Alert.alert(t("order.shopping.reorderTitle"), t("order.shopping.reorderFailed") + "\n" + failed.join(", "));
+      } else {
+        const message = (failed.length ? t("order.shopping.reorderPartial") + "\n" + failed.join(", ") : t("order.shopping.reorderSuccess"))
+          + (changed ? "\n" + t("order.shopping.priceChanged") : "");
+        Alert.alert(t("order.shopping.reorderTitle"), message, [
+          { text: t("order.shopping.reviewCart"), onPress: () => router.push({ pathname: "/(tabs)/shopping", params: { section: "cart" } }) }
+        ]);
+      }
+    } finally {
+      actionInFlight.current = false;
       setBusy(false);
     }
   };
@@ -137,9 +237,10 @@ export default function CustomerOrderDetailScreen() {
           kind="error"
           title={t("order.customer.errorTitle")}
           message={t(errorKey ?? "order.error.notFound")}
-          actionLabel={t("marketplace.back")}
-          onAction={() => router.back()}
+          actionLabel={t("cart.retry")}
+          onAction={() => { void load(); }}
         />
+        <Button variant="ghost" onPress={() => router.back()}>{t("marketplace.back")}</Button>
       </Screen>
     );
   }
@@ -367,9 +468,22 @@ export default function CustomerOrderDetailScreen() {
           <AppText tone="muted">
             {t("order.customer.paymentState")}: {order.payment.state}
           </AppText>
+          <View style={{ gap: theme.spacing.sm }}>
+            {([
+              [t("cart.itemsSubtotal"), order.totals.itemsSubtotal],
+              [t("cart.productDiscount"), -order.totals.productDiscount],
+              [t("cart.couponDiscount"), -order.totals.couponDiscount],
+              [t("order.shopping.deliveryCost"), order.totals.deliveryTotal]
+            ] as const).filter(([, amount]) => amount !== 0).map(([label, amount]) => (
+              <View key={label} style={{ flexDirection: isRTL ? "row-reverse" : "row", justifyContent: "space-between", gap: theme.spacing.sm }}>
+                <AppText tone="muted">{label}</AppText>
+                <AppText>{amount < 0 ? "-" : ""}{formatAfn(Math.abs(amount))}</AppText>
+              </View>
+            ))}
+          </View>
           <View style={{ gap: theme.spacing.xs, paddingTop: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.border }}>
             <View style={{ flexDirection: isRTL ? "row-reverse" : "row", justifyContent: "space-between", alignItems: "center" }}>
-              <AppText variant="bodyStrong">{t("cart.total")}</AppText>
+              <AppText variant="bodyStrong">{t("order.shopping.total")}</AppText>
               <AppText variant="heading">{formatAfn(order.totals.total)}</AppText>
             </View>
           </View>
@@ -406,6 +520,61 @@ export default function CustomerOrderDetailScreen() {
         </View>
       </Card>
 
+      <Card>
+        <View style={{ gap: theme.spacing.md }}>
+          <AppText variant="title">{t("order.shopping.reorderTitle")}</AppText>
+          <AppText tone="muted">{t("order.shopping.reorderHint")}</AppText>
+          <Button variant="secondary" disabled={busy || !order.items.length} loading={busy}
+            onPress={() => Alert.alert(t("order.shopping.reorderTitle"), t("order.shopping.reorderConfirm"), [
+              { text: t("support.hub.cancel"), style: "cancel" },
+              { text: t("order.shopping.reorder"), onPress: () => { void reorder(); } }
+            ])}>
+            {t("order.shopping.reorder")}
+          </Button>
+        </View>
+      </Card>
+
+      {(canOpenReturnReview(order.state) || returnCases.length > 0 || order.state === "refund_pending" || order.state === "refunded") ? (
+        <Card>
+          <View style={{ gap: theme.spacing.md }}>
+            <AppText variant="title">{t("order.shopping.returnTitle")}</AppText>
+            <AppText tone="muted">{t("order.shopping.returnHint")}</AppText>
+            {order.state === "refund_pending" || order.state === "refunded" ? (
+              <Badge label={t(orderStateKey(order.state))} tone="warning" />
+            ) : null}
+            {returnCases.map(ticket => (
+              <View key={ticket.id} style={{ gap: theme.spacing.xs }}>
+                <Badge label={t(supportStatusKey(ticket.status))} tone={ticket.status === "closed" ? "neutral" : "primary"} />
+                <AppText variant="caption" tone="muted">{new Date(ticket.updatedAt).toLocaleDateString(locale)}</AppText>
+                <Button variant="secondary" onPress={() => router.push({
+                  pathname: "/support/[ticketId]", params: { ticketId: ticket.id }
+                })}>{t("order.shopping.viewCase")}</Button>
+              </View>
+            ))}
+            {caseHistoryError ? (
+              <AppText tone="muted">{t("order.shopping.caseHistoryError")}</AppText>
+            ) : null}
+            {canOpenReturnReview(order.state) && !caseHistoryError && !openReturnCase(returnCases, order.id) ? (
+              <View style={{ gap: theme.spacing.md }}>
+                <TextField label={t("order.shopping.returnReason")}
+                  value={supportReason} onChangeText={setSupportReason}
+                  maxLength={1000} multiline />
+                <Button disabled={busy || supportReason.trim().length < 5} loading={busy}
+                  onPress={() => Alert.alert(t("order.shopping.returnConfirmTitle"), t("order.shopping.returnHint"), [
+                    { text: t("support.hub.cancel"), style: "cancel" },
+                    { text: t("order.shopping.returnSubmit"), onPress: () => { void requestReview(); } }
+                  ])}>
+                  {t("order.shopping.returnSubmit")}
+                </Button>
+              </View>
+            ) : null}
+            {openReturnCase(returnCases, order.id) ? (
+              <AppText tone="muted">{t("order.shopping.caseAlreadyOpen")}</AppText>
+            ) : null}
+          </View>
+        </Card>
+      ) : null}
+
       {order.state === "pending_confirmation" ? (
         <Card>
           <View style={{ gap: theme.spacing.md }}>
@@ -425,14 +594,19 @@ export default function CustomerOrderDetailScreen() {
               variant="danger"
               loading={busy}
               disabled={busy || !reason.trim()}
-              onPress={() => {
-                void cancel();
-              }}
+              onPress={() => Alert.alert(t("order.shopping.cancelConfirmTitle"), t("order.shopping.cancelConfirmMessage"), [
+                { text: t("support.hub.cancel"), style: "cancel" },
+                { text: t("order.customer.cancel"), style: "destructive", onPress: () => { void cancel(); } }
+              ])}
             >
               {t("order.customer.cancel")}
             </Button>
           </View>
         </Card>
+      ) : null}
+
+      {order.state === "refund_pending" || order.state === "refunded" ? (
+        <Card muted><AppText tone="muted">{t("order.shopping.refundStatusHint")}</AppText></Card>
       ) : null}
 
       {order.cancellationReason ? (

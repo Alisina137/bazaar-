@@ -116,7 +116,7 @@ export function StoreMapPicker({
               showsCompass
               toolbarEnabled={false}
             >
-              {draft ? <Marker coordinate={draft} draggable onDragEnd={choose} /> : null}
+              {draft ? <Marker coordinate={draft} draggable onDragEnd={event => { const point = event.nativeEvent.coordinate; if (validMapPin(point)) setDraft(point); }} /> : null}
             </MapView>
           </View>
           <View style={{ padding: theme.spacing.lg, gap: theme.spacing.sm }}>

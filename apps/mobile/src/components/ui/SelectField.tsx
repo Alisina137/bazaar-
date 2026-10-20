@@ -28,7 +28,7 @@ export function SelectField({
   onChange: (value: string) => void;
   placeholder: string;
   disabled?: boolean;
-  helperText?: string;
+  helperText?: string | undefined;
 }) {
   const theme = useAppTheme();
   const { isRTL, t } = useLocalization();

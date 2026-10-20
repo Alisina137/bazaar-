@@ -567,19 +567,8 @@ export default function CheckoutScreen() {
 
       {delivery ? (
         <View style={{ gap: theme.spacing.lg }}>
-          <Card>
-            <View style={{ gap: theme.spacing.sm }}>
-              <AppText variant="title">
-                {t("checkout.step.delivery")}
-              </AppText>
-              {selectedAddress ? (
-                <AppText tone="muted">
-                  {selectedAddress.recipientName} · {selectedAddress.province} ·{" "}
-                  {selectedAddress.districtCity}
-                </AppText>
-              ) : null}
-            </View>
-          </Card>
+          <CheckoutSectionHeading step={3} title={t("checkout.step.delivery")}
+            subtitle={t("checkout.deliveryHint")} />
 
           {delivery.merchantGroups.map((group) => (
             <DeliveryGroupCard
@@ -600,10 +589,8 @@ export default function CheckoutScreen() {
           ))}
 
           {!delivery.canContinue ? (
-            <Card>
-              <AppText tone="danger">
-                {t("delivery.customer.resolveUnavailable")}
-              </AppText>
+            <Card style={{ backgroundColor: theme.colors.dangerSoft, borderColor: theme.colors.danger }}>
+              <AppText variant="label" tone="danger">{t("delivery.customer.resolveUnavailable")}</AppText>
             </Card>
           ) : null}
 
@@ -622,18 +609,24 @@ export default function CheckoutScreen() {
 
       {quote ? (
         <View style={{ gap: theme.spacing.lg }}>
-          <Card>
+          <Card style={{ padding: theme.spacing.lg }}>
             <View style={{ gap: theme.spacing.md }}>
-              <Badge
-                label={t("delivery.customer.pricingVerified")}
-                tone="success"
-              />
-              <AppText variant="title">
-                {t("delivery.customer.finalBeforePayment")}
-              </AppText>
-              <AppText variant="display">
-                {formatAfn(quote.totals.finalBeforePaymentTotal)}
-              </AppText>
+              <View style={{ flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center", gap: theme.spacing.sm }}>
+                <Ionicons name="checkmark-circle" size={21} color={theme.colors.success} />
+                <AppText variant="bodyStrong" style={{ fontSize: 16, lineHeight: 22 }}>
+                  {t("delivery.customer.pricingVerified")}
+                </AppText>
+              </View>
+              <View style={{
+                padding: theme.spacing.lg, borderRadius: theme.radii.md,
+                backgroundColor: theme.colors.primarySoft, gap: theme.spacing.xs
+              }}>
+                <AppText variant="caption" tone="muted">{t("delivery.customer.finalBeforePayment")}</AppText>
+                <AppText variant="bodyStrong" tone="primary" style={{ fontSize: 26, lineHeight: 34 }}>
+                  {formatAfn(quote.totals.finalBeforePaymentTotal)}
+                </AppText>
+              </View>
+              <AppText variant="bodyStrong">{t("checkout.breakdown")}</AppText>
 
               <SummaryRow
                 label={t("cart.itemsSubtotal")}
@@ -680,12 +673,6 @@ export default function CheckoutScreen() {
                 value={formatAfn(quote.totals.deliveryTotal)}
                 emphasized
               />
-              <SummaryRow
-                label={t("delivery.customer.finalBeforePayment")}
-                value={formatAfn(quote.totals.finalBeforePaymentTotal)}
-                emphasized
-              />
-
               <AppText variant="caption" tone="muted">
                 {t("delivery.customer.noTaxAssumed")}
               </AppText>
@@ -698,16 +685,23 @@ export default function CheckoutScreen() {
             onPaymentReady={setPaymentReady}
           />
 
-          <Card muted>
+          <Card style={{ padding: theme.spacing.lg }}>
             <View style={{ gap: theme.spacing.md }}>
-              <AppText variant="title">
-                {t("checkout.step.review")}
-              </AppText>
-              <AppText tone="muted">
-                {paymentReady
-                  ? t("payment.customer.reviewReady")
-                  : t("payment.customer.reviewBlocked")}
-              </AppText>
+              <CheckoutSectionHeading step={5} title={t("checkout.step.review")}
+                subtitle={t("checkout.reviewHint")} />
+              <View style={{
+                borderRadius: theme.radii.md, padding: theme.spacing.md,
+                backgroundColor: paymentReady ? theme.colors.successSoft : theme.colors.surfaceMuted,
+                flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center", gap: theme.spacing.sm
+              }}>
+                <Ionicons name={paymentReady ? "checkmark-circle" : "lock-closed-outline"}
+                  size={20} color={paymentReady ? theme.colors.success : theme.colors.textMuted} />
+                <View style={{ flex: 1 }}>
+                  <AppText variant="label" tone={paymentReady ? "success" : "muted"}>
+                    {paymentReady ? t("payment.customer.reviewReady") : t("payment.customer.reviewBlocked")}
+                  </AppText>
+                </View>
+              </View>
               {orderError ? (
                 <AppText tone="danger">{t(orderError)}</AppText>
               ) : null}
@@ -745,117 +739,80 @@ function DeliveryGroupCard({
 }) {
   const theme = useAppTheme();
   const { formatAfn, formatNumber, locale, t } = useLocalization();
+  const selected = group.options.find(option => option.optionId === selectedOptionId) ?? null;
 
   return (
-    <Card>
-      <View style={{ gap: theme.spacing.lg }}>
-        <View style={{ gap: theme.spacing.xs }}>
-          <AppText variant="title">{group.storeName}</AppText>
-          <Badge
-            label={
-              group.available
-                ? t("delivery.customer.available")
-                : t("delivery.customer.unavailable")
-            }
-            tone={group.available ? "success" : "danger"}
-          />
+    <Card style={{ padding: theme.spacing.lg }}>
+      <View style={{ gap: theme.spacing.md }}>
+        <View style={{ gap: theme.spacing.sm }}>
+          <AppText variant="bodyStrong" style={{ fontSize: 15, lineHeight: 22 }}>{group.storeName}</AppText>
+          {!group.available ? (
+            <Badge label={t("delivery.customer.unavailable")} tone="danger" />
+          ) : null}
         </View>
 
         {!group.available ? (
-          <AppText tone="danger">
+          <AppText variant="label" tone="danger" accessibilityRole="alert">
             {t(unavailableKey(group.unavailableReason))}
           </AppText>
-        ) : (
-          group.options.map((option) => (
-            <Button
-              key={option.optionId}
-              variant={
-                selectedOptionId === option.optionId
-                  ? "primary"
-                  : "secondary"
-              }
-              onPress={() => onSelect(option.optionId)}
-            >
-              {option.label} · {formatAfn(option.price.finalDeliveryPrice)}
-            </Button>
-          ))
-        )}
+        ) : group.options.map(option => (
+          <CheckoutChoice
+            key={option.optionId}
+            icon={option.fulfillmentType === "pickup" ? "storefront-outline"
+              : option.fulfillmentType === "digital" ? "cloud-download-outline" : "cube-outline"}
+            title={option.label}
+            subtitle={t(fulfillmentKey(option))}
+            trailing={formatAfn(option.price.finalDeliveryPrice)}
+            selected={selectedOptionId === option.optionId}
+            onPress={() => onSelect(option.optionId)}
+          />
+        ))}
 
-        {group.options.map((option) =>
-          selectedOptionId === option.optionId ? (
-            <View key={"detail:" + option.optionId} style={{ gap: theme.spacing.sm }}>
-              <AppText variant="heading">
-                {t(fulfillmentKey(option))}: {option.label}
-              </AppText>
-              <SummaryRow
-                label={t("delivery.customer.deliveryBase")}
-                value={formatAfn(option.price.baseDelivery)}
-              />
-              {option.price.urgencySurcharge > 0 ? (
-                <SummaryRow
-                  label={t("delivery.customer.urgencySurcharge")}
-                  value={formatAfn(option.price.urgencySurcharge)}
-                />
-              ) : null}
-              {option.price.productDeliverySurcharge > 0 ? (
-                <SummaryRow
-                  label={t("delivery.customer.productSurcharge")}
-                  value={formatAfn(option.price.productDeliverySurcharge)}
-                />
-              ) : null}
-              {option.price.freeDeliveryDiscount > 0 ? (
-                <SummaryRow
-                  label={t("delivery.customer.freeDelivery")}
-                  value={"-" + formatAfn(option.price.freeDeliveryDiscount)}
-                />
-              ) : null}
-              <SummaryRow
-                label={t("delivery.customer.deliveryTotal")}
-                value={formatAfn(option.price.finalDeliveryPrice)}
-                emphasized
-              />
-
+        {selected ? (
+          <View style={{
+            gap: theme.spacing.sm,
+            padding: theme.spacing.md,
+            backgroundColor: theme.colors.surfaceMuted,
+            borderRadius: theme.radii.md
+          }}>
+            <SummaryRow label={t("delivery.customer.deliveryBase")}
+              value={formatAfn(selected.price.baseDelivery)} />
+            {selected.price.urgencySurcharge > 0 ? (
+              <SummaryRow label={t("delivery.customer.urgencySurcharge")}
+                value={formatAfn(selected.price.urgencySurcharge)} />
+            ) : null}
+            {selected.price.productDeliverySurcharge > 0 ? (
+              <SummaryRow label={t("delivery.customer.productSurcharge")}
+                value={formatAfn(selected.price.productDeliverySurcharge)} />
+            ) : null}
+            {selected.price.freeDeliveryDiscount > 0 ? (
+              <SummaryRow label={t("delivery.customer.freeDelivery")}
+                value={"-" + formatAfn(selected.price.freeDeliveryDiscount)} />
+            ) : null}
+            <SummaryRow label={t("delivery.customer.deliveryTotal")}
+              value={formatAfn(selected.price.finalDeliveryPrice)} emphasized />
+            <AppText variant="caption" tone="muted">
+              {t("delivery.customer.ruleUsed")}: {t(ruleKey(selected))} · {selected.ruleUsed.label}
+            </AppText>
+            {selected.ruleUsed.distanceKm !== null ? (
               <AppText variant="caption" tone="muted">
-                {t("delivery.customer.ruleUsed")}: {t(ruleKey(option))} ·{" "}
-                {option.ruleUsed.label}
+                {t("delivery.customer.distance")}: {formatNumber(selected.ruleUsed.distanceKm)} km
               </AppText>
-
-              {option.ruleUsed.distanceKm !== null ? (
-                <AppText variant="caption" tone="muted">
-                  {t("delivery.customer.distance")}:{" "}
-                  {formatNumber(option.ruleUsed.distanceKm)} km ·{" "}
-                  {t(
-                    option.ruleUsed.distanceSource ===
-                      "straight_line_fallback"
-                      ? "delivery.customer.distanceFallback"
-                      : "delivery.customer.distanceNotRequired"
-                  )}
-                </AppText>
-              ) : null}
-
-              {option.estimatedMinAt && option.estimatedMaxAt ? (
-                <AppText variant="caption" tone="muted">
-                  {t("delivery.customer.estimate")}:{" "}
-                  {new Date(option.estimatedMinAt).toLocaleString(
-                    locale === "fa-AF"
-                      ? "fa-AF"
-                      : locale === "ps-AF"
-                        ? "ps-AF"
-                        : "en"
-                  )}
-                  {" – "}
-                  {new Date(option.estimatedMaxAt).toLocaleString(
-                    locale === "fa-AF"
-                      ? "fa-AF"
-                      : locale === "ps-AF"
-                        ? "ps-AF"
-                        : "en"
-                  )}
-                </AppText>
-              ) : null}
-            </View>
-          ) : null
-        )}
+            ) : null}
+            {selected.estimatedMinAt && selected.estimatedMaxAt ? (
+              <AppText variant="caption" tone="muted">
+                {t("delivery.customer.estimate")}:{" "}
+                {new Date(selected.estimatedMinAt).toLocaleString(
+                  locale === "fa-AF" ? "fa-AF" : locale === "ps-AF" ? "ps-AF" : "en"
+                )}
+                {" – "}
+                {new Date(selected.estimatedMaxAt).toLocaleString(
+                  locale === "fa-AF" ? "fa-AF" : locale === "ps-AF" ? "ps-AF" : "en"
+                )}
+              </AppText>
+            ) : null}
+          </View>
+        ) : null}
       </View>
     </Card>
   );

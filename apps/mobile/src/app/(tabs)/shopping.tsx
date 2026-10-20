@@ -1,6 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { useAuth } from "@/auth/provider";
@@ -24,12 +24,15 @@ export default function ShoppingScreen() {
   const { status, sessionToken } = useAuth();
   const [cartCount, setCartCount] = useState<number | null>(null);
   const [activeOrders, setActiveOrders] = useState<number | null>(null);
+  const cartCountEpoch = useRef(0);
   const updateCartCount = useCallback((next: CartResponse) => {
+    ++cartCountEpoch.current;
     setCartCount(next.itemCount);
   }, []);
 
   useFocusEffect(useCallback(() => {
     let active = true;
+    const cartRequestId = ++cartCountEpoch.current;
     if (status !== "signedIn" || !sessionToken) {
       setCartCount(null);
       setActiveOrders(null);
@@ -37,8 +40,10 @@ export default function ShoppingScreen() {
     }
     // Counts are optional enhancements: failure never blocks either screen.
     void getCart(sessionToken).then(result => {
-      if (active) setCartCount(result.itemCount);
-    }).catch(() => { if (active) setCartCount(null); });
+      if (active && cartRequestId === cartCountEpoch.current) setCartCount(result.itemCount);
+    }).catch(() => {
+      if (active && cartRequestId === cartCountEpoch.current) setCartCount(null);
+    });
     void listCustomerOrders(sessionToken).then(result => {
       if (active) {
         setActiveOrders(result.orders.filter(order =>
@@ -46,7 +51,7 @@ export default function ShoppingScreen() {
         ).length);
       }
     }).catch(() => { if (active) setActiveOrders(null); });
-    return () => { active = false; };
+    return () => { active = false; ++cartCountEpoch.current; };
   }, [sessionToken, status, selected]));
 
   const sections: { key: ShoppingSection; label: string; icon: "cart-outline" | "receipt-outline"; count: number | null }[] = [

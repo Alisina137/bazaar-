@@ -56,7 +56,7 @@ test("request timeout is reported independently from backend HTTP failure", asyn
     init.signal.addEventListener("abort", () => reject(new Error("Aborted")), { once: true });
   });
   const simTimers = {
-    setTimeout: callback => { queueMicrotask(callback); return 1; },
+    setTimeout: callback => { globalThis.queueMicrotask(callback); return 1; },
     clearTimeout: () => undefined
   };
   const clientApi = client(hangingFetch, simTimers);

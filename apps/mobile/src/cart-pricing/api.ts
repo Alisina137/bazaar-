@@ -47,8 +47,10 @@ async function requestJson<T>(
       ...init,
       signal: controller.signal,
       headers: {
-        "content-type": "application/json",
         authorization: "Bearer " + token,
+        // Fastify rejects DELETE/GET with Content-Type: application/json
+        // and no body (FST_ERR_CTP_EMPTY_JSON_BODY).
+        ...(init.body != null ? { "content-type": "application/json" } : {}),
         ...init.headers
       }
     });

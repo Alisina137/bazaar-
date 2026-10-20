@@ -37,8 +37,8 @@ async function requestJson<T>(
       ...init,
       signal: controller.signal,
       headers: {
-        "content-type": "application/json",
         authorization: "Bearer " + token,
+        ...(init.body != null ? { "content-type": "application/json" } : {}),
         ...init.headers
       }
     });

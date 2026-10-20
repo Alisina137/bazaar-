@@ -22,7 +22,9 @@ async function request<T>(token: string, path: string, method: string): Promise<
     const response = await fetch(base() + path, {
       method,
       signal: controller.signal,
-      headers: { authorization: "Bearer " + token, "content-type": "application/json" }
+      // Wishlist GET, PUT and DELETE do not send request bodies.
+      // An empty JSON content-type causes Fastify to reject the request.
+      headers: { authorization: "Bearer " + token }
     });
     if (!response.ok) {
       let code: WishlistErrorCode = "service_unavailable";

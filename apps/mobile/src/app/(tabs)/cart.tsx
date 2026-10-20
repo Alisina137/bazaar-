@@ -13,6 +13,7 @@ import {
   useState
 } from "react";
 import {
+  Alert,
   Image,
   View
 } from "react-native";
@@ -97,7 +98,7 @@ export default function CartScreen() {
     key: string,
     action: (token: string) => Promise<CartResponse>
   ) => {
-    if (!sessionToken) return;
+    if (!sessionToken || busyKey !== null) return;
 
     setBusyKey(key);
     setErrorKey(null);
@@ -217,11 +218,22 @@ export default function CartScreen() {
               updateCartItem(token, itemId, { quantity })
             )
           }
-          onRemove={(itemId) =>
-            run("item:" + itemId, (token) =>
-              removeCartItem(token, itemId)
-            )
-          }
+          onRemove={(itemId) => {
+            const item = group.items.find(entry => entry.id === itemId);
+            if (!item) return;
+            Alert.alert(t("cart.remove"), item.name, [
+              { text: t("support.hub.cancel"), style: "cancel" },
+              {
+                text: t("cart.remove"),
+                style: "destructive",
+                onPress: () => {
+                  void run("item:" + itemId, async token => {
+                    return removeCartItem(token, itemId);
+                  });
+                }
+              }
+            ]);
+          }}
           onApplyCoupon={(code) =>
             run("coupon:" + group.store.id, (token) =>
               applyCartCoupon(token, {
@@ -270,7 +282,7 @@ export default function CartScreen() {
 
       <Button
         fullWidth
-        disabled={cart.hasBlockingIssues || busyKey !== null}
+        disabled={cart.hasBlockingIssues || busyKey !== null || loading}
         onPress={() => router.push("/checkout")}
       >
         {t("cart.checkout")}

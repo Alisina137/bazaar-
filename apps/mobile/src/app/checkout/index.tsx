@@ -27,7 +27,7 @@ import {
   getCart,
   listCustomerAddresses
 } from "@/cart-pricing/api";
-import { cartPricingErrorKey } from "@/cart-pricing/messages";
+import { cartPricingRequestErrorKey } from "@/cart-pricing/messages";
 import {
   AppText,
   Badge,
@@ -140,59 +140,94 @@ export default function CheckoutScreen() {
   const [placingOrder, setPlacingOrder] = useState(false);
   const [orderError, setOrderError] = useState<TranslationKey | null>(null);
   const orderIdempotencyRef = useRef<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [deliveryLoading, setDeliveryLoading] = useState(false);
   const [quoting, setQuoting] = useState(false);
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
+  const [initialLoadError, setInitialLoadError] = useState<{
+    source: "cart" | "addresses";
+    key: TranslationKey;
+    reference: string | null;
+  } | null>(null);
+  const loadEpoch = useRef(0);
 
   const load = useCallback(async () => {
-    if (status !== "signedIn" || !sessionToken) return;
+    const requestId = ++loadEpoch.current;
+    if (status !== "signedIn" || !sessionToken) {
+      setCart(null);
+      setAddresses([]);
+      setSelectedAddressId(null);
+      setInitialLoadError(null);
+      setLoading(false);
+      return;
+    }
 
+    // Checkout must not retain a previous customer's cart or old paid quote.
     setLoading(true);
+    setCart(null);
+    setAddresses([]);
+    setSelectedAddressId(null);
+    setInitialLoadError(null);
     setErrorKey(null);
+    setDelivery(null);
+    setSelectedOptions({});
+    setQuote(null);
+    setPaymentReady(false);
+    setOrderError(null);
+    orderIdempotencyRef.current = null;
 
     try {
-      const [cartResponse, addressResponse] = await Promise.all([
+      // Keep cart and saved-address failures distinct: Promise.all would hide
+      // which service failed and mislabel an address 503 as "cart offline".
+      const [cartResult, addressResult] = await Promise.allSettled([
         getCart(sessionToken),
         listCustomerAddresses(sessionToken)
       ]);
+      if (requestId !== loadEpoch.current) return;
 
-      setCart(cartResponse);
-      setAddresses(addressResponse.addresses);
-      setSelectedAddressId((current) => {
-        if (
-          current &&
-          addressResponse.addresses.some((address) => address.id === current)
-        ) {
-          return current;
-        }
+      const failure =
+        cartResult.status === "rejected"
+          ? { source: "cart" as const, reason: cartResult.reason as unknown }
+          : addressResult.status === "rejected"
+            ? { source: "addresses" as const, reason: addressResult.reason as unknown }
+            : null;
+      if (failure) {
+        setInitialLoadError({
+          source: failure.source,
+          key: cartPricingRequestErrorKey(failure.reason),
+          reference: failure.reason instanceof CartPricingApiError
+            ? failure.reason.reference : null
+        });
+        return;
+      }
 
-        return (
-          addressResponse.addresses.find((address) => address.isDefault)?.id ??
-          addressResponse.addresses[0]?.id ??
-          null
-        );
-      });
-      setDelivery(null);
-      setSelectedOptions({});
-      setQuote(null);
-      setPaymentReady(false);
-      setOrderError(null);
-      orderIdempotencyRef.current = null;
+      if (cartResult.status !== "fulfilled" || addressResult.status !== "fulfilled") {
+        return;
+      }
+      setCart(cartResult.value);
+      setAddresses(addressResult.value.addresses);
+      setSelectedAddressId(
+        addressResult.value.addresses.find(address => address.isDefault)?.id ??
+        addressResult.value.addresses[0]?.id ??
+        null
+      );
     } catch (error) {
-      const safe =
-        error instanceof CartPricingApiError
-          ? error
-          : new CartPricingApiError("service_unavailable");
-      setErrorKey(cartPricingErrorKey(safe.code));
+      if (requestId === loadEpoch.current) {
+        setInitialLoadError({
+          source: "cart",
+          key: cartPricingRequestErrorKey(error),
+          reference: error instanceof CartPricingApiError ? error.reference : null
+        });
+      }
     } finally {
-      setLoading(false);
+      if (requestId === loadEpoch.current) setLoading(false);
     }
   }, [sessionToken, status]);
 
   useFocusEffect(
     useCallback(() => {
       void load();
+      return () => { loadEpoch.current += 1; };
     }, [load])
   );
 
@@ -398,18 +433,29 @@ export default function CheckoutScreen() {
     );
   }
 
-  if (errorKey && !cart) {
+  if (initialLoadError) {
     return (
       <Screen scrollable={false}>
-        <StateView
-          kind="error"
-          title={t("checkout.errorTitle")}
-          message={t(errorKey)}
-          actionLabel={t("cart.retry")}
-          onAction={() => {
-            void load();
-          }}
-        />
+        <View style={{ flex: 1, gap: theme.spacing.sm }}>
+          <StateView
+            kind="error"
+            title={t(initialLoadError.source === "cart"
+              ? "checkout.cartLoadErrorTitle" : "checkout.addressLoadErrorTitle")}
+            message={
+              t(initialLoadError.key) +
+              (initialLoadError.reference
+                ? "\n" + t("cart.error.reference") + ": " + initialLoadError.reference
+                : "")
+            }
+            actionLabel={t("cart.retry")}
+            onAction={() => { void load(); }}
+          />
+          <View style={{ alignItems: "center" }}>
+            <Button variant="ghost" onPress={() => router.back()}>
+              {t("marketplace.back")}
+            </Button>
+          </View>
+        </View>
       </Screen>
     );
   }

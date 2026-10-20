@@ -340,6 +340,8 @@ export const enMessages = {
   "checkout.loadingMessage": "Refreshing your cart and saved addresses.",
   "checkout.signInTitle": "Sign in to checkout",
   "checkout.signInMessage": "Checkout requires your secure BazaarLink account.",
+  "checkout.cartLoadErrorTitle": "Cart could not be loaded",
+  "checkout.addressLoadErrorTitle": "Delivery addresses could not be loaded",
   "checkout.errorTitle": "Checkout unavailable",
   "checkout.step.address": "Address",
   "checkout.step.delivery": "Delivery",

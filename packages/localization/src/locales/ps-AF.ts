@@ -337,6 +337,8 @@ export const psAfMessages = {
   "checkout.loadingMessage": "ټوکرۍ او خوندي پتې تازه کېږي.",
   "checkout.signInTitle": "د پېر لپاره ننوځئ",
   "checkout.signInMessage": "پېر ستاسو خوندي بازارلینک حساب ته اړتیا لري.",
+  "checkout.cartLoadErrorTitle": "د پېرود سبد پورته نه شو",
+  "checkout.addressLoadErrorTitle": "د سپارلو پتې پورته نه شوې",
   "checkout.errorTitle": "پېر لاسرسی نه لري",
   "checkout.step.address": "پته",
   "checkout.step.delivery": "تحویل",

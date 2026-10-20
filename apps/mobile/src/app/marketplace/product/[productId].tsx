@@ -537,6 +537,66 @@ export default function MarketplaceProductScreen() {
 
       <Card>
         <View style={{ gap: theme.spacing.md }}>
+          <View style={{
+            flexDirection: isRTL ? "row-reverse" : "row",
+            alignItems: "center", justifyContent: "space-between",
+            gap: theme.spacing.sm
+          }}>
+            <View style={{ flex: 1 }}>
+              <AppText variant="heading">{t("marketplace.product.purchase")}</AppText>
+              <AppText variant="caption" tone="muted">
+                {variantRequired ? t("cart.selectVariant") : t("marketplace.product.cartPhaseReady")}
+              </AppText>
+            </View>
+            <AppText variant="bodyStrong" tone="primary">{formatAfn(price)}</AppText>
+          </View>
+          {!available ? (
+            <Badge label={t("marketplace.outOfStock")} tone="warning" />
+          ) : null}
+          {addedToCart ? (
+            <View style={{ gap: theme.spacing.sm }}>
+              <Badge label={t("cart.added")} tone="success" />
+              <Button variant="secondary"
+                onPress={() => router.push({
+                  pathname: "/(tabs)/shopping", params: { section: "cart" }
+                })}>
+                {t("marketplace.product.viewCart")}
+              </Button>
+            </View>
+          ) : null}
+          {purchaseError ? <AppText tone="danger" accessibilityRole="alert">{t(purchaseError)}</AppText> : null}
+          <View style={{
+            flexDirection: isRTL ? "row-reverse" : "row",
+            gap: theme.spacing.sm
+          }}>
+            <View style={{ flex: 1 }}>
+              <Button fullWidth
+                disabled={purchaseDisabled || purchaseBusy !== null}
+                loading={purchaseBusy === "cart"}
+                onPress={() => { void purchase(false); }}>
+                {t("marketplace.product.addToCart")}
+              </Button>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button fullWidth variant="secondary"
+                disabled={purchaseDisabled || purchaseBusy !== null}
+                loading={purchaseBusy === "buy"}
+                onPress={() => { void purchase(true); }}>
+                {t("marketplace.product.buyNow")}
+              </Button>
+            </View>
+          </View>
+        </View>
+      </Card>
+
+      {compareIds.length > 0 ? (
+        <Button variant="ghost" onPress={() => router.push("/marketplace/compare")}>
+          {t("marketplace.compare.open")} ({formatNumber(compareIds.length)})
+        </Button>
+      ) : null}
+
+      <Card>
+        <View style={{ gap: theme.spacing.md }}>
           <AppText variant="heading">
             {t("marketplace.product.seller")}
           </AppText>
@@ -601,49 +661,6 @@ export default function MarketplaceProductScreen() {
           </View>
         </Card>
       ) : null}
-
-      <Card>
-        <View style={{ gap: theme.spacing.md }}>
-          <AppText variant="heading">
-            {t("marketplace.product.purchase")}
-          </AppText>
-          <AppText tone="muted">
-            {t("marketplace.product.cartPhaseReady")}
-          </AppText>
-          {variantRequired ? (
-            <AppText variant="caption" tone="muted">
-              {t("cart.selectVariant")}
-            </AppText>
-          ) : null}
-          {addedToCart ? (
-            <Badge label={t("cart.added")} tone="success" />
-          ) : null}
-          {purchaseError ? (
-            <AppText tone="danger">{t(purchaseError)}</AppText>
-          ) : null}
-          <Button
-            fullWidth
-            disabled={purchaseDisabled || purchaseBusy !== null}
-            loading={purchaseBusy === "cart"}
-            onPress={() => {
-              void purchase(false);
-            }}
-          >
-            {t("marketplace.product.addToCart")}
-          </Button>
-          <Button
-            fullWidth
-            variant="secondary"
-            disabled={purchaseDisabled || purchaseBusy !== null}
-            loading={purchaseBusy === "buy"}
-            onPress={() => {
-              void purchase(true);
-            }}
-          >
-            {t("marketplace.product.buyNow")}
-          </Button>
-        </View>
-      </Card>
 
       {data.relatedProducts.length > 0 ? (
         <View style={{ gap: theme.spacing.md }}>

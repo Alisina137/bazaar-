@@ -6,7 +6,7 @@ import type {
 import type { TranslationKey } from "@bazaarlink/localization";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { Alert, Linking, View } from "react-native";
 
 import { useAuth } from "@/auth/provider";
 import {
@@ -165,13 +165,13 @@ export default function CustomerOrderDetailScreen() {
       : null;
 
   return (
-    <Screen>
+    <Screen refreshing={loading} onRefresh={() => { void load(); }}>
       <Button variant="ghost" onPress={() => router.back()}>
         {t("marketplace.back")}
       </Button>
 
       <View style={{ gap: theme.spacing.sm }}>
-        <Badge label={t("order.phaseBadge")} tone="primary" />
+        <Badge label={t(orderStateKey(order.state))} tone={order.state === "delivered" || order.state === "picked_up" ? "success" : "primary"} />
         <AppText variant="display">{t("order.customer.detailTitle")}</AppText>
         <AppText tone="muted">{order.orderNumber}</AppText>
       </View>
@@ -229,7 +229,7 @@ export default function CustomerOrderDetailScreen() {
       <Card>
         <View style={{ gap: theme.spacing.md }}>
           <AppText variant="title">{t("order.customer.tracking")}</AppText>
-          {order.timeline.map((event, index) => (
+          {[...order.timeline].sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt)).map((event, index) => (
             <View
               key={event.id}
               style={{
@@ -282,7 +282,7 @@ export default function CustomerOrderDetailScreen() {
               <AppText tone="muted">
                 {item.quantity} × {formatAfn(item.unitPrice)}
               </AppText>
-              <AppText>{formatAfn(item.lineTotal)}</AppText>
+              <AppText variant="bodyStrong">{formatAfn(item.lineTotal)}</AppText>
             </View>
           ))}
         </View>
@@ -367,9 +367,12 @@ export default function CustomerOrderDetailScreen() {
           <AppText tone="muted">
             {t("order.customer.paymentState")}: {order.payment.state}
           </AppText>
-          <AppText variant="heading">
-            {formatAfn(order.totals.total)}
-          </AppText>
+          <View style={{ gap: theme.spacing.xs, paddingTop: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.border }}>
+            <View style={{ flexDirection: isRTL ? "row-reverse" : "row", justifyContent: "space-between", alignItems: "center" }}>
+              <AppText variant="bodyStrong">{t("cart.total")}</AppText>
+              <AppText variant="heading">{formatAfn(order.totals.total)}</AppText>
+            </View>
+          </View>
         </View>
       </Card>
 
@@ -378,6 +381,17 @@ export default function CustomerOrderDetailScreen() {
           <AppText variant="title">{t("order.customer.support")}</AppText>
           <AppText>{order.storeName}</AppText>
           <AppText tone="muted">{order.storePhone}</AppText>
+          {order.storePhone ? (
+            <Button variant="secondary" onPress={() => {
+              const phone = order.storePhone.replace(/[^\d+]/g, "");
+              if (!phone) return;
+              void Linking.openURL("tel:" + phone).catch(() => {
+                Alert.alert(t("order.customer.support"), order.storePhone);
+              });
+            }}>
+              {locale === "fa-AF" ? "تماس با فروشگاه" : locale === "ps-AF" ? "پلورنځي ته زنګ ووهئ" : "Call store"}
+            </Button>
+          ) : null}
           <Button
             variant="secondary"
             onPress={() =>

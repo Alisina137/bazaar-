@@ -4,6 +4,8 @@ import type {
   ProductReviewsResponse
 } from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import type { ComponentProps } from "react";
 import {
   useFocusEffect,
   useLocalSearchParams,
@@ -16,7 +18,9 @@ import {
   useState
 } from "react";
 import {
+  ActivityIndicator,
   Image,
+  Pressable,
   Share,
   View
 } from "react-native";
@@ -29,6 +33,7 @@ import {
 } from "@/cart-pricing/api";
 import { cartPricingErrorKey } from "@/cart-pricing/messages";
 import { MarketplaceProductCard } from "@/components/marketplace/MarketplaceProductCard";
+import { ProductImageGallery } from "@/components/marketplace/ProductImageGallery";
 import {
   AppText,
   Badge,
@@ -54,6 +59,7 @@ import {
 import { marketplaceErrorKey } from "@/marketplace/messages";
 import { productReviews } from "@/trust/api";
 import { addCompareProduct, getCompareProductIds, removeCompareProduct } from "@/marketplace/compare";
+import { isProvinceName, provinceName } from "@/marketplace/provinces";
 
 function storefrontBaseUrl() {
   return (
@@ -62,12 +68,47 @@ function storefrontBaseUrl() {
   ).replace(/\/$/, "");
 }
 
+function ProductAction({
+  icon, label, onPress, selected = false, busy = false, disabled = false
+}: {
+  icon: ComponentProps<typeof Ionicons>["name"];
+  label: string;
+  onPress: () => void;
+  selected?: boolean;
+  busy?: boolean;
+  disabled?: boolean;
+}) {
+  const theme = useAppTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected, busy, disabled: disabled || busy }}
+      disabled={disabled || busy}
+      onPress={onPress}
+      style={({ pressed }) => ({
+        minWidth: 44, minHeight: 44, borderWidth: 1,
+        borderColor: selected ? theme.colors.primary : theme.colors.border,
+        borderRadius: theme.radii.full,
+        backgroundColor: selected ? theme.colors.primarySoft : theme.colors.surface,
+        alignItems: "center", justifyContent: "center",
+        opacity: disabled ? theme.opacity.disabled : pressed ? theme.opacity.pressed : 1
+      })}
+    >
+      {busy ? <ActivityIndicator size="small" color={theme.colors.primary} /> : (
+        <Ionicons name={icon} size={20}
+          color={selected ? theme.colors.primary : theme.colors.text} />
+      )}
+    </Pressable>
+  );
+}
+
 export default function MarketplaceProductScreen() {
   const { productId } = useLocalSearchParams<{ productId: string }>();
   const router = useRouter();
   const theme = useAppTheme();
   const { status: authStatus, sessionToken, user } = useAuth();
-  const { isRTL, formatAfn, formatNumber, t } = useLocalization();
+  const { isRTL, locale, formatAfn, formatNumber, t } = useLocalization();
 
   const [data, setData] = useState<MarketplaceProductDetailResponse | null>(
     null
@@ -164,6 +205,10 @@ export default function MarketplaceProductScreen() {
     }
 
     let active = true;
+    setData(null);
+    setSelectedVariantId(null);
+    setAddedToCart(false);
+    setReviews(null);
     const key = productCacheKey(productId);
 
     void (async () => {
@@ -276,8 +321,33 @@ export default function MarketplaceProductScreen() {
   const variantRequired =
     product.variants.length > 0 && selectedVariant === null;
   const purchaseDisabled = !available || variantRequired;
+  const images = product.images.length > 0
+    ? product.images.map(image => ({
+        id: image.id, url: image.url, altText: image.altText ?? product.name
+      }))
+    : product.imageUrl
+      ? [{ id: product.id, url: product.imageUrl, altText: product.name }]
+      : [];
+  const galleryImages = selectedVariant?.imageUrl
+    ? [{ id: selectedVariant.id, url: selectedVariant.imageUrl, altText: selectedVariant.title },
+        ...images.filter(image => image.url !== selectedVariant.imageUrl)]
+    : images;
+  const originalPrice = product.compareAtPrice !== null &&
+    product.compareAtPrice > price ? product.compareAtPrice : null;
+  const savingPercent = originalPrice === null
+    ? null : Math.round((1 - price / originalPrice) * 100);
+  const categoryName = product.marketplaceCategory
+    ? locale === "en" ? product.marketplaceCategory.nameEn
+      : locale === "ps-AF" ? product.marketplaceCategory.namePs
+      : product.marketplaceCategory.nameFa
+    : null;
+  const sellerProvince = isProvinceName(product.store.province)
+    ? provinceName(product.store.province, locale) : product.store.province;
+  const ratingCount = reviews?.summary.reviewCount ?? product.reviewCount;
+  const ratingAverage = reviews?.summary.averageRating ?? product.averageRating;
 
   const purchase = async (buyNow: boolean) => {
+    if (purchaseBusy !== null) return;
     setPurchaseError(null);
     setAddedToCart(false);
 

@@ -27,6 +27,7 @@ import {
   getCart,
   removeCartCoupon,
   removeCartItemWithRecovery,
+  CartPricingApiError,
   updateCartItem
 } from "@/cart-pricing/api";
 import { cartPricingRequestErrorKey } from "@/cart-pricing/messages";
@@ -69,6 +70,7 @@ export default function CartScreen({ onCartChange }: {
   const [loading, setLoading] = useState(false);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
+  const [errorRef, setErrorRef] = useState<string | null>(null);
   const requestEpoch = useRef(0);
   const mutationLock = useRef(false);
   const [loadedToken, setLoadedToken] = useState<string | null>(null);
@@ -85,6 +87,7 @@ export default function CartScreen({ onCartChange }: {
 
     setLoading(true);
     setErrorKey(null);
+    setErrorRef(null);
 
     try {
       const next = await getCart(sessionToken);
@@ -94,6 +97,7 @@ export default function CartScreen({ onCartChange }: {
     } catch (error) {
       if (requestId !== requestEpoch.current || mutationLock.current) return;
       setErrorKey(cartPricingRequestErrorKey(error));
+      setErrorRef(error instanceof CartPricingApiError ? error.reference : null);
     } finally {
       if (requestId === requestEpoch.current) setLoading(false);
     }
@@ -116,6 +120,7 @@ export default function CartScreen({ onCartChange }: {
     setLoading(false);
     setBusyKey(key);
     setErrorKey(null);
+    setErrorRef(null);
 
     try {
       const next = await action(sessionToken);
@@ -176,7 +181,7 @@ export default function CartScreen({ onCartChange }: {
         <StateView
           kind="error"
           title={t("cart.errorTitle")}
-          message={t(errorKey)}
+          message={t(errorKey) + (errorRef ? "\n" + t("cart.error.reference") + ": " + errorRef : "")}
           actionLabel={t("cart.retry")}
           onAction={() => {
             void load();
@@ -224,6 +229,7 @@ export default function CartScreen({ onCartChange }: {
         <Card>
           <View style={{ gap: theme.spacing.sm }}>
             <AppText variant="label" tone="danger" accessibilityRole="alert">{t(errorKey)}</AppText>
+            {errorRef ? <AppText variant="caption" tone="muted">{t("cart.error.reference")}: {errorRef}</AppText> : null}
             <Button variant="secondary" onPress={() => { void load(); }}>
               {t("cart.retry")}
             </Button>

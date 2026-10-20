@@ -430,6 +430,63 @@ describe.skipIf(!hasDatabase)(
             code: "checkout_unavailable"
           }
         });
+
+        // Verify the exact mutations that a real Expo Go customer performs.
+        // The earlier checks only covered reads/additions, so a database with
+        // broken write privileges or migration drift could escape verification.
+        const beforeRemove = await app.inject({
+          method: "GET",
+          url: "/customer/cart",
+          headers: { authorization: "Bearer " + customer.session.token }
+        });
+        expect(beforeRemove.statusCode).toBe(200);
+        const jacketItem = beforeRemove.json().groups
+          .flatMap((group: { items: Array<{ id: string; productId: string }> }) => group.items)
+          .find((item: { id: string; productId: string }) => item.productId === jacket.id);
+        expect(jacketItem).toBeDefined();
+
+        const removed = await app.inject({
+          method: "DELETE",
+          url: "/customer/cart/items/" + jacketItem.id,
+          headers: { authorization: "Bearer " + customer.session.token }
+        });
+        expect(removed.statusCode).toBe(200);
+        expect(removed.json().itemCount).toBe(2);
+        expect(removed.json().groups.flatMap(
+          (group: { items: Array<{ id: string }> }) => group.items
+        ).some((item: { id: string }) => item.id === jacketItem.id)).toBe(false);
+
+        const addedBack = await app.inject({
+          method: "POST",
+          url: "/customer/cart/items",
+          headers: { authorization: "Bearer " + customer.session.token },
+          payload: { productId: jacket.id, quantity: 1 }
+        });
+        expect(addedBack.statusCode).toBe(201);
+        expect(addedBack.json().itemCount).toBe(3);
+
+        const phoneItem = addedBack.json().groups.flatMap(
+          (group: { items: Array<{ id: string; productId: string }> }) => group.items
+        ).find((item: { id: string; productId: string }) => item.productId === phone.id);
+        expect(phoneItem).toBeDefined();
+        const quantityChanged = await app.inject({
+          method: "PATCH",
+          url: "/customer/cart/items/" + phoneItem.id,
+          headers: { authorization: "Bearer " + customer.session.token },
+          payload: { quantity: 1 }
+        });
+        expect(quantityChanged.statusCode).toBe(200);
+        expect(quantityChanged.json().itemCount).toBe(2);
+
+        const crossCustomerRemoval = await app.inject({
+          method: "DELETE",
+          url: "/customer/cart/items/" + phoneItem.id,
+          headers: { authorization: "Bearer " + ownerB.session.token }
+        });
+        expect(crossCustomerRemoval.statusCode).toBe(404);
+        expect(crossCustomerRemoval.json()).toEqual({
+          error: { code: "cart_item_not_found" }
+        });
       }
     );
   }

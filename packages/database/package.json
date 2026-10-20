@@ -23,6 +23,7 @@
     "db:check": "drizzle-kit check --config drizzle.config.ts",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:health": "tsx scripts/health.ts",
+    "diagnose:cart-db": "tsx scripts/diagnose-cart.ts",
     "db:studio": "drizzle-kit studio --config drizzle.config.ts",
     "seed:demo": "tsx scripts/seed-demo.ts",
     "admin:bootstrap": "tsx scripts/bootstrap-admin.ts"

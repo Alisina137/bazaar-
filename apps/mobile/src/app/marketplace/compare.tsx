@@ -104,7 +104,8 @@ export default function MarketplaceCompareScreen() {
       </View>
       <AppText tone="muted">{t("marketplace.compare.description")}</AppText>
       {loading ? (
-        <StateView kind="loading" title={t("account.shopping.loading")} message={t("account.shopping.loadingHint")} />
+        <StateView kind="loading"
+          loadingVariant="grid" title={t("account.shopping.loading")} message={t("account.shopping.loadingHint")} />
       ) : null}
       {!loading && !error && selectedCount === 0 ? (
         <Card>

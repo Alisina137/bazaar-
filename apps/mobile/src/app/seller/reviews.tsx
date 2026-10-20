@@ -64,6 +64,7 @@ export default function SellerReviewsScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="list"
           title={t("review.sellerTitle")}
           message={t("review.summary")}
         />

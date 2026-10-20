@@ -122,6 +122,7 @@ export default function ReviewEditorScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="form"
           title={t("review.title")}
           message={t("review.completedOnly")}
         />

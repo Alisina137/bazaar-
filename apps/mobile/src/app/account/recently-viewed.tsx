@@ -85,7 +85,8 @@ export default function RecentlyViewedScreen() {
       <AppText variant="heading">{t("account.shopping.recent")}</AppText>
       <AppText tone="muted">{t("account.shopping.recentDescription")}</AppText>
       {loading ? (
-        <StateView kind="loading" title={t("account.shopping.loading")} message={t("account.shopping.loadingHint")} />
+        <StateView kind="loading"
+          loadingVariant="grid" title={t("account.shopping.loading")} message={t("account.shopping.loadingHint")} />
       ) : error ? (
         <Card>
           <View style={{ gap: theme.spacing.md }}>

@@ -65,6 +65,7 @@ export default function PlatformSupportTicketScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="orders"
           title={t("support.platformTitle")}
           message={t("support.tickets")}
         />

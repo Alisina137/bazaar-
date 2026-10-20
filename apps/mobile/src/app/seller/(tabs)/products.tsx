@@ -55,6 +55,7 @@ export default function SellerProductsScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="grid"
           title={t("catalog.products.title")}
           message={t("catalog.products.loading")}
         />

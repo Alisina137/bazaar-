@@ -160,6 +160,7 @@ export default function SellerOrderDetailScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="orders"
           title={t("order.seller.loadingTitle")}
           message={t("order.seller.loadingMessage")}
         />

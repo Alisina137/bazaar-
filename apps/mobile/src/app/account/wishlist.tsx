@@ -68,7 +68,8 @@ export default function WishlistScreen() {
 
   if (status === "loading") return (
     <Screen scrollable={false}>
-      <StateView kind="loading" title={t("auth.restoringTitle")} message={t("auth.restoringMessage")} />
+      <StateView kind="loading"
+          loadingVariant="grid" title={t("auth.restoringTitle")} message={t("auth.restoringMessage")} />
     </Screen>
   );
 
@@ -89,7 +90,8 @@ export default function WishlistScreen() {
       <AppText variant="heading">{t("account.shopping.wishlist")}</AppText>
       <AppText tone="muted">{t("account.shopping.wishlistDescription")}</AppText>
       {loading ? (
-        <StateView kind="loading" title={t("account.shopping.loading")} message={t("account.shopping.loadingHint")} />
+        <StateView kind="loading"
+          loadingVariant="grid" title={t("account.shopping.loading")} message={t("account.shopping.loadingHint")} />
       ) : null}
       {error ? (
         <Card>

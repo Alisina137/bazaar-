@@ -331,7 +331,8 @@ export default function SupportScreen() {
           </View>
 
           {loading && tickets.length === 0 ? (
-            <StateView kind="loading" title={t("support.tickets")}
+            <StateView kind="loading"
+          loadingVariant="list" title={t("support.tickets")}
               message={t("support.hub.loading")} />
           ) : null}
           {listError ? (

@@ -97,7 +97,8 @@ export default function SupportTicketScreen() {
 
   if (status === "loading" || loading) {
     return <Screen scrollable={false}>
-      <StateView kind="loading" title={t("support.title")}
+      <StateView kind="loading"
+          loadingVariant="orders" title={t("support.title")}
         message={t("support.hub.loading")} />
     </Screen>;
   }

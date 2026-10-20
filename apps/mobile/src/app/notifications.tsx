@@ -74,6 +74,7 @@ export default function NotificationsScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="list"
           title={t("notification.title")}
           message={t("notification.unread")}
         />

@@ -71,6 +71,7 @@ export default function PlatformReviewModerationScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="list"
           title={t("review.moderationTitle")}
           message={t("review.summary")}
         />

@@ -47,6 +47,7 @@ export default function PlatformSupportScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="list"
           title={t("support.platformTitle")}
           message={t("support.tickets")}
         />

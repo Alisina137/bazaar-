@@ -51,7 +51,8 @@ export default function EditProfileScreen() {
   if (status === "loading") {
     return (
       <Screen scrollable={false}>
-        <StateView kind="loading" title={t("auth.restoringTitle")}
+        <StateView kind="loading"
+          loadingVariant="form" title={t("auth.restoringTitle")}
           message={t("auth.restoringMessage")} />
       </Screen>
     );

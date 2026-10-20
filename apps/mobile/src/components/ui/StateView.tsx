@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useAppTheme } from "@/design/theme";
 
 import { AppText } from "./AppText";
+import { LoadingSkeleton, type SkeletonVariant } from "./LoadingSkeleton";
 import { Button } from "./Button";
 
 type StateKind = "loading" | "empty" | "error";
@@ -13,6 +14,7 @@ export interface StateViewProps {
   message?: string;
   actionLabel?: string;
   onAction?: () => void;
+  loadingVariant?: SkeletonVariant;
 }
 
 export function StateView({
@@ -20,9 +22,43 @@ export function StateView({
   title,
   message,
   actionLabel,
-  onAction
+  onAction,
+  loadingVariant = "list"
 }: StateViewProps) {
   const theme = useAppTheme();
+
+  if (kind === "loading") {
+    return (
+      <View
+        style={{
+          flex: 1,
+          width: "100%",
+          gap: theme.spacing.lg,
+          paddingHorizontal: theme.spacing.sm,
+          paddingVertical: theme.spacing.lg
+        }}
+      >
+        <View style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: theme.spacing.sm
+        }}>
+          <ActivityIndicator
+            accessibilityLabel={title}
+            size="small"
+            color={theme.colors.primary}
+          />
+          <View style={{ flex: 1, gap: theme.spacing.xs }}>
+            <AppText variant="bodyStrong">{title}</AppText>
+            {message ? (
+              <AppText variant="caption" tone="muted" numberOfLines={2}>{message}</AppText>
+            ) : null}
+          </View>
+        </View>
+        <LoadingSkeleton variant={loadingVariant} label={title} />
+      </View>
+    );
+  }
 
   return (
     <View
@@ -36,13 +72,6 @@ export function StateView({
         }
       ]}
     >
-      {kind === "loading" ? (
-        <ActivityIndicator
-          accessibilityLabel={title}
-          size="large"
-          color={theme.colors.primary}
-        />
-      ) : null}
       <AppText variant="heading" align="center">
         {title}
       </AppText>

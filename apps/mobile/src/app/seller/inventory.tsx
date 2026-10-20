@@ -59,6 +59,7 @@ export default function SellerInventoryScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="list"
           title={t("catalog.inventory.title")}
           message={t("catalog.inventory.loading")}
         />

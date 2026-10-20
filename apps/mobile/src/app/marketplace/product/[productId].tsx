@@ -317,6 +317,7 @@ export default function MarketplaceProductScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="product"
           title={t("marketplace.product.loadingTitle")}
           message={t("marketplace.product.loadingMessage")}
         />

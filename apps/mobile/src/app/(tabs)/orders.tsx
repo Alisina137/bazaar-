@@ -116,6 +116,7 @@ export default function OrdersScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="orders"
           title={t("order.customer.loadingTitle")}
           message={t("order.customer.loadingMessage")}
         />
@@ -142,6 +143,7 @@ export default function OrdersScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="orders"
           title={t("order.customer.loadingTitle")}
           message={t("order.customer.loadingMessage")}
         />

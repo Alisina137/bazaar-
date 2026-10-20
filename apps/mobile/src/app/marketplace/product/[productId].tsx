@@ -600,10 +600,24 @@ export default function MarketplaceProductScreen() {
           <AppText variant="heading">
             {t("marketplace.product.seller")}
           </AppText>
-          <AppText variant="title">{product.store.name}</AppText>
-          <AppText tone="muted">
-            {product.store.province} · {product.store.cityDistrict}
-          </AppText>
+          <View style={{
+            flexDirection: isRTL ? "row-reverse" : "row",
+            alignItems: "center", gap: theme.spacing.md
+          }}>
+            {product.store.logoUrl ? (
+              <Image source={{ uri: product.store.logoUrl }}
+                style={{ width: 52, height: 52, borderRadius: theme.radii.md }}
+                resizeMode="cover" />
+            ) : (
+              <Ionicons name="storefront-outline" size={32} color={theme.colors.primary} />
+            )}
+            <View style={{ flex: 1, gap: theme.spacing.xs }}>
+              <AppText variant="bodyStrong">{product.store.name}</AppText>
+              <AppText variant="caption" tone="muted">
+                {sellerProvince} · {product.store.cityDistrict}
+              </AppText>
+            </View>
+          </View>
           <Badge
             label={t(
               product.store.trust.phoneVerified
@@ -630,24 +644,30 @@ export default function MarketplaceProductScreen() {
       </Card>
 
       <Card>
-        <View style={{ gap: theme.spacing.sm }}>
-          <AppText variant="heading">
-            {t("marketplace.product.delivery")}
-          </AppText>
-          <AppText tone="muted">
-            {t("marketplace.product.deliveryPending")}
-          </AppText>
-        </View>
-      </Card>
-
-      <Card>
-        <View style={{ gap: theme.spacing.sm }}>
-          <AppText variant="heading">
-            {t("marketplace.product.payment")}
-          </AppText>
-          <AppText tone="muted">
-            {t("marketplace.product.paymentPending")}
-          </AppText>
+        <View style={{ gap: theme.spacing.md }}>
+          <View style={{
+            flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.md
+          }}>
+            <Ionicons name="cube-outline" size={22} color={theme.colors.primary} />
+            <View style={{ flex: 1, gap: theme.spacing.xs }}>
+              <AppText variant="bodyStrong">{t("marketplace.product.delivery")}</AppText>
+              <AppText variant="caption" tone="muted">
+                {t("marketplace.product.deliveryPending")}
+              </AppText>
+            </View>
+          </View>
+          <View style={{ height: 1, backgroundColor: theme.colors.border }} />
+          <View style={{
+            flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.md
+          }}>
+            <Ionicons name="card-outline" size={22} color={theme.colors.primary} />
+            <View style={{ flex: 1, gap: theme.spacing.xs }}>
+              <AppText variant="bodyStrong">{t("marketplace.product.payment")}</AppText>
+              <AppText variant="caption" tone="muted">
+                {t("marketplace.product.paymentPending")}
+              </AppText>
+            </View>
+          </View>
         </View>
       </Card>
 
@@ -660,26 +680,6 @@ export default function MarketplaceProductScreen() {
             <AppText>{product.description}</AppText>
           </View>
         </Card>
-      ) : null}
-
-      {data.relatedProducts.length > 0 ? (
-        <View style={{ gap: theme.spacing.md }}>
-          <AppText variant="title">
-            {t("marketplace.product.related")}
-          </AppText>
-          <HorizontalLocaleScroll
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: theme.spacing.md }}
-          >
-            {data.relatedProducts.map((related) => (
-              <MarketplaceProductCard
-                key={related.id}
-                product={related}
-                compact
-              />
-            ))}
-          </HorizontalLocaleScroll>
-        </View>
       ) : null}
 
       <Card>
@@ -769,6 +769,26 @@ export default function MarketplaceProductScreen() {
           )}
         </View>
       </Card>
+      {data.relatedProducts.length > 0 ? (
+        <View style={{ gap: theme.spacing.md }}>
+          <AppText variant="heading">
+            {t("marketplace.product.related")}
+          </AppText>
+          <HorizontalLocaleScroll
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: theme.spacing.md }}
+          >
+            {data.relatedProducts.map((related) => (
+              <MarketplaceProductCard
+                key={related.id}
+                product={related}
+                compact
+              />
+            ))}
+          </HorizontalLocaleScroll>
+        </View>
+      ) : null}
+
     </Screen>
   );
 }

@@ -2,6 +2,7 @@ import { Linking, View } from "react-native";
 import { AppText, Button, TextField } from "@/components/ui";
 import { useState } from "react";
 import { useLocalization } from "@/localization/provider";
+import { useAppTheme } from "@/design/theme";
 import { googleMapsPlaceUrl, validMapPin } from "./map-utils";
 import type { StoreCoordinates } from "./StoreMapPicker";
 
@@ -13,6 +14,7 @@ export function StoreMapPicker({
   onChange: (point: StoreCoordinates | null) => void;
 }) {
   const { t } = useLocalization();
+  const theme = useAppTheme();
   const [lat, setLat] = useState(value ? String(value.latitude) : "");
   const [lon, setLon] = useState(value ? String(value.longitude) : "");
   const point = { latitude: Number(lat), longitude: Number(lon) };

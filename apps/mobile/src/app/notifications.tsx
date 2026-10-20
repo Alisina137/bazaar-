@@ -12,7 +12,6 @@ import {
   notifications
 } from "@/communication/api";
 import {
-  communicationErrorKey,
   notificationBodyKey,
   notificationTitleKey
 } from "@/communication/messages";
@@ -43,9 +42,10 @@ export default function NotificationsScreen() {
   const loadEpoch = useRef(0);
 
   const errorKey = (cause: unknown): TranslationKey =>
-    communicationErrorKey(
-      cause instanceof CommunicationApiError ? cause.code : "service_unavailable"
-    );
+    cause instanceof CommunicationApiError &&
+      (cause.code === "invalid_session" || cause.code === "account_unavailable")
+      ? "notification.error.sessionExpired"
+      : "notification.error.serviceUnavailable";
 
   const load = useCallback(async () => {
     const requestId = ++loadEpoch.current;
@@ -58,6 +58,7 @@ export default function NotificationsScreen() {
     }
     setLoading(true);
     setLoadError(null);
+    setActionError(null);
     try {
       const result = await notifications(sessionToken);
       if (requestId !== loadEpoch.current) return;

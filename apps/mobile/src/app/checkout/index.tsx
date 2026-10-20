@@ -886,7 +886,7 @@ function CheckoutSteps({
         borderRadius: theme.radii.full, overflow: "hidden"
       }}>
         <View style={{
-          width: ((current + 1) / labels.length * 100) + "%",
+          width: `${(current + 1) / labels.length * 100}%` as `${number}%`,
           alignSelf: isRTL ? "flex-end" : "flex-start",
           height: 4,
           borderRadius: theme.radii.full,

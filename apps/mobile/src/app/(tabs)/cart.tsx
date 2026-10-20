@@ -204,26 +204,33 @@ export default function CartScreen({ onCartChange }: {
   }
 
   return (
-    <Screen scrollKey="shopping-cart" refreshing={loading} onRefresh={() => { void load(); }} contentStyle={{ gap: theme.spacing.lg }}>
+    <Screen scrollKey="shopping-cart" refreshing={loading} onRefresh={() => { void load(); }} contentStyle={{ gap: theme.spacing.md, paddingHorizontal: theme.spacing.lg, paddingVertical: theme.spacing.lg }}>
       <View style={{ flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center", justifyContent: "space-between" }}>
-        <AppText variant="heading">{t("cart.title")}</AppText>
+        <AppText variant="bodyStrong" style={{ fontSize: 17, lineHeight: 24 }}>{t("cart.title")}</AppText>
         <Badge label={formatNumber(visibleCart.itemCount) + " " + t("cart.itemCount")} tone="neutral" />
       </View>
 
       {visibleCart.priceChanged ? (
         <Card muted>
-          <AppText variant="heading">
-            {t("cart.priceChangedTitle")}
-          </AppText>
-          <AppText tone="muted">
-            {t("cart.priceChangedMessage")}
-          </AppText>
+          <View style={{ gap: theme.spacing.xs }}>
+            <AppText variant="bodyStrong" tone="danger">
+              {t("cart.priceChangedTitle")}
+            </AppText>
+            <AppText variant="label" tone="muted">
+              {t("cart.priceChangedMessage")}
+            </AppText>
+          </View>
         </Card>
       ) : null}
 
       {errorKey ? (
         <Card>
-          <AppText tone="danger">{t(errorKey)}</AppText>
+          <View style={{ gap: theme.spacing.sm }}>
+            <AppText variant="label" tone="danger" accessibilityRole="alert">{t(errorKey)}</AppText>
+            <Button variant="secondary" onPress={() => { void load(); }}>
+              {t("cart.retry")}
+            </Button>
+          </View>
         </Card>
       ) : null}
 
@@ -240,15 +247,13 @@ export default function CartScreen({ onCartChange }: {
           onRemove={(itemId) => {
             const item = group.items.find(entry => entry.id === itemId);
             if (!item) return;
-            Alert.alert(t("cart.remove"), item.name, [
+            Alert.alert(t("cart.removeConfirmTitle"), t("cart.removeConfirmMessage") + "\n" + item.name, [
               { text: t("support.hub.cancel"), style: "cancel" },
               {
                 text: t("cart.remove"),
                 style: "destructive",
                 onPress: () => {
-                  void run("item:" + itemId, async token => {
-                    return removeCartItem(token, itemId);
-                  });
+                  void run("item:" + itemId, token => removeCartItem(token, itemId));
                 }
               }
             ]);
@@ -270,8 +275,8 @@ export default function CartScreen({ onCartChange }: {
       ))}
 
       <Card muted>
-        <View style={{ gap: theme.spacing.md }}>
-          <AppText variant="title">{t("cart.summary")}</AppText>
+        <View style={{ gap: theme.spacing.sm }}>
+          <AppText variant="bodyStrong" style={{ fontSize: 17, lineHeight: 23 }}>{t("cart.summary")}</AppText>
           <PriceRow
             label={t("cart.itemsSubtotal")}
             value={formatAfn(visibleCart.totals.itemsSubtotal)}
@@ -293,9 +298,14 @@ export default function CartScreen({ onCartChange }: {
             value={formatAfn(visibleCart.totals.preDeliveryTotal)}
             emphasized
           />
-          <AppText variant="caption" tone="muted">
-            {t("cart.deliveryPendingHint")}
-          </AppText>
+          <View style={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm, alignItems: "flex-start" }}>
+            <Ionicons name="information-circle-outline" size={17} color={theme.colors.textMuted} />
+            <View style={{ flex: 1 }}>
+              <AppText variant="caption" tone="muted">
+                {t("cart.deliveryPendingHint")}
+              </AppText>
+            </View>
+          </View>
         </View>
       </Card>
 
@@ -313,9 +323,7 @@ export default function CartScreen({ onCartChange }: {
         </AppText>
       ) : null}
 
-      <AppText variant="caption" tone="muted">
-        {t("cart.itemCount")}: {formatNumber(visibleCart.itemCount)}
-      </AppText>
+
     </Screen>
   );
 }
@@ -342,10 +350,10 @@ function MerchantGroupCard({
   return (
     <Card>
       <View style={{ gap: theme.spacing.lg }}>
-        <View style={{ flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center", gap: theme.spacing.sm, paddingBottom: theme.spacing.sm, borderBottomWidth: 1, borderBottomColor: theme.colors.border }}>
+        <View style={{ flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center", gap: theme.spacing.sm, paddingBottom: theme.spacing.md, borderBottomWidth: 1, borderBottomColor: theme.colors.border }}>
           <Ionicons name="storefront-outline" size={20} color={theme.colors.primary} />
           <View style={{ flex: 1, gap: theme.spacing.xs }}>
-            <AppText variant="title">{group.store.name}</AppText>
+            <AppText variant="bodyStrong" style={{ fontSize: 15, lineHeight: 21 }} numberOfLines={2}>{group.store.name}</AppText>
             <AppText variant="caption" tone="muted">
               {group.store.province} · {group.store.cityDistrict}
             </AppText>

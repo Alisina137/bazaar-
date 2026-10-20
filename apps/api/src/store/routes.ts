@@ -150,6 +150,7 @@ function sendStoreError(reply: FastifyReply, error: unknown) {
     return reply.code(error.statusCode).send(storeErrorBody(error.code));
   }
 
+  reply.log.error({ err: error }, "Unexpected store service failure");
   return reply.code(503).send(storeErrorBody("service_unavailable"));
 }
 

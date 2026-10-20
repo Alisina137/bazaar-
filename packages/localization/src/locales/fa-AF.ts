@@ -337,6 +337,8 @@ export const faAfMessages = {
   "checkout.loadingMessage": "سبد و آدرس‌های ذخیره‌شده تازه‌سازی می‌شوند.",
   "checkout.signInTitle": "برای پرداخت وارد شوید",
   "checkout.signInMessage": "پرداخت به حساب امن بازارلینک شما نیاز دارد.",
+  "checkout.cartLoadErrorTitle": "سبد خرید بارگذاری نشد",
+  "checkout.addressLoadErrorTitle": "آدرس‌های تحویل بارگذاری نشد",
   "checkout.errorTitle": "پرداخت در دسترس نیست",
   "checkout.step.address": "آدرس",
   "checkout.step.delivery": "تحویل",

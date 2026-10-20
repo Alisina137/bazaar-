@@ -1,15 +1,18 @@
 import type { NotificationRecord } from "@bazaarlink/contracts";
+import type { TranslationKey } from "@bazaarlink/localization";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { useAuth } from "@/auth/provider";
 import {
+  CommunicationApiError,
   markAllNotificationsRead,
   markNotificationRead,
   notifications
 } from "@/communication/api";
 import {
+  communicationErrorKey,
   notificationBodyKey,
   notificationTitleKey
 } from "@/communication/messages";
@@ -34,35 +37,77 @@ export default function NotificationsScreen() {
   const [items, setItems] = useState<NotificationRecord[]>([]);
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<TranslationKey | null>(null);
+  const [actionError, setActionError] = useState<TranslationKey | null>(null);
+  const [markingAll, setMarkingAll] = useState(false);
+  const loadEpoch = useRef(0);
+
+  const errorKey = (cause: unknown): TranslationKey =>
+    communicationErrorKey(
+      cause instanceof CommunicationApiError ? cause.code : "service_unavailable"
+    );
 
   const load = useCallback(async () => {
+    const requestId = ++loadEpoch.current;
     if (authStatus !== "signedIn" || !sessionToken) {
+      setItems([]);
+      setUnread(0);
+      setLoadError(null);
       setLoading(false);
       return;
     }
     setLoading(true);
+    setLoadError(null);
     try {
       const result = await notifications(sessionToken);
+      if (requestId !== loadEpoch.current) return;
       setItems(result.notifications);
       setUnread(result.unreadCount);
+    } catch (cause) {
+      // Loading can fail without taking down Expo Go (unhandled Promise).
+      if (requestId === loadEpoch.current) setLoadError(errorKey(cause));
     } finally {
-      setLoading(false);
+      if (requestId === loadEpoch.current) setLoading(false);
     }
   }, [authStatus, sessionToken]);
 
   useEffect(() => {
     void load();
+    return () => { loadEpoch.current += 1; };
   }, [load]);
+
+  const markAll = async () => {
+    if (!sessionToken || markingAll) return;
+    setMarkingAll(true);
+    setActionError(null);
+    try {
+      await markAllNotificationsRead(sessionToken);
+      await load();
+    } catch (cause) {
+      setActionError(errorKey(cause));
+    } finally {
+      setMarkingAll(false);
+    }
+  };
 
   const open = async (item: NotificationRecord) => {
     if (!sessionToken) return;
+    setActionError(null);
     if (!item.readAt) {
-      await markNotificationRead(sessionToken, item.id);
+      try {
+        await markNotificationRead(sessionToken, item.id);
+        setItems(current => current.map(notification =>
+          notification.id === item.id
+            ? { ...notification, readAt: new Date().toISOString() }
+            : notification
+        ));
+        setUnread(current => Math.max(0, current - 1));
+      } catch (cause) {
+        // Still allow opening the linked order/support screen.
+        setActionError(errorKey(cause));
+      }
     }
-    if (
-      item.deepLink.startsWith("/") &&
-      !item.deepLink.startsWith("//")
-    ) {
+    if (item.deepLink.startsWith("/") && !item.deepLink.startsWith("//")) {
       router.push(item.deepLink as never);
     } else {
       await load();
@@ -92,14 +137,19 @@ export default function NotificationsScreen() {
         />
       </View>
 
+      {actionError ? (
+        <Card>
+          <AppText tone="danger" accessibilityRole="alert">{t(actionError)}</AppText>
+        </Card>
+      ) : null}
+
       <Card>
         <View style={{ gap: theme.spacing.md }}>
           <Button
             variant="secondary"
-            onPress={() => {
-              if (!sessionToken) return;
-              void markAllNotificationsRead(sessionToken).then(load);
-            }}
+            loading={markingAll}
+            disabled={markingAll || !sessionToken || unread === 0}
+            onPress={() => { void markAll(); }}
           >
             {t("notification.markAllRead")}
           </Button>
@@ -121,7 +171,15 @@ export default function NotificationsScreen() {
         </View>
       </Card>
 
-      {items.length === 0 ? (
+      {loadError ? (
+        <StateView
+          kind="error"
+          title={t("notification.title")}
+          message={t(loadError)}
+          actionLabel={t("notification.retry")}
+          onAction={() => { void load(); }}
+        />
+      ) : items.length === 0 ? (
         <StateView
           kind="empty"
           title={t("notification.title")}

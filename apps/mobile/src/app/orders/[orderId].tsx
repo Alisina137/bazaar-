@@ -1,7 +1,8 @@
 import type {
   OrderRecord,
   PaymentMethod,
-  ReviewEligibilityRecord
+  ReviewEligibilityRecord,
+  SupportTicketRecord
 } from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -9,6 +10,8 @@ import { useEffect, useRef, useState } from "react";
 import { Alert, Linking, View } from "react-native";
 
 import { useAuth } from "@/auth/provider";
+import { createSupportTicket, supportTickets, CommunicationApiError } from "@/communication/api";
+import { communicationErrorKey, supportStatusKey } from "@/communication/messages";
 import { addCartItem } from "@/cart-pricing/api";
 import {
   AppText,
@@ -31,6 +34,7 @@ import {
   orderStateKey
 } from "@/order/messages";
 import { reviewEligibility } from "@/trust/api";
+import { canOpenReturnReview, openReturnCase, relatedReturnCases, RETURN_REVIEW_PREFIX } from "@/order/return-policy";
 
 function paymentMethodKey(method: PaymentMethod): TranslationKey {
   switch (method) {
@@ -59,6 +63,9 @@ export default function CustomerOrderDetailScreen() {
   const [reason, setReason] = useState("");
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
   const [reviewItems, setReviewItems] = useState<ReviewEligibilityRecord[]>([]);
+  const [supportReason, setSupportReason] = useState("");
+  const [returnCases, setReturnCases] = useState<SupportTicketRecord[]>([]);
+  const [caseHistoryError, setCaseHistoryError] = useState(false);
 
   const load = async () => {
     if (
@@ -73,12 +80,15 @@ export default function CustomerOrderDetailScreen() {
     setLoading(true);
     setErrorKey(null);
     try {
-      const [nextOrder, eligibility] = await Promise.all([
+      const [nextOrder, eligibility, caseHistory] = await Promise.all([
         getCustomerOrder(sessionToken, orderId),
-        reviewEligibility(sessionToken, orderId).catch(() => ({ items: [] }))
+        reviewEligibility(sessionToken, orderId).catch(() => ({ items: [] })),
+        supportTickets(sessionToken).catch(() => null)
       ]);
       setOrder(nextOrder);
       setReviewItems(eligibility.items);
+      setCaseHistoryError(caseHistory === null);
+      setReturnCases(caseHistory ? relatedReturnCases(caseHistory.tickets, nextOrder.id) : []);
     } catch (error) {
       const safe =
         error instanceof OrderApiError
@@ -117,6 +127,32 @@ export default function CustomerOrderDetailScreen() {
           ? error
           : new OrderApiError("service_unavailable");
       setErrorKey(orderErrorKey(safe.code));
+    } finally {
+      actionInFlight.current = false;
+      setBusy(false);
+    }
+  };
+
+  const requestReview = async () => {
+    if (actionInFlight.current || !sessionToken || !order || !canOpenReturnReview(order.state) ||
+        caseHistoryError || openReturnCase(returnCases, order.id) || supportReason.trim().length < 5) return;
+    actionInFlight.current = true;
+    setBusy(true);
+    setErrorKey(null);
+    try {
+      const ticket = await createSupportTicket(sessionToken, {
+        category: "order",
+        orderId: order.id,
+        subject: RETURN_REVIEW_PREFIX + order.orderNumber,
+        message: "Order: " + order.orderNumber + "\nRequest: " + supportReason.trim()
+      });
+      setSupportReason("");
+      setReturnCases(previous => [ticket, ...previous]);
+      router.push({ pathname: "/support/[ticketId]", params: { ticketId: ticket.id } });
+    } catch (cause) {
+      Alert.alert(t("order.shopping.returnTitle"), t(communicationErrorKey(
+        cause instanceof CommunicationApiError ? cause.code : "service_unavailable"
+      )));
     } finally {
       actionInFlight.current = false;
       setBusy(false);
@@ -466,6 +502,47 @@ export default function CustomerOrderDetailScreen() {
         </View>
       </Card>
 
+      {(canOpenReturnReview(order.state) || returnCases.length > 0) ? (
+        <Card>
+          <View style={{ gap: theme.spacing.md }}>
+            <AppText variant="title">{t("order.shopping.returnTitle")}</AppText>
+            <AppText tone="muted">{t("order.shopping.returnHint")}</AppText>
+            {order.state === "refund_pending" || order.state === "refunded" ? (
+              <Badge label={t(orderStateKey(order.state))} tone="warning" />
+            ) : null}
+            {returnCases.map(ticket => (
+              <View key={ticket.id} style={{ gap: theme.spacing.xs }}>
+                <Badge label={t(supportStatusKey(ticket.status))} tone={ticket.status === "closed" ? "neutral" : "primary"} />
+                <AppText variant="caption" tone="muted">{new Date(ticket.updatedAt).toLocaleDateString(locale)}</AppText>
+                <Button variant="secondary" onPress={() => router.push({
+                  pathname: "/support/[ticketId]", params: { ticketId: ticket.id }
+                })}>{t("order.shopping.viewCase")}</Button>
+              </View>
+            ))}
+            {caseHistoryError ? (
+              <AppText tone="muted">{t("order.shopping.caseHistoryError")}</AppText>
+            ) : null}
+            {canOpenReturnReview(order.state) && !caseHistoryError && !openReturnCase(returnCases, order.id) ? (
+              <View style={{ gap: theme.spacing.md }}>
+                <TextField label={t("order.shopping.returnReason")}
+                  value={supportReason} onChangeText={setSupportReason}
+                  maxLength={1000} multiline />
+                <Button disabled={busy || supportReason.trim().length < 5} loading={busy}
+                  onPress={() => Alert.alert(t("order.shopping.returnConfirmTitle"), t("order.shopping.returnHint"), [
+                    { text: t("support.hub.cancel"), style: "cancel" },
+                    { text: t("order.shopping.returnSubmit"), onPress: () => { void requestReview(); } }
+                  ])}>
+                  {t("order.shopping.returnSubmit")}
+                </Button>
+              </View>
+            ) : null}
+            {openReturnCase(returnCases, order.id) ? (
+              <AppText tone="muted">{t("order.shopping.caseAlreadyOpen")}</AppText>
+            ) : null}
+          </View>
+        </Card>
+      ) : null}
+
       {order.state === "pending_confirmation" ? (
         <Card>
           <View style={{ gap: theme.spacing.md }}>
@@ -494,6 +571,10 @@ export default function CustomerOrderDetailScreen() {
             </Button>
           </View>
         </Card>
+      ) : null}
+
+      {order.state === "refund_pending" || order.state === "refunded" ? (
+        <Card muted><AppText tone="muted">{t("order.shopping.refundStatusHint")}</AppText></Card>
       ) : null}
 
       {order.cancellationReason ? (

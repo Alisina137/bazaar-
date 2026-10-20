@@ -1,4 +1,4 @@
-import type { StoreTheme } from "@bazaarlink/contracts";
+import type { MarketplaceCategoryRecord, StoreTheme } from "@bazaarlink/contracts";
 import {
   localeMetadata,
   supportedLocales,
@@ -7,7 +7,7 @@ import {
 } from "@bazaarlink/localization";
 import { useRouter } from "expo-router";
 import { OnboardingPlanCards } from "@/components/seller/OnboardingPlanCards";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Pressable,
   StyleSheet,
@@ -19,12 +19,16 @@ import {
   Badge,
   Button,
   Card,
+  SelectField,
   Screen,
   StateView,
   TextField
 } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
+import { marketplaceCategories } from "@/marketplace/api";
+import { AFGHAN_PROVINCES, provinceName } from "@/marketplace/provinces";
+import { districtOptionsForProvince } from "@/store/location-options";
 import { getStoreError, useStores } from "@/store/provider";
 import {
   storeErrorKey,
@@ -32,6 +36,7 @@ import {
 } from "@/store/messages";
 
 type OnboardingStep = "plan" | "store" | "details";
+const OTHER_DISTRICT = "__other__";
 
 const themes: StoreTheme[] = [
   "minimal",
@@ -60,6 +65,11 @@ export default function SellerOnboardingScreen() {
   const [category, setCategory] = useState("");
   const [province, setProvince] = useState("");
   const [cityDistrict, setCityDistrict] = useState("");
+  const [customDistrict, setCustomDistrict] = useState("");
+  const [platformCategories, setPlatformCategories] = useState<MarketplaceCategoryRecord[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState(false);
+  const [categoriesReload, setCategoriesReload] = useState(0);
   const [phone, setPhone] = useState("");
   const [preferredLocale, setPreferredLocale] =
     useState<SupportedLocale>(locale);
@@ -70,6 +80,36 @@ export default function SellerOnboardingScreen() {
   const [storeTheme, setStoreTheme] = useState<StoreTheme>("minimal");
   const [busy, setBusy] = useState(false);
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
+
+  // Use the same platform categories offered in Marketplace, never invented names.
+  // A failed/empty response stays retryable and cannot create an invalid store.
+  useEffect(() => {
+    let active = true;
+    setCategoriesLoading(true);
+    setCategoriesError(false);
+    void marketplaceCategories().then(result => {
+      if (!active) return;
+      setPlatformCategories(result.categories);
+    }).catch(() => {
+      if (!active) return;
+      setPlatformCategories([]);
+      setCategoriesError(true);
+    }).finally(() => {
+      if (active) setCategoriesLoading(false);
+    });
+    return () => { active = false; };
+  }, [categoriesReload]);
+
+  const roots = platformCategories.filter(item => item.parentId === null);
+  const categories = roots.length > 0 ? roots : platformCategories;
+  const selectedCategory = categories.find(item => item.id === category);
+  const districtOptions = districtOptionsForProvince(province, locale);
+  const enteredDistrict = cityDistrict === OTHER_DISTRICT
+    ? customDistrict.trim()
+    : cityDistrict;
+  const validDistrict = cityDistrict === OTHER_DISTRICT
+    ? customDistrict.trim().length > 0
+    : districtOptions.some(item => item.value === cityDistrict);
 
   if (currentStore) {
     return <StateViewRedirect />;
@@ -110,9 +150,9 @@ export default function SellerOnboardingScreen() {
   const requiredComplete =
     name.trim().length >= 2 &&
     handle.trim().length >= 3 &&
-    category.trim().length >= 2 &&
-    province.trim().length >= 2 &&
-    cityDistrict.trim().length >= 1 &&
+    Boolean(selectedCategory?.nameEn.trim()) &&
+    AFGHAN_PROVINCES.some(([value]) => value === province) &&
+    validDistrict &&
     phone.trim().length >= 7;
 
   const submit = async () => {
@@ -129,9 +169,9 @@ export default function SellerOnboardingScreen() {
       await createStore({
         name,
         handle,
-        category,
+        category: selectedCategory!.nameEn,
         province,
-        cityDistrict,
+        cityDistrict: enteredDistrict,
         phone,
         preferredLocale,
         description: description || null,
@@ -212,21 +252,62 @@ export default function SellerOnboardingScreen() {
               autoCapitalize="none"
               autoCorrect={false}
             />
-            <TextField
+            <SelectField
               label={t("seller.onboarding.category")}
+              placeholder={t("seller.onboarding.categoryPlaceholder")}
               value={category}
-              onChangeText={setCategory}
+              options={categories.map(item => ({
+                value: item.id,
+                label: locale === "en" ? item.nameEn : locale === "ps-AF" ? item.namePs : item.nameFa
+              }))}
+              onChange={setCategory}
+              disabled={categoriesLoading || categoriesError || categories.length === 0}
+              helperText={categoriesLoading ? t("seller.onboarding.categoryLoading") : undefined}
             />
-            <TextField
+            {!categoriesLoading && (categoriesError || categories.length === 0) ? (
+              <View style={{ gap: theme.spacing.sm }}>
+                <AppText tone="muted">
+                  {t(categoriesError ? "seller.onboarding.categoryUnavailable" : "seller.onboarding.categoryEmpty")}
+                </AppText>
+                <Button variant="secondary" onPress={() => setCategoriesReload(n => n + 1)}>
+                  {t("seller.onboarding.retryCategories")}
+                </Button>
+              </View>
+            ) : null}
+            <SelectField
               label={t("seller.onboarding.province")}
+              placeholder={t("seller.onboarding.provincePlaceholder")}
               value={province}
-              onChangeText={setProvince}
+              options={AFGHAN_PROVINCES.map(([value]) => ({
+                value,
+                label: provinceName(value, locale)
+              }))}
+              onChange={value => {
+                setProvince(value);
+                setCityDistrict("");
+                setCustomDistrict("");
+              }}
             />
-            <TextField
+            <SelectField
               label={t("seller.onboarding.cityDistrict")}
+              placeholder={t("seller.onboarding.districtPlaceholder")}
               value={cityDistrict}
-              onChangeText={setCityDistrict}
+              options={[
+                ...districtOptions,
+                ...(province ? [{ value: OTHER_DISTRICT, label: t("seller.onboarding.otherDistrict") }] : [])
+              ]}
+              onChange={setCityDistrict}
+              disabled={!province}
+              helperText={!province ? t("seller.onboarding.selectProvinceFirst") : undefined}
             />
+            {cityDistrict === OTHER_DISTRICT && province ? (
+              <TextField
+                label={t("seller.onboarding.customDistrict")}
+                value={customDistrict}
+                onChangeText={setCustomDistrict}
+                maxLength={120}
+              />
+            ) : null}
             <TextField
               label={t("seller.onboarding.phone")}
               value={phone}

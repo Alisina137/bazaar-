@@ -5,6 +5,7 @@ import { Pressable, View } from "react-native";
 
 import { useAuth } from "@/auth/provider";
 import { getCart } from "@/cart-pricing/api";
+import type { CartResponse } from "@bazaarlink/contracts";
 import { AppText } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
@@ -23,6 +24,9 @@ export default function ShoppingScreen() {
   const { status, sessionToken } = useAuth();
   const [cartCount, setCartCount] = useState<number | null>(null);
   const [activeOrders, setActiveOrders] = useState<number | null>(null);
+  const updateCartCount = useCallback((next: CartResponse) => {
+    setCartCount(next.itemCount);
+  }, []);
 
   useFocusEffect(useCallback(() => {
     let active = true;
@@ -54,11 +58,11 @@ export default function ShoppingScreen() {
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <View style={{
         paddingHorizontal: theme.spacing.lg,
-        paddingTop: theme.spacing.lg,
+        paddingTop: theme.spacing.md,
         paddingBottom: theme.spacing.sm,
         gap: theme.spacing.xs
       }}>
-        <AppText variant="heading">{t("nav.shopping")}</AppText>
+        <AppText variant="bodyStrong" style={{ fontSize: 18, lineHeight: 25 }}>{t("nav.shopping")}</AppText>
         <AppText variant="caption" tone="muted">{t("shopping.subtitle")}</AppText>
       </View>
       <View
@@ -97,7 +101,7 @@ export default function ShoppingScreen() {
               })}
             >
               <Ionicons name={item.icon} size={18} color={focused ? theme.colors.onPrimary : theme.colors.text} />
-              <AppText style={{ color: focused ? theme.colors.onPrimary : theme.colors.text }}>
+              <AppText variant="label" style={{ fontSize: 13, lineHeight: 19, color: focused ? theme.colors.onPrimary : theme.colors.text }}>
                 {item.label}
               </AppText>
               {item.count !== null && item.count > 0 ? (
@@ -120,7 +124,7 @@ export default function ShoppingScreen() {
         })}
       </View>
       <View style={{ flex: 1 }}>
-        {selected === "cart" ? <CartScreen /> : <OrdersScreen />}
+        {selected === "cart" ? <CartScreen onCartChange={updateCartCount} /> : <OrdersScreen />}
       </View>
     </View>
   );

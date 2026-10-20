@@ -167,7 +167,7 @@ export default function OrdersScreen() {
 
   return (
     <Screen scrollKey="shopping-orders" refreshing={loading} onRefresh={() => { void load(); }} contentStyle={{ gap: theme.spacing.md }}>
-      <AppText variant="heading">{t("order.customer.title")}</AppText>
+      <AppText variant="bodyStrong" style={{ fontSize: 17, lineHeight: 24 }}>{t("order.customer.title")}</AppText>
       <TextInput
         value={search}
         onChangeText={setSearch}
@@ -194,7 +194,7 @@ export default function OrdersScreen() {
       {currentOrders.length === 0 ? (
         <Card>
           <View style={{ gap: theme.spacing.md }}>
-            <AppText variant="title">
+            <AppText variant="bodyStrong" style={{ fontSize: 16, lineHeight: 22 }}>
               {t("order.customer.emptyTitle")}
             </AppText>
             <AppText tone="muted">
@@ -228,7 +228,7 @@ export default function OrdersScreen() {
                 }}
               >
                 <View style={{ flex: 1, gap: theme.spacing.xs }}>
-                  <AppText variant="title">{order.storeName}</AppText>
+                  <AppText variant="bodyStrong" style={{ fontSize: 15, lineHeight: 21 }} numberOfLines={2}>{order.storeName}</AppText>
                   <AppText variant="caption" tone="muted">
                     {order.orderNumber}
                   </AppText>
@@ -239,7 +239,7 @@ export default function OrdersScreen() {
                 />
               </View>
 
-              <AppText tone="muted">
+              <AppText variant="caption" tone="muted">
                 {new Date(order.placedAt).toLocaleString(
                   locale === "fa-AF"
                     ? "fa-AF"
@@ -249,7 +249,7 @@ export default function OrdersScreen() {
                 )}
               </AppText>
 
-              <AppText variant="heading">
+              <AppText variant="bodyStrong" tone="primary" style={{ fontSize: 17, lineHeight: 24 }}>
                 {formatAfn(order.totals.total)}
               </AppText>
 

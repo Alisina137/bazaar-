@@ -1,5 +1,7 @@
 import { View } from "react-native";
 
+import { SkeletonPulse } from "@/components/ui/LoadingSkeleton";
+
 import { AppText } from "@/components/ui/AppText";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
@@ -19,6 +21,7 @@ export function MarketplaceDiscoverySkeleton({
   const placeholder = theme.colors.surfaceMuted;
 
   return (
+    <SkeletonPulse>
     <View accessibilityRole="progressbar" accessibilityLabel={title} style={{ gap: theme.spacing.md }}>
       <AppText variant="bodyStrong">{title}</AppText>
       <View style={{
@@ -49,5 +52,6 @@ export function MarketplaceDiscoverySkeleton({
         ))}
       </View>
     </View>
+    </SkeletonPulse>
   );
 }

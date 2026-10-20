@@ -189,6 +189,7 @@ export default function ProductManagementScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="form"
           title={t("catalog.product.manage")}
           message={t("catalog.products.loading")}
         />

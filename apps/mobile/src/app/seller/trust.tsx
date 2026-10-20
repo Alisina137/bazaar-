@@ -44,6 +44,7 @@ export default function SellerTrustScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="dashboard"
           title={t("seller.trust.title")}
           message={t("seller.trust.basic")}
         />

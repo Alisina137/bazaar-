@@ -358,6 +358,7 @@ export default function CheckoutScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="cart"
           title={t("checkout.loadingTitle")}
           message={t("checkout.loadingMessage")}
         />
@@ -384,6 +385,7 @@ export default function CheckoutScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="cart"
           title={t("checkout.loadingTitle")}
           message={t("checkout.loadingMessage")}
         />

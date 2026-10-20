@@ -124,6 +124,7 @@ export default function SellerOnboardingScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="form"
           title={t("seller.onboarding.title")}
           message={t("seller.onboarding.description")}
         />

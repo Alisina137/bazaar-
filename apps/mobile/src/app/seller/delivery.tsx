@@ -433,6 +433,7 @@ export default function SellerDeliveryScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="form"
           title={t("delivery.seller.loadingTitle")}
           message={t("delivery.seller.loadingMessage")}
         />

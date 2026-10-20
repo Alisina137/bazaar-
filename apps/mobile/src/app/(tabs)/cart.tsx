@@ -140,6 +140,7 @@ export default function CartScreen({ onCartChange }: {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="cart"
           title={t("cart.loadingTitle")}
           message={t("cart.loadingMessage")}
         />
@@ -166,6 +167,7 @@ export default function CartScreen({ onCartChange }: {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="cart"
           title={t("cart.loadingTitle")}
           message={t("cart.loadingMessage")}
         />

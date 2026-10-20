@@ -1,5 +1,7 @@
 import { View } from "react-native";
 
+import { SkeletonPulse } from "@/components/ui/LoadingSkeleton";
+
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
 
@@ -9,6 +11,7 @@ export function HomeLoadingSkeleton() {
   const { isRTL, t } = useLocalization();
 
   return (
+    <SkeletonPulse>
     <View
       accessibilityRole="progressbar"
       accessibilityLabel={t("marketplace.loadingTitle")}
@@ -63,5 +66,6 @@ export function HomeLoadingSkeleton() {
         ))}
       </View>
     </View>
+    </SkeletonPulse>
   );
 }

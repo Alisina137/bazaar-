@@ -138,6 +138,7 @@ export default function AddressesScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="form"
           title={t("address.loadingTitle")}
           message={t("address.loadingMessage")}
         />
@@ -431,6 +432,7 @@ export default function AddressesScreen() {
       {loading && addresses.length === 0 ? (
         <StateView
           kind="loading"
+          loadingVariant="form"
           title={t("address.loadingTitle")}
           message={t("address.loadingMessage")}
         />

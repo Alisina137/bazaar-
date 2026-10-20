@@ -87,6 +87,7 @@ export default function AccountScreen() {
       <Screen scrollable={false}>
         <StateView
           kind="loading"
+          loadingVariant="form"
           title={t("auth.restoringTitle")}
           message={t("auth.restoringMessage")}
         />

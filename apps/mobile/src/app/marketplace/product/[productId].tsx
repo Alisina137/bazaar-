@@ -15,6 +15,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState
 } from "react";
 import {
@@ -26,7 +27,8 @@ import {
 } from "react-native";
 
 import { useAuth } from "@/auth/provider";
-import { getWishlist, removeWishlistProduct, saveWishlistProduct } from "@/account/wishlist-api";
+import { getWishlist, removeWishlistProduct, saveWishlistProduct, WishlistApiError } from "@/account/wishlist-api";
+import { wishlistErrorKey } from "@/account/wishlist-messages";
 import {
   addCartItem,
   CartPricingApiError
@@ -127,40 +129,69 @@ export default function MarketplaceProductScreen() {
   const [reviews, setReviews] = useState<ProductReviewsResponse | null>(null);
   const [wishlisted, setWishlisted] = useState(false);
   const [wishlistBusy, setWishlistBusy] = useState(false);
-  const [wishlistError, setWishlistError] = useState(false);
+  const [wishlistError, setWishlistError] = useState<TranslationKey | null>(null);
+  const [wishlistLoadError, setWishlistLoadError] = useState<TranslationKey | null>(null);
+  const [wishlistReload, setWishlistReload] = useState(0);
+  const wishlistRequestEpoch = useRef(0);
+  const wishlistWriteLock = useRef(false);
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [compareFull, setCompareFull] = useState(false);
   const [compareBusy, setCompareBusy] = useState(false);
 
   useEffect(() => {
     let active = true;
+    const requestId = ++wishlistRequestEpoch.current;
     setWishlisted(false);
-    setWishlistError(false);
+    setWishlistLoadError(null);
+    setWishlistError(null);
     if (authStatus === "signedIn" && sessionToken && productId) {
       void getWishlist(sessionToken).then(response => {
-        if (active) setWishlisted(response.savedProductIds.includes(productId));
-      }).catch(() => {
-        if (active) setWishlistError(true);
+        if (active && requestId === wishlistRequestEpoch.current) {
+          setWishlisted(response.savedProductIds.includes(productId));
+        }
+      }).catch(error => {
+        // A failed initial GET did not attempt to change the wishlist.
+        if (active && requestId === wishlistRequestEpoch.current) {
+          setWishlistLoadError(wishlistErrorKey(error, "load"));
+        }
       });
     }
     return () => { active = false; };
-  }, [authStatus, sessionToken, productId]);
+  }, [authStatus, sessionToken, productId, wishlistReload]);
 
   const toggleWishlist = async () => {
-    if (wishlistBusy || !productId) return;
+    if (wishlistWriteLock.current || !productId) return;
     if (authStatus !== "signedIn" || !sessionToken) {
       router.push("/(tabs)/account");
       return;
     }
+    wishlistWriteLock.current = true;
+    ++wishlistRequestEpoch.current; // A pending GET must not overwrite a successful mutation.
     setWishlistBusy(true);
-    setWishlistError(false);
+    setWishlistError(null);
+    setWishlistLoadError(null);
+    const shouldSave = !wishlisted;
     try {
-      if (wishlisted) await removeWishlistProduct(sessionToken, productId);
-      else await saveWishlistProduct(sessionToken, productId);
-      setWishlisted(previous => !previous);
-    } catch {
-      setWishlistError(true);
+      const result = shouldSave
+        ? await saveWishlistProduct(sessionToken, productId)
+        : await removeWishlistProduct(sessionToken, productId);
+      setWishlisted(result.saved);
+    } catch (error) {
+      // A timed-out mutation might have succeeded. A fresh read is authoritative
+      // when available, but a failed read must never pretend the write succeeded.
+      if (error instanceof WishlistApiError && error.httpStatus === null) {
+        try {
+          const snapshot = await getWishlist(sessionToken);
+          const saved = snapshot.savedProductIds.includes(productId);
+          setWishlisted(saved);
+          if (saved === shouldSave) return;
+        } catch {
+          // Preserve last known state and show a retryable error below.
+        }
+      }
+      setWishlistError(wishlistErrorKey(error, "write"));
     } finally {
+      wishlistWriteLock.current = false;
       setWishlistBusy(false);
     }
   };
@@ -418,8 +449,23 @@ export default function MarketplaceProductScreen() {
         </View>
       </View>
 
+      {wishlistLoadError ? (
+        <Card muted>
+          <View style={{ gap: theme.spacing.sm }}>
+            <AppText tone="muted" accessibilityRole="alert">{t(wishlistLoadError)}</AppText>
+            <Button variant="secondary" onPress={() => setWishlistReload(current => current + 1)}>
+              {t("account.shopping.retry")}
+            </Button>
+          </View>
+        </Card>
+      ) : null}
       {wishlistError ? (
-        <AppText tone="danger" accessibilityRole="alert">{t("account.shopping.saveError")}</AppText>
+        <Card muted>
+          <AppText tone="danger" accessibilityRole="alert">{t(wishlistError)}</AppText>
+          <Button variant="secondary" disabled={wishlistBusy} onPress={() => { void toggleWishlist(); }}>
+            {t("account.shopping.retry")}
+          </Button>
+        </Card>
       ) : null}
       {compareFull ? (
         <AppText tone="danger" accessibilityRole="alert">{t("marketplace.compare.full")}</AppText>

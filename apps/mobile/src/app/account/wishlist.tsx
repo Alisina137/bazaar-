@@ -1,5 +1,6 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import type { MarketplaceProductSummary } from "@bazaarlink/contracts";
+import type { TranslationKey } from "@bazaarlink/localization";
 import { useCallback, useState } from "react";
 import { View } from "react-native";
 
@@ -9,6 +10,7 @@ import { AccountBackLink } from "@/components/account/AccountBackLink";
 import { MarketplaceProductCard } from "@/components/marketplace/MarketplaceProductCard";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
+import { wishlistErrorKey } from "@/account/wishlist-messages";
 import {
   getWishlist, removeWishlistProduct
 } from "@/account/wishlist-api";
@@ -20,8 +22,9 @@ export default function WishlistScreen() {
   const { status, sessionToken } = useAuth();
   const [items, setItems] = useState<MarketplaceProductSummary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<TranslationKey | null>(null);
   const [removeError, setRemoveError] = useState(false);
+  const [removeErrorKey, setRemoveErrorKey] = useState<TranslationKey | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
 
@@ -34,12 +37,12 @@ export default function WishlistScreen() {
     }
     setItems([]);
     setLoading(true);
-    setError(false);
+    setError(null);
     setRemoveError(false);
     void getWishlist(sessionToken).then(data => {
       if (active) setItems(data.products);
-    }).catch(() => {
-      if (active) setError(true);
+    }).catch(reason => {
+      if (active) setError(wishlistErrorKey(reason, "load"));
     }).finally(() => {
       if (active) setLoading(false);
     });
@@ -50,12 +53,14 @@ export default function WishlistScreen() {
     if (!sessionToken || busyId) return;
     setBusyId(id);
     setRemoveError(false);
+    setRemoveErrorKey(null);
     try {
       await removeWishlistProduct(sessionToken, id);
       setItems(current => current.filter(product => product.id !== id));
-    } catch {
+    } catch (reason) {
       // Keep the product visible so the customer can retry the removal.
       setRemoveError(true);
+      setRemoveErrorKey(wishlistErrorKey(reason, "write"));
     } finally {
       setBusyId(null);
     }
@@ -88,7 +93,7 @@ export default function WishlistScreen() {
       ) : null}
       {error ? (
         <Card>
-          <AppText tone="danger">{t("account.shopping.loadError")}</AppText>
+          <AppText tone="danger">{t(error)}</AppText>
           <Button variant="secondary" onPress={() => setReload(value => value + 1)}>
             {t("account.shopping.retry")}
           </Button>
@@ -106,7 +111,7 @@ export default function WishlistScreen() {
       ) : null}
       {removeError ? (
         <AppText accessibilityRole="alert" tone="danger">
-          {t("account.phase8.wishlistRemoveError")}
+          {removeErrorKey ? t(removeErrorKey) : t("account.phase8.wishlistRemoveError")}
         </AppText>
       ) : null}
       {!loading && items.length > 0 ? (

@@ -6,7 +6,10 @@ const TIMEOUT_MS = 12_000;
 const base = () => (process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:4000").replace(/\/$/, "");
 
 export class WishlistApiError extends Error {
-  constructor(public readonly code: WishlistErrorCode) {
+  constructor(
+    public readonly code: WishlistErrorCode,
+    public readonly httpStatus: number | null = null
+  ) {
     super(code);
     this.name = "WishlistApiError";
   }
@@ -31,7 +34,7 @@ async function request<T>(token: string, path: string, method: string): Promise<
           "product_not_found", "wishlist_full", "rate_limited", "service_unavailable"
         ].includes(candidate)) code = candidate;
       } catch { /* Do not leak provider errors. */ }
-      throw new WishlistApiError(code);
+      throw new WishlistApiError(code, response.status);
     }
     return await response.json() as T;
   } catch (error) {

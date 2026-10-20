@@ -558,8 +558,7 @@ export const faAfMessages = {
   "payment.customer.readyForReview": "مرحله پرداخت آماده است",
   "payment.customer.securityHint":
     "بازارلینک شماره کارت یا CVV را دریافت نمی‌کند. پرداخت‌های دیجیتال به‌صورت سرور به سرور تأیید می‌شوند.",
-  "payment.customer.reviewReady":
-    "آدرس، تحویل و پرداخت آماده است. ایجاد سفارش در مرحله ۸ انجام می‌شود.",
+  "payment.customer.reviewReady": "آدرس، تحویل و پرداخت آماده است. اکنون می‌توانید سفارش خود را ثبت کنید.",
   "payment.customer.reviewBlocked":
     "پیش از ادامه مرور نهایی، مرحله پرداخت همه فروشنده‌ها را تکمیل کنید.",
   "payment.unavailable.merchantDisabled":
@@ -708,6 +707,10 @@ export const faAfMessages = {
   "order.error.cancellationNotAllowed": "چون فروشنده سفارش را تأیید کرده است، مشتری دیگر نمی‌تواند آن را لغو کند.",
   "order.error.refundUnavailable": "در وضعیت فعلی پرداخت یا تکمیل سفارش، بازپرداخت قابل شروع نیست.",
   "order.error.rateLimited": "تلاش‌های زیادی برای سفارش انجام شده است. کمی بعد دوباره تلاش کنید.",
+  "order.error.serverFailure": "سرور سفارش خطا داد. پیش از تلاش دوباره، سفارش‌های خود را بررسی کنید. اگر سفارشی ثبت نشده، شماره پیگیری خطا را ارسال کنید.",
+  "order.error.networkFailure": "ارتباط با سرویس سفارش برقرار نشد. پیش از تلاش دوباره سفارش‌های خود را بررسی کنید؛ شاید درخواست موفق شده باشد.",
+  "order.error.requestTimeout": "تأیید سفارش طول کشید. پیش از تلاش دوباره سفارش‌های خود را بررسی کنید؛ ممکن است ثبت شده باشد.",
+  "order.customer.checkOrderHistory": "بررسی سفارش‌های من",
   "order.error.serviceUnavailable": "بازارلینک به سرویس سفارش دسترسی ندارد. اتصال خود را بررسی کرده و دوباره تلاش کنید.",
 
   "orders.title": "سفارش‌ها",

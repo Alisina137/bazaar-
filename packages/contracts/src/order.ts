@@ -239,5 +239,6 @@ export type OrderErrorCode = (typeof orderErrorCodes)[number];
 export interface OrderErrorResponse {
   error: {
     code: OrderErrorCode;
+    reference?: string;
   };
 }

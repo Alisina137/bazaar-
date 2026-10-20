@@ -3,6 +3,7 @@ import type {
   OrderState
 } from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
+import { OrderApiError } from "./api";
 
 export function orderErrorKey(code: OrderErrorCode): TranslationKey {
   switch (code) {
@@ -34,6 +35,16 @@ export function orderErrorKey(code: OrderErrorCode): TranslationKey {
     default:
       return "order.error.serviceUnavailable";
   }
+}
+
+/** Distinguish a server-side order failure from an offline or timed-out phone. */
+export function orderRequestErrorKey(error: unknown): TranslationKey {
+  if (!(error instanceof OrderApiError)) return "order.error.networkFailure";
+  if (error.code !== "service_unavailable") return orderErrorKey(error.code);
+  if (error.httpStatus !== null) return "order.error.serverFailure";
+  return error.transport === "timeout"
+    ? "order.error.requestTimeout"
+    : "order.error.networkFailure";
 }
 
 export function orderStateKey(state: OrderState): TranslationKey {

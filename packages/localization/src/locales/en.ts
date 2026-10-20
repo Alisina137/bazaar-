@@ -561,8 +561,7 @@ export const enMessages = {
   "payment.customer.readyForReview": "Payment step ready",
   "payment.customer.securityHint":
     "BazaarLink does not collect card numbers or CVV. Hosted digital payments are confirmed server-to-server.",
-  "payment.customer.reviewReady":
-    "Address, delivery, and payment are ready. Order creation begins in Phase 8.",
+  "payment.customer.reviewReady": "Your address, delivery and payment selections are ready. You can place your order now.",
   "payment.customer.reviewBlocked":
     "Complete the payment step for every seller before review can continue.",
   "payment.unavailable.merchantDisabled":
@@ -711,6 +710,10 @@ export const enMessages = {
   "order.error.cancellationNotAllowed": "The order can no longer be cancelled by the customer because the seller has already confirmed it.",
   "order.error.refundUnavailable": "A refund cannot be started for this order in its current payment or fulfillment state.",
   "order.error.rateLimited": "Too many order attempts. Please wait and try again.",
+  "order.error.serverFailure": "The order server returned an error. Check your order history before trying again. If no order appears, share the error reference from the server.",
+  "order.error.networkFailure": "Your phone could not reach the order service. Check Orders before retrying: the request might have succeeded.",
+  "order.error.requestTimeout": "Order confirmation took too long. Check Orders before retrying; it might already be placed.",
+  "order.customer.checkOrderHistory": "Check my orders",
   "order.error.serviceUnavailable": "BazaarLink could not reach the order service. Check your connection and try again.",
 
   "orders.title": "Orders",

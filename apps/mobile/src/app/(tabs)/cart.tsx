@@ -24,13 +24,12 @@ import {
 import { useAuth } from "@/auth/provider";
 import {
   applyCartCoupon,
-  CartPricingApiError,
   getCart,
   removeCartCoupon,
-  removeCartItem,
+  removeCartItemWithRecovery,
   updateCartItem
 } from "@/cart-pricing/api";
-import { cartPricingErrorKey } from "@/cart-pricing/messages";
+import { cartPricingRequestErrorKey } from "@/cart-pricing/messages";
 import {
   AppText,
   Badge,
@@ -94,9 +93,7 @@ export default function CartScreen({ onCartChange }: {
       setCart(next);
     } catch (error) {
       if (requestId !== requestEpoch.current || mutationLock.current) return;
-      const safe = error instanceof CartPricingApiError
-        ? error : new CartPricingApiError("service_unavailable");
-      setErrorKey(cartPricingErrorKey(safe.code));
+      setErrorKey(cartPricingRequestErrorKey(error));
     } finally {
       if (requestId === requestEpoch.current) setLoading(false);
     }
@@ -126,9 +123,7 @@ export default function CartScreen({ onCartChange }: {
       setCart(next);
       onCartChange?.(next);
     } catch (error) {
-      const safe = error instanceof CartPricingApiError
-        ? error : new CartPricingApiError("service_unavailable");
-      setErrorKey(cartPricingErrorKey(safe.code));
+      setErrorKey(cartPricingRequestErrorKey(error));
     } finally {
       mutationLock.current = false;
       setBusyKey(null);
@@ -255,7 +250,7 @@ export default function CartScreen({ onCartChange }: {
                 text: t("cart.remove"),
                 style: "destructive",
                 onPress: () => {
-                  void run("item:" + itemId, token => removeCartItem(token, itemId));
+                  void run("item:" + itemId, token => removeCartItemWithRecovery(token, itemId));
                 }
               }
             ]);

@@ -282,6 +282,9 @@ export const faAfMessages = {
   "cart.error.checkoutUnavailable":
     "تا مشکل‌های سبد برطرف نشوند قیمت نهایی این مرحله ساخته نمی‌شود.",
   "cart.error.rateLimited": "تلاش‌های زیاد انجام شده است. کمی بعد دوباره تلاش کنید.",
+  "cart.error.networkUnreachable": "اتصال به API سبد خرید برقرار نشد. اجرای pnpm dev:api و تونل ngrok را بررسی کرده و دوباره تلاش کنید.",
+  "cart.error.requestTimedOut": "زمان درخواست سبد خرید پایان یافت. اتصال اینترنت و تونل API را بررسی کرده و سبد را تازه کنید.",
+  "cart.error.serverUnavailable": "سرور سبد خرید خطا داد. ترمینال pnpm dev:api و اتصال دیتابیس را بررسی کرده و دوباره تلاش کنید.",
   "cart.error.serviceUnavailable":
     "بازارلینک به سرویس سبد و قیمت‌گذاری دسترسی پیدا نکرد. اتصال خود را بررسی و دوباره تلاش کنید.",
 

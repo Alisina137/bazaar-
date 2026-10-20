@@ -23,7 +23,11 @@ function apiBaseUrl(): string {
 }
 
 export class CartPricingApiError extends Error {
-  constructor(public readonly code: CartPricingErrorCode) {
+  constructor(
+    public readonly code: CartPricingErrorCode,
+    public readonly httpStatus: number | null = null,
+    public readonly transport: "network" | "timeout" | null = null
+  ) {
     super(code);
     this.name = "CartPricingApiError";
   }
@@ -61,7 +65,7 @@ async function requestJson<T>(
         // Preserve the safe generic error.
       }
 
-      throw new CartPricingApiError(code);
+      throw new CartPricingApiError(code, response.status);
     }
 
     if (response.status === 204) {
@@ -74,7 +78,10 @@ async function requestJson<T>(
       throw error;
     }
 
-    throw new CartPricingApiError("service_unavailable");
+    throw new CartPricingApiError(
+      "service_unavailable", null,
+      controller.signal.aborted ? "timeout" : "network"
+    );
   } finally {
     clearTimeout(timeout);
   }
@@ -120,6 +127,30 @@ export function removeCartItem(
     "/customer/cart/items/" + encodeURIComponent(itemId),
     { method: "DELETE" }
   );
+}
+
+/**
+ * DELETE may commit but its reply be lost on mobile / ngrok. Re-read the
+ * authoritative server cart before claiming that the item is still there.
+ * Never silently delete local data or replay the destructive request.
+ */
+export async function removeCartItemWithRecovery(
+  token: string,
+  itemId: string
+): Promise<CartResponse> {
+  try {
+    return await removeCartItem(token, itemId);
+  } catch (error) {
+    try {
+      const fresh = await getCart(token);
+      if (!fresh.groups.some(group => group.items.some(item => item.id === itemId))) {
+        return fresh;
+      }
+    } catch {
+      // We cannot confirm a deletion while the API is unreachable.
+    }
+    throw error;
+  }
 }
 
 export function applyCartCoupon(

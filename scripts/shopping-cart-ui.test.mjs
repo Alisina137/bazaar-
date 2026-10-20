@@ -16,7 +16,7 @@ test("cart remove action shows a visible trash button and confirmation before DE
   assert.match(cart, /accessibilityLabel=\{t\("cart\.removeProduct"\)/);
   assert.match(cart, /Alert\.alert\(t\("cart\.removeConfirmTitle"\)/);
   assert.match(cart, /style: "destructive"/);
-  assert.match(cart, /run\("item:" \+ itemId, token => removeCartItem\(token, itemId\)\)/);
+  assert.match(cart, /run\("item:" \+ itemId, token => removeCartItemWithRecovery\(token, itemId\)\)/);
   assert.match(cart, /disabled=\{busyKey !== null\}/);
   assert.match(routes, /app\.delete\("\/customer\/cart\/items\/:itemId"/);
   assert.match(routes, /service\.removeItem\(/);

@@ -16,7 +16,10 @@ function client(fetch) {
   }).outputText;
   const exports = {};
   runInNewContext(compiled, {
-    exports, fetch, AbortController, setTimeout, clearTimeout,
+    exports, fetch,
+    AbortController: globalThis.AbortController,
+    setTimeout: globalThis.setTimeout,
+    clearTimeout: globalThis.clearTimeout,
     process: { env: { EXPO_PUBLIC_API_URL: "https://bazaar-test.invalid" } }
   });
   return exports;

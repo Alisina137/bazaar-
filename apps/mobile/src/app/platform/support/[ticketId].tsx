@@ -1,3 +1,4 @@
+import type { TranslationKey } from "@bazaarlink/localization";
 import type {
   SupportTicketRecord,
   SupportTicketStatus
@@ -8,11 +9,12 @@ import { View } from "react-native";
 
 import { useAuth } from "@/auth/provider";
 import {
+  CommunicationApiError,
   platformSupportTicket,
   replyPlatformSupportTicket,
   updatePlatformSupportStatus
 } from "@/communication/api";
-import { supportStatusKey } from "@/communication/messages";
+import { communicationErrorKey, supportStatusKey } from "@/communication/messages";
 import {
   AppText,
   Badge,
@@ -42,19 +44,29 @@ export default function PlatformSupportTicketScreen() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<TranslationKey | null>(null);
+  const [loadError, setLoadError] = useState<TranslationKey | null>(null);
+  const [reload, setReload] = useState(0);
 
   const load = useCallback(async () => {
     if (!sessionToken || !ticketId) {
+      setTicket(null);
       setLoading(false);
       return;
     }
+    setTicket(null);
     setLoading(true);
+    setLoadError(null);
     try {
       setTicket(await platformSupportTicket(sessionToken, ticketId));
+    } catch (cause) {
+      setLoadError(communicationErrorKey(
+        cause instanceof CommunicationApiError ? cause.code : "service_unavailable"
+      ));
     } finally {
       setLoading(false);
     }
-  }, [sessionToken, ticketId]);
+  }, [sessionToken, ticketId, reload]);
 
   useEffect(() => {
     void load();
@@ -79,9 +91,9 @@ export default function PlatformSupportTicketScreen() {
         <StateView
           kind="error"
           title={t("support.platformTitle")}
-          message={t("support.error.notFound")}
-          actionLabel={t("marketplace.back")}
-          onAction={() => router.back()}
+          message={t(loadError ?? "support.error.notFound")}
+          actionLabel={t(loadError ? "notification.retry" : "marketplace.back")}
+          onAction={() => loadError ? setReload(value => value + 1) : router.back()}
         />
       </Screen>
     );
@@ -94,6 +106,7 @@ export default function PlatformSupportTicketScreen() {
       </Button>
       <AppText variant="display">{ticket.subject}</AppText>
       <Badge label={t(supportStatusKey(ticket.status))} tone="primary" />
+      {error ? <Card><AppText tone="danger" accessibilityRole="alert">{t(error)}</AppText></Card> : null}
 
       {ticket.messages.map((entry) => (
         <Card key={entry.id} muted={entry.authorKind === "user"}>
@@ -116,6 +129,7 @@ export default function PlatformSupportTicketScreen() {
               onPress={() => {
                 if (!sessionToken || !ticketId) return;
                 setBusy(true);
+                setError(null);
                 void replyPlatformSupportTicket(
                   sessionToken,
                   ticketId,
@@ -125,6 +139,9 @@ export default function PlatformSupportTicketScreen() {
                     setTicket(result);
                     setMessage("");
                   })
+                  .catch(cause => setError(communicationErrorKey(
+                    cause instanceof CommunicationApiError ? cause.code : "service_unavailable"
+                  )))
                   .finally(() => setBusy(false));
               }}
             >
@@ -144,12 +161,16 @@ export default function PlatformSupportTicketScreen() {
               onPress={() => {
                 if (!sessionToken || !ticketId) return;
                 setBusy(true);
+                setError(null);
                 void updatePlatformSupportStatus(
                   sessionToken,
                   ticketId,
                   status
                 )
                   .then(setTicket)
+                  .catch(cause => setError(communicationErrorKey(
+                    cause instanceof CommunicationApiError ? cause.code : "service_unavailable"
+                  )))
                   .finally(() => setBusy(false));
               }}
             >

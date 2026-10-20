@@ -1,11 +1,12 @@
 import type { SupportTicketRecord } from "@bazaarlink/contracts";
+import type { TranslationKey } from "@bazaarlink/localization";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 
 import { useAuth } from "@/auth/provider";
-import { platformSupportTickets } from "@/communication/api";
-import { supportStatusKey } from "@/communication/messages";
+import { CommunicationApiError, platformSupportTickets } from "@/communication/api";
+import { communicationErrorKey, supportStatusKey } from "@/communication/messages";
 import {
   AppText,
   Badge,
@@ -24,15 +25,22 @@ export default function PlatformSupportScreen() {
   const { t } = useLocalization();
   const [tickets, setTickets] = useState<SupportTicketRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<TranslationKey | null>(null);
 
   const load = useCallback(async () => {
     if (!sessionToken) {
+      setTickets([]);
       setLoading(false);
       return;
     }
     setLoading(true);
+    setError(null);
     try {
       setTickets((await platformSupportTickets(sessionToken)).tickets);
+    } catch (cause) {
+      setError(communicationErrorKey(
+        cause instanceof CommunicationApiError ? cause.code : "service_unavailable"
+      ));
     } finally {
       setLoading(false);
     }
@@ -58,7 +66,15 @@ export default function PlatformSupportScreen() {
   return (
     <Screen>
       <AppText variant="display">{t("support.platformTitle")}</AppText>
-      {tickets.length === 0 ? (
+      {error ? (
+        <StateView
+          kind="error"
+          title={t("support.platformTitle")}
+          message={t(error)}
+          actionLabel={t("notification.retry")}
+          onAction={() => { void load(); }}
+        />
+      ) : tickets.length === 0 ? (
         <StateView
           kind="empty"
           title={t("support.platformTitle")}

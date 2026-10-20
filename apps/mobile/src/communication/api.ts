@@ -38,8 +38,10 @@ async function requestJson<T>(
       ...init,
       signal: controller.signal,
       headers: {
-        "content-type": "application/json",
         authorization: "Bearer " + token,
+        // A bodyless GET/POST must not claim application/json: Fastify
+        // raises FST_ERR_CTP_EMPTY_JSON_BODY before reaching the route.
+        ...(init.body != null ? { "content-type": "application/json" } : {}),
         ...init.headers
       }
     });

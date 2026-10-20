@@ -134,7 +134,7 @@ export function StoreProvider({ children }: PropsWithChildren) {
         try {
           const result = await listStores(sessionToken);
           const expectedHandle = input.handle.trim().toLowerCase()
-            .replace(/[_\\s]+/g, "-").replace(/[^a-z0-9-]/g, "")
+            .replace(/[_\s]+/g, "-").replace(/[^a-z0-9-]/g, "")
             .replace(/-+/g, "-").replace(/^-|-$/g, "");
           recovered = result.stores.find(store => store.handle === expectedHandle);
         } catch {

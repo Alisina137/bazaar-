@@ -5,8 +5,8 @@ import type {
   SupportTicketRecord
 } from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useRef, useState } from "react";
 import { Alert, Linking, View } from "react-native";
 
 import { useAuth } from "@/auth/provider";
@@ -60,6 +60,8 @@ export default function CustomerOrderDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const actionInFlight = useRef(false);
+  const loadEpoch = useRef(0);
+  const loadedOrderIdentity = useRef<string | null>(null);
   const [reason, setReason] = useState("");
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
   const [reviewItems, setReviewItems] = useState<ReviewEligibilityRecord[]>([]);
@@ -67,16 +69,29 @@ export default function CustomerOrderDetailScreen() {
   const [returnCases, setReturnCases] = useState<SupportTicketRecord[]>([]);
   const [caseHistoryError, setCaseHistoryError] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
+    if (actionInFlight.current) return;
+    const requestId = ++loadEpoch.current;
     if (
       status !== "signedIn" ||
       !sessionToken ||
       !orderId
     ) {
+      loadedOrderIdentity.current = null;
+      setOrder(null);
+      setReturnCases([]);
+      setReviewItems([]);
       setLoading(false);
       return;
     }
 
+    const identity = sessionToken + ":" + orderId;
+    if (loadedOrderIdentity.current !== identity) {
+      setOrder(null);
+      setReturnCases([]);
+      setReviewItems([]);
+      loadedOrderIdentity.current = identity;
+    }
     setLoading(true);
     setErrorKey(null);
     try {
@@ -85,24 +100,27 @@ export default function CustomerOrderDetailScreen() {
         reviewEligibility(sessionToken, orderId).catch(() => ({ items: [] })),
         supportTickets(sessionToken).catch(() => null)
       ]);
+      if (requestId !== loadEpoch.current) return;
       setOrder(nextOrder);
       setReviewItems(eligibility.items);
       setCaseHistoryError(caseHistory === null);
       setReturnCases(caseHistory ? relatedReturnCases(caseHistory.tickets, nextOrder.id) : []);
     } catch (error) {
+      if (requestId !== loadEpoch.current) return;
       const safe =
         error instanceof OrderApiError
           ? error
           : new OrderApiError("service_unavailable");
       setErrorKey(orderErrorKey(safe.code));
     } finally {
-      setLoading(false);
+      if (requestId === loadEpoch.current) setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    void load();
   }, [orderId, sessionToken, status]);
+
+  useFocusEffect(useCallback(() => {
+    void load();
+    return () => { loadEpoch.current += 1; };
+  }, [load]));
 
   const cancel = async () => {
     if (actionInFlight.current || !sessionToken || !orderId || !reason.trim() || order?.state !== "pending_confirmation") {
@@ -219,9 +237,10 @@ export default function CustomerOrderDetailScreen() {
           kind="error"
           title={t("order.customer.errorTitle")}
           message={t(errorKey ?? "order.error.notFound")}
-          actionLabel={t("marketplace.back")}
-          onAction={() => router.back()}
+          actionLabel={t("cart.retry")}
+          onAction={() => { void load(); }}
         />
+        <Button variant="ghost" onPress={() => router.back()}>{t("marketplace.back")}</Button>
       </Screen>
     );
   }
@@ -449,6 +468,19 @@ export default function CustomerOrderDetailScreen() {
           <AppText tone="muted">
             {t("order.customer.paymentState")}: {order.payment.state}
           </AppText>
+          <View style={{ gap: theme.spacing.sm }}>
+            {([
+              [t("cart.itemsSubtotal"), order.totals.itemsSubtotal],
+              [t("cart.productDiscount"), -order.totals.productDiscount],
+              [t("cart.couponDiscount"), -order.totals.couponDiscount],
+              [t("order.shopping.deliveryCost"), order.totals.deliveryTotal]
+            ] as const).filter(([, amount]) => amount !== 0).map(([label, amount]) => (
+              <View key={label} style={{ flexDirection: isRTL ? "row-reverse" : "row", justifyContent: "space-between", gap: theme.spacing.sm }}>
+                <AppText tone="muted">{label}</AppText>
+                <AppText>{amount < 0 ? "-" : ""}{formatAfn(Math.abs(amount))}</AppText>
+              </View>
+            ))}
+          </View>
           <View style={{ gap: theme.spacing.xs, paddingTop: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.border }}>
             <View style={{ flexDirection: isRTL ? "row-reverse" : "row", justifyContent: "space-between", alignItems: "center" }}>
               <AppText variant="bodyStrong">{t("cart.total")}</AppText>
@@ -502,7 +534,7 @@ export default function CustomerOrderDetailScreen() {
         </View>
       </Card>
 
-      {(canOpenReturnReview(order.state) || returnCases.length > 0) ? (
+      {(canOpenReturnReview(order.state) || returnCases.length > 0 || order.state === "refund_pending" || order.state === "refunded") ? (
         <Card>
           <View style={{ gap: theme.spacing.md }}>
             <AppText variant="title">{t("order.shopping.returnTitle")}</AppText>

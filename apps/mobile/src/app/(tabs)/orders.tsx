@@ -1,7 +1,7 @@
 import type { OrderRecord } from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 
 import { useAuth } from "@/auth/provider";
@@ -60,22 +60,28 @@ export default function OrdersScreen() {
   const { isRTL, formatAfn, locale, t } = useLocalization();
 
   const [orders, setOrders] = useState<OrderRecord[]>([]);
+  const [loadedToken, setLoadedToken] = useState<string | null>(null);
+  const epoch = useRef(0);
+  const currentOrders = loadedToken === sessionToken ? orders : [];
   const [filter, setFilter] = useState<OrderFilter>("all");
   const [search, setSearch] = useState("");
-  const visibleOrders = useMemo(() => orders.filter(order => {
+  const visibleOrders = useMemo(() => currentOrders.filter(order => {
     const query = search.trim().toLowerCase();
     if (query && ![order.storeName, order.orderNumber].some(value => value.toLowerCase().includes(query))) return false;
     if (filter === "active") return !finishedStates.has(order.state) && !cancelledStates.has(order.state);
     if (filter === "completed") return finishedStates.has(order.state);
     if (filter === "cancelled") return cancelledStates.has(order.state);
     return true;
-  }).sort((a, b) => Date.parse(b.placedAt) - Date.parse(a.placedAt)), [orders, filter, search]);
+  }).sort((a, b) => Date.parse(b.placedAt) - Date.parse(a.placedAt)), [currentOrders, filter, search]);
   const [loading, setLoading] = useState(false);
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
 
   const load = useCallback(async () => {
+    const requestId = ++epoch.current;
     if (status !== "signedIn" || !sessionToken) {
       setOrders([]);
+      setLoadedToken(null);
+      setLoading(false);
       return;
     }
 
@@ -83,21 +89,25 @@ export default function OrdersScreen() {
     setErrorKey(null);
     try {
       const response = await listCustomerOrders(sessionToken);
+      if (requestId !== epoch.current) return;
+      setLoadedToken(sessionToken);
       setOrders(response.orders);
     } catch (error) {
+      if (requestId !== epoch.current) return;
       const safe =
         error instanceof OrderApiError
           ? error
           : new OrderApiError("service_unavailable");
       setErrorKey(orderErrorKey(safe.code));
     } finally {
-      setLoading(false);
+      if (requestId === epoch.current) setLoading(false);
     }
   }, [sessionToken, status]);
 
   useFocusEffect(
     useCallback(() => {
       void load();
+      return () => { epoch.current += 1; };
     }, [load])
   );
 
@@ -127,7 +137,7 @@ export default function OrdersScreen() {
     );
   }
 
-  if (loading && orders.length === 0) {
+  if (loading && currentOrders.length === 0) {
     return (
       <Screen scrollable={false}>
         <StateView
@@ -139,7 +149,7 @@ export default function OrdersScreen() {
     );
   }
 
-  if (errorKey && orders.length === 0) {
+  if (errorKey && currentOrders.length === 0) {
     return (
       <Screen scrollable={false}>
         <StateView
@@ -181,7 +191,7 @@ export default function OrdersScreen() {
         </Card>
       ) : null}
 
-      {orders.length === 0 ? (
+      {currentOrders.length === 0 ? (
         <Card>
           <View style={{ gap: theme.spacing.md }}>
             <AppText variant="title">
@@ -200,7 +210,12 @@ export default function OrdersScreen() {
         </Card>
       ) : (
         visibleOrders.length === 0 ? (
-          <Card><AppText tone="muted">{locale === "fa-AF" ? "سفارشی مطابق جستجو یافت نشد." : locale === "ps-AF" ? "ستاسو له لټون سره سم فرمایش ونه موندل شو." : "No orders match your search or filter."}</AppText></Card>
+          <Card>
+            <View style={{ gap: theme.spacing.sm }}>
+              <AppText tone="muted">{t("order.shopping.noMatches")}</AppText>
+              <Button variant="secondary" onPress={() => { setSearch(""); setFilter("all"); }}>{t("order.shopping.clearFilters")}</Button>
+            </View>
+          </Card>
         ) : visibleOrders.map((order) => (
           <Card key={order.id}>
             <View style={{ gap: theme.spacing.md }}>

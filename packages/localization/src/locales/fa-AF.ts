@@ -586,6 +586,7 @@ export const faAfMessages = {
   "order.shopping.deliveryCost": "هزینه ارسال",
   "order.shopping.noMatches": "سفارشی مطابق جستجو یا فیلتر پیدا نشد.",
   "order.shopping.clearFilters": "پاک‌کردن فیلترها",
+  "order.shopping.total": "مجموع کل",
   "order.shopping.reorderTitle": "خرید دوباره این کالاها",
   "order.shopping.reorderHint": "کالاهای این سفارش را دوباره به سبد اضافه کنید. قیمت و موجودی دوباره بررسی می‌شود. این کار سفارش جدید ثبت نمی‌کند.",
   "order.shopping.reorderConfirm": "این کالاها به سبد خرید افزوده شوند؟ قیمت و موجودی ممکن است تغییر کرده باشد.",

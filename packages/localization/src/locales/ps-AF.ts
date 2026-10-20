@@ -586,6 +586,7 @@ export const psAfMessages = {
   "order.shopping.deliveryCost": "د لېږد لګښت",
   "order.shopping.noMatches": "ستاسو له لټون یا چاڼ سره سم فرمایش ونه موندل شو.",
   "order.shopping.clearFilters": "چاڼونه پاک کړئ",
+  "order.shopping.total": "ټولټال",
   "order.shopping.reorderTitle": "دا توکي بیا واخلئ",
   "order.shopping.reorderHint": "د دې فرمایش توکي بیا په سبد کې اضافه کړئ. بیه او شتون بیا کتل کېږي. په دې سره نوی فرمایش نه ثبتېږي.",
   "order.shopping.reorderConfirm": "دا توکي سبد ته اضافه شي؟ بیې او شتون ښايي بدل شوي وي.",

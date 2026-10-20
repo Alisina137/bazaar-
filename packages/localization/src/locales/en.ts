@@ -589,6 +589,7 @@ export const enMessages = {
   "order.shopping.deliveryCost": "Delivery",
   "order.shopping.noMatches": "No orders match this search or filter.",
   "order.shopping.clearFilters": "Clear filters",
+  "order.shopping.total": "Total",
   "order.shopping.reorderTitle": "Buy these items again",
   "order.shopping.reorderHint": "Add the products from this order to your cart. Prices and availability are checked again. This does not place an order.",
   "order.shopping.reorderConfirm": "Add these items to your cart? Availability and prices may have changed.",

@@ -483,7 +483,7 @@ export default function CustomerOrderDetailScreen() {
           </View>
           <View style={{ gap: theme.spacing.xs, paddingTop: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.border }}>
             <View style={{ flexDirection: isRTL ? "row-reverse" : "row", justifyContent: "space-between", alignItems: "center" }}>
-              <AppText variant="bodyStrong">{t("cart.total")}</AppText>
+              <AppText variant="bodyStrong">{t("order.shopping.total")}</AppText>
               <AppText variant="heading">{formatAfn(order.totals.total)}</AppText>
             </View>
           </View>

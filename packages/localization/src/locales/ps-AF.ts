@@ -282,6 +282,9 @@ export const psAfMessages = {
   "cart.error.checkoutUnavailable":
     "تر څو د ټوکرۍ ستونزې حل نه شي د پېر بیه نه شي جوړېدای.",
   "cart.error.rateLimited": "ډېرې هڅې شوې دي. لږ وروسته بیا هڅه وکړئ.",
+  "cart.error.networkUnreachable": "د پېرود سبد API ته اړیکه نه نیول کېږي. pnpm dev:api او ngrok تونل وګورئ او بیا هڅه وکړئ.",
+  "cart.error.requestTimedOut": "د سبد د غوښتنې وخت پای ته ورسېد. انټرنېټ او API تونل وګورئ او سبد تازه کړئ.",
+  "cart.error.serverUnavailable": "د سبد سرور تېروتنه ورکړه. د pnpm dev:api ترمینل او د ډیټابېس اړیکه وګورئ.",
   "cart.error.serviceUnavailable":
     "بازارلینک د ټوکرۍ او بیې خدمت ته ونه رسېد. خپله اړیکه وګورئ او بیا هڅه وکړئ.",
 

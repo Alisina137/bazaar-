@@ -3,6 +3,20 @@ import type {
 } from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
 
+import { CartPricingApiError } from "./api";
+
+export function cartPricingRequestErrorKey(error: unknown): TranslationKey {
+  if (!(error instanceof CartPricingApiError)) {
+    return "cart.error.networkUnreachable";
+  }
+  if (error.code === "service_unavailable") {
+    if (error.httpStatus !== null) return "cart.error.serverUnavailable";
+    return error.transport === "timeout"
+      ? "cart.error.requestTimedOut" : "cart.error.networkUnreachable";
+  }
+  return cartPricingErrorKey(error.code);
+}
+
 export function cartPricingErrorKey(
   code: CartPricingErrorCode
 ): TranslationKey {

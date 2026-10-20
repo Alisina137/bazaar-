@@ -285,6 +285,9 @@ export const enMessages = {
     "Checkout pricing cannot be created until cart issues are resolved.",
   "cart.error.rateLimited":
     "Too many checkout attempts. Please wait and try again.",
+  "cart.error.networkUnreachable": "The cart API cannot be reached. Check that pnpm dev:api and its ngrok tunnel are running, then retry.",
+  "cart.error.requestTimedOut": "The cart request timed out. Check your connection and the API tunnel, then refresh the cart.",
+  "cart.error.serverUnavailable": "The cart server returned an error. Check the pnpm dev:api terminal and database connection, then retry.",
   "cart.error.serviceUnavailable":
     "BazaarLink could not reach the cart and pricing service. Check your connection and try again.",
 

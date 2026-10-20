@@ -16,7 +16,7 @@ import { LocalizationProvider } from "@/localization/provider";
 import { StoreProvider } from "@/store/provider";
 
 // Expo Router discovers root screens from the filesystem automatically.
-// account/ has leaf routes but no index/_layout so it is not a root Stack.Screen.
+// account/ has leaf routes but no index/_layout, so it is not a direct root screen.
 function RootNavigator() {
   const theme = useAppTheme();
 

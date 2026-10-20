@@ -1,8 +1,8 @@
 import type { OrderRecord } from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
-import { View } from "react-native";
+import { useCallback, useMemo, useState } from "react";
+import { Pressable, TextInput, View } from "react-native";
 
 import { useAuth } from "@/auth/provider";
 import {
@@ -24,6 +24,19 @@ import {
   orderStateKey
 } from "@/order/messages";
 
+type OrderFilter = "all" | "active" | "completed" | "cancelled";
+const finishedStates = new Set(["delivered", "picked_up"]);
+const cancelledStates = new Set(["cancelled", "refunded", "payment_failed", "delivery_failed"]);
+function filterLabel(filter: OrderFilter, locale: string): string {
+  const labels: Record<OrderFilter, [string, string, string]> = {
+    all: ["All", "همه", "ټول"],
+    active: ["Active", "فعال", "فعال"],
+    completed: ["Completed", "تکمیل شده", "بشپړ شوي"],
+    cancelled: ["Cancelled", "لغو شده", "لغوه شوي"]
+  };
+  const index = locale === "fa-AF" ? 1 : locale === "ps-AF" ? 2 : 0;
+  return labels[filter][index];
+}
 function statusTone(
   state: OrderRecord["state"]
 ): "success" | "danger" | "warning" | "neutral" {
@@ -47,6 +60,16 @@ export default function OrdersScreen() {
   const { isRTL, formatAfn, locale, t } = useLocalization();
 
   const [orders, setOrders] = useState<OrderRecord[]>([]);
+  const [filter, setFilter] = useState<OrderFilter>("all");
+  const [search, setSearch] = useState("");
+  const visibleOrders = useMemo(() => orders.filter(order => {
+    const query = search.trim().toLowerCase();
+    if (query && ![order.storeName, order.orderNumber].some(value => value.toLowerCase().includes(query))) return false;
+    if (filter === "active") return !finishedStates.has(order.state) && !cancelledStates.has(order.state);
+    if (filter === "completed") return finishedStates.has(order.state);
+    if (filter === "cancelled") return cancelledStates.has(order.state);
+    return true;
+  }).sort((a, b) => Date.parse(b.placedAt) - Date.parse(a.placedAt)), [orders, filter, search]);
   const [loading, setLoading] = useState(false);
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
 
@@ -133,8 +156,24 @@ export default function OrdersScreen() {
   }
 
   return (
-    <Screen>
+    <Screen scrollKey="shopping-orders" refreshing={loading} onRefresh={() => { void load(); }} contentStyle={{ gap: theme.spacing.md }}>
       <AppText variant="heading">{t("order.customer.title")}</AppText>
+      <TextInput
+        value={search}
+        onChangeText={setSearch}
+        placeholder={locale === "fa-AF" ? "جستجوی سفارش یا فروشگاه" : locale === "ps-AF" ? "د فرمایش یا پلورنځي لټون" : "Search orders or stores"}
+        placeholderTextColor={theme.colors.textMuted}
+        accessibilityLabel={locale === "fa-AF" ? "جستجوی سفارش" : locale === "ps-AF" ? "د فرمایش لټون" : "Search orders"}
+        style={{ color: theme.colors.text, backgroundColor: theme.colors.surface, borderColor: theme.colors.border, borderWidth: 1, borderRadius: theme.radii.md, paddingHorizontal: theme.spacing.md, minHeight: 48, textAlign: isRTL ? "right" : "left" }}
+      />
+      <View style={{ flexDirection: isRTL ? "row-reverse" : "row", flexWrap: "wrap", gap: theme.spacing.xs }}>
+        {(["all", "active", "completed", "cancelled"] as const).map(key => (
+          <Pressable key={key} accessibilityRole="button" accessibilityState={{ selected: filter === key }} onPress={() => setFilter(key)}
+            style={{ paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.sm, borderRadius: theme.radii.md, borderWidth: 1, borderColor: filter === key ? theme.colors.primary : theme.colors.border, backgroundColor: filter === key ? theme.colors.primary : theme.colors.surface }}>
+            <AppText style={{ color: filter === key ? theme.colors.onPrimary : theme.colors.text }}>{filterLabel(key, locale)}</AppText>
+          </Pressable>
+        ))}
+      </View>
 
       {errorKey ? (
         <Card>
@@ -160,7 +199,9 @@ export default function OrdersScreen() {
           </View>
         </Card>
       ) : (
-        orders.map((order) => (
+        visibleOrders.length === 0 ? (
+          <Card><AppText tone="muted">{locale === "fa-AF" ? "سفارشی مطابق جستجو یافت نشد." : locale === "ps-AF" ? "ستاسو له لټون سره سم فرمایش ونه موندل شو." : "No orders match your search or filter."}</AppText></Card>
+        ) : visibleOrders.map((order) => (
           <Card key={order.id}>
             <View style={{ gap: theme.spacing.md }}>
               <View

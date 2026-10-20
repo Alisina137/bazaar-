@@ -30,7 +30,7 @@ test("map location is an explicit, valid coordinate pair", () => {
 test("Android map picker saves only confirmed taps or dragged pins", () => {
   assert.match(native, /from "react-native-maps"/);
   assert.match(native, /onPress=\{choose\}/);
-  assert.match(native, /onDragEnd=\{choose\}/);
+  assert.match(native, /onDragEnd=\{event =>/);
   assert.match(native, /onChange\(draft\)/);
   assert.match(native, /setVisible\(false\)/);
   assert.match(native, /onChange\(null\)/);

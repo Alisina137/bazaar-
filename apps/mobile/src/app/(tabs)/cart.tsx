@@ -361,111 +361,124 @@ function MerchantGroupCard({
           <Badge label={formatNumber(group.items.length)} tone="neutral" />
         </View>
 
-        {group.items.map((item) => (
+        {group.items.map(item => (
           <View
             key={item.id}
             style={{
               gap: theme.spacing.sm,
-              paddingBottom: theme.spacing.lg,
+              paddingVertical: theme.spacing.sm,
               borderBottomWidth: 1,
               borderBottomColor: theme.colors.border
             }}
           >
-            <View
-              style={{
-                flexDirection: isRTL ? "row-reverse" : "row",
-                gap: theme.spacing.md
-              }}
-            >
+            <View style={{
+              flexDirection: isRTL ? "row-reverse" : "row",
+              gap: theme.spacing.md, alignItems: "flex-start"
+            }}>
               {item.imageUrl ? (
                 <Image
                   source={{ uri: item.imageUrl }}
                   accessibilityLabel={item.name}
+                  resizeMode="contain"
                   style={{
-                    width: 88,
-                    height: 88,
+                    width: 76, height: 76,
                     borderRadius: theme.radii.md,
                     backgroundColor: theme.colors.surfaceMuted
                   }}
                 />
               ) : (
-                <View style={{ width: 88, height: 88, borderRadius: theme.radii.md, backgroundColor: theme.colors.surfaceMuted, justifyContent: "center", alignItems: "center" }}>
-                  <Ionicons name="image-outline" size={30} color={theme.colors.textMuted} />
+                <View style={{
+                  width: 76, height: 76, borderRadius: theme.radii.md,
+                  backgroundColor: theme.colors.surfaceMuted,
+                  justifyContent: "center", alignItems: "center"
+                }}>
+                  <Ionicons name="image-outline" size={25} color={theme.colors.textMuted} />
                 </View>
               )}
               <View style={{ flex: 1, gap: theme.spacing.xs }}>
-                <AppText variant="heading">{item.name}</AppText>
+                <AppText variant="label" numberOfLines={2} style={{ fontSize: 14, lineHeight: 20 }}>
+                  {item.name}
+                </AppText>
                 {item.variantTitle ? (
-                  <AppText variant="caption" tone="muted">
+                  <AppText variant="caption" tone="muted" numberOfLines={2}>
                     {item.variantTitle}
                   </AppText>
                 ) : null}
-                <AppText variant="bodyStrong" tone="primary">{formatAfn(item.lineTotal)}</AppText>
+                <AppText variant="caption" tone="muted">
+                  {formatAfn(item.unitPrice)} × {formatNumber(item.quantity)}
+                </AppText>
+                <AppText variant="bodyStrong" tone="primary" style={{ fontSize: 16, lineHeight: 22 }}>
+                  {formatAfn(item.lineTotal)}
+                </AppText>
               </View>
             </View>
 
-            <View
-              style={{
+            {(item.priceChanged || item.unavailableReason) ? (
+              <View style={{
                 flexDirection: isRTL ? "row-reverse" : "row",
-                flexWrap: "wrap",
-                gap: theme.spacing.sm
-              }}
-            >
-              {item.priceChanged ? (
-                <Badge
-                  label={t("cart.priceChangedBadge")}
-                  tone="warning"
-                />
-              ) : null}
-              {item.unavailableReason ? (
-                <Badge
-                  label={t(issueKey(item.unavailableReason))}
-                  tone="danger"
-                />
-              ) : null}
-            </View>
+                flexWrap: "wrap", gap: theme.spacing.xs
+              }}>
+                {item.priceChanged ? (
+                  <Badge label={t("cart.priceChangedBadge")} tone="warning" />
+                ) : null}
+                {item.unavailableReason ? (
+                  <Badge label={t(issueKey(item.unavailableReason))} tone="danger" />
+                ) : null}
+              </View>
+            ) : null}
 
-            <View
-              style={{
+            <View style={{
+              flexDirection: isRTL ? "row-reverse" : "row",
+              alignItems: "center", justifyContent: "space-between",
+              gap: theme.spacing.sm
+            }}>
+              <View style={{
                 flexDirection: isRTL ? "row-reverse" : "row",
-                gap: theme.spacing.sm,
-                alignItems: "center"
-              }}
-            >
-              <Button
-                variant="secondary"
-                disabled={busyKey !== null || item.quantity <= 1}
-                onPress={() => {
-                  void onUpdate(item.id, item.quantity - 1);
-                }}
-              >
-                −
-              </Button>
-              <AppText variant="heading">
-                {formatNumber(item.quantity)}
-              </AppText>
-              <Button
-                variant="secondary"
-                disabled={
-                  busyKey !== null ||
-                  item.quantity >= item.availableQuantity
-                }
-                onPress={() => {
-                  void onUpdate(item.id, item.quantity + 1);
-                }}
-              >
-                +
-              </Button>
-              <Button
-                variant="ghost"
-                loading={busyKey === "item:" + item.id}
+                alignItems: "center", gap: theme.spacing.xs,
+                borderWidth: 1, borderColor: theme.colors.border,
+                borderRadius: theme.radii.md,
+                backgroundColor: theme.colors.surface
+              }}>
+                <QuantityButton
+                  icon="remove"
+                  label={t("cart.decreaseQuantity")}
+                  disabled={busyKey !== null || item.quantity <= 1}
+                  onPress={() => { void onUpdate(item.id, item.quantity - 1); }}
+                />
+                <AppText variant="label" align="center" style={{ minWidth: 24 }}>
+                  {formatNumber(item.quantity)}
+                </AppText>
+                <QuantityButton
+                  icon="add"
+                  label={t("cart.increaseQuantity")}
+                  disabled={busyKey !== null || item.quantity >= item.availableQuantity}
+                  onPress={() => { void onUpdate(item.id, item.quantity + 1); }}
+                />
+              </View>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t("cart.removeProduct") + ": " + item.name}
+                accessibilityState={{ disabled: busyKey !== null, busy: busyKey === "item:" + item.id }}
                 disabled={busyKey !== null}
-                onPress={() => {
-                  void onRemove(item.id);
-                }}
+                onPress={() => onRemove(item.id)}
+                style={({ pressed }) => ({
+                  flexDirection: isRTL ? "row-reverse" : "row",
+                  alignItems: "center", justifyContent: "center",
+                  gap: theme.spacing.xs,
+                  minHeight: 44, paddingHorizontal: theme.spacing.md,
+                  borderRadius: theme.radii.md,
+                  backgroundColor: theme.colors.dangerSoft,
+                  opacity: busyKey !== null ? theme.opacity.disabled : pressed ? theme.opacity.pressed : 1
+                })}
               >
-                {t("cart.remove")}
-              </Button>
+                {busyKey === "item:" + item.id ? (
+                  <ActivityIndicator size="small" color={theme.colors.danger} />
+                ) : (
+                  <Ionicons name="trash-outline" size={17} color={theme.colors.danger} />
+                )}
+                <AppText variant="caption" tone="danger">{t("cart.remove")}</AppText>
+              </Pressable>
             </View>
           </View>
         ))}
@@ -545,6 +558,36 @@ function MerchantGroupCard({
   );
 }
 
+function QuantityButton({
+  icon,
+  label,
+  disabled,
+  onPress
+}: {
+  icon: "add" | "remove";
+  label: string;
+  disabled: boolean;
+  onPress: () => void;
+}) {
+  const theme = useAppTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => ({
+        width: 44, height: 44,
+        alignItems: "center", justifyContent: "center",
+        opacity: disabled ? theme.opacity.disabled : pressed ? theme.opacity.pressed : 1
+      })}
+    >
+      <Ionicons name={icon} size={19} color={theme.colors.primary} />
+    </Pressable>
+  );
+}
+
 function PriceRow({
   label,
   value,
@@ -565,12 +608,16 @@ function PriceRow({
         gap: theme.spacing.md
       }}
     >
-      <AppText variant={emphasized ? "heading" : "body"}>
-        {label}
-      </AppText>
-      <AppText variant={emphasized ? "heading" : "body"}>
-        {value}
-      </AppText>
+      <AppText
+        variant={emphasized ? "bodyStrong" : "label"}
+        tone={emphasized ? "default" : "muted"}
+        style={emphasized ? { fontSize: 15, lineHeight: 22 } : undefined}
+      >{label}</AppText>
+      <AppText
+        variant="bodyStrong"
+        tone={emphasized ? "primary" : "default"}
+        style={{ fontSize: 14, lineHeight: 22 }}
+      >{value}</AppText>
     </View>
   );
 }

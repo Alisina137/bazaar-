@@ -126,10 +126,12 @@ export class OrderService implements OrderServiceContract {
       idempotencyKey: input.idempotencyKey
     });
 
-    if (!result.reused) {
-      await Promise.all(
+    if (!result.reused && this.notifier) {
+      // Order creation is already committed at this point. A notification
+      // provider failure must not turn a successfully placed order into 503.
+      await Promise.allSettled(
         result.orders.map((order) =>
-          this.notifier?.orderPlaced({
+          this.notifier!.orderPlaced({
             id: order.id,
             orderNumber: order.orderNumber,
             customerUserId: order.customerUserId,

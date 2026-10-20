@@ -558,8 +558,7 @@ export const psAfMessages = {
   "payment.customer.readyForReview": "د تادیې پړاو چمتو دی",
   "payment.customer.securityHint":
     "بازارلینک د کارت شمېره یا CVV نه اخلي. ډیجیټل تادیات د سرورونو ترمنځ تاییدېږي.",
-  "payment.customer.reviewReady":
-    "پته، سپارنه او تادیه چمتو دي. د فرمایش جوړول په ۸ پړاو کې پیلېږي.",
+  "payment.customer.reviewReady": "ستاسو پته، سپارنه او د تادیې انتخابونه چمتو دي. اوس فرمایش ثبتولای شئ.",
   "payment.customer.reviewBlocked":
     "د وروستۍ کتنې تر دوام مخکې د ټولو پلورونکو د تادیې پړاو بشپړ کړئ.",
   "payment.unavailable.merchantDisabled":
@@ -708,6 +707,10 @@ export const psAfMessages = {
   "order.error.cancellationNotAllowed": "پلورونکي فرمایش تایید کړی؛ مشتری نور نشي کولای فرمایش لغوه کړي.",
   "order.error.refundUnavailable": "د تادیې یا بشپړونې په اوسني حالت کې بېرته تادیه نشي پیل کېدای.",
   "order.error.rateLimited": "د فرمایش ډېرې هڅې شوې دي. لږ وروسته بیا هڅه وکړئ.",
+  "order.error.serverFailure": "د فرمایش سرور تېروتنه ورکړه. د بیا هڅې مخکې خپل فرمایشونه وګورئ. که ثبت شوی نه وي، د تېروتنې پېژندنه شریک کړئ.",
+  "order.error.networkFailure": "د فرمایش له خدمت سره اړیکه ونه نیول شوه. د بیا هڅې مخکې فرمایشونه وګورئ؛ ښايي غوښتنه بریالۍ شوې وي.",
+  "order.error.requestTimeout": "د فرمایش تایید ډېر وخت ونیو. د بیا هڅې مخکې فرمایشونه وګورئ؛ کېدای شي ثبت شوی وي.",
+  "order.customer.checkOrderHistory": "زما فرمایشونه وګورئ",
   "order.error.serviceUnavailable": "بازارلینک د فرمایش خدمت ته لاسرسی نه لري. اړیکه وګورئ او بیا هڅه وکړئ.",
 
   "orders.title": "فرمایشونه",

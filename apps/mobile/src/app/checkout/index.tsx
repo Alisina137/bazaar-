@@ -49,7 +49,7 @@ import {
   OrderApiError,
   placeOrder
 } from "@/order/api";
-import { orderErrorKey } from "@/order/messages";
+import { orderRequestErrorKey } from "@/order/messages";
 
 function makeOrderIdempotencyKey(sessionId: string): string {
   return (
@@ -139,6 +139,9 @@ export default function CheckoutScreen() {
   const [paymentReady, setPaymentReady] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [orderError, setOrderError] = useState<TranslationKey | null>(null);
+  const [orderErrorRef, setOrderErrorRef] = useState<string | null>(null);
+  const [orderNeedsCheck, setOrderNeedsCheck] = useState(false);
+  const orderWriteLock = useRef(false);
   const orderIdempotencyRef = useRef<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [deliveryLoading, setDeliveryLoading] = useState(false);
@@ -342,13 +345,17 @@ export default function CheckoutScreen() {
   };
 
   const submitOrder = async () => {
+    if (orderWriteLock.current) return;
     if (!sessionToken || !quote || !paymentReady) {
       setOrderError("order.error.paymentNotReady");
       return;
     }
 
+    orderWriteLock.current = true;
     setPlacingOrder(true);
     setOrderError(null);
+    setOrderErrorRef(null);
+    setOrderNeedsCheck(false);
 
     try {
       const idempotencyKey =
@@ -367,7 +374,9 @@ export default function CheckoutScreen() {
         error instanceof OrderApiError
           ? error
           : new OrderApiError("service_unavailable");
-      setOrderError(orderErrorKey(safe.code));
+      setOrderError(orderRequestErrorKey(safe));
+      setOrderErrorRef(safe.reference);
+      setOrderNeedsCheck(safe.code === "service_unavailable");
 
       if (
         safe.code === "checkout_unavailable" ||
@@ -377,6 +386,7 @@ export default function CheckoutScreen() {
         orderIdempotencyRef.current = null;
       }
     } finally {
+      orderWriteLock.current = false;
       setPlacingOrder(false);
     }
   };
@@ -749,7 +759,19 @@ export default function CheckoutScreen() {
                 </View>
               </View>
               {orderError ? (
-                <AppText tone="danger">{t(orderError)}</AppText>
+                <View style={{ gap: theme.spacing.sm }}>
+                  <AppText tone="danger" accessibilityRole="alert">{t(orderError)}</AppText>
+                  {orderErrorRef ? (
+                    <AppText variant="caption" tone="muted">
+                      {t("cart.error.reference")}: {orderErrorRef}
+                    </AppText>
+                  ) : null}
+                  {orderNeedsCheck ? (
+                    <Button variant="secondary" onPress={() => router.push("/(tabs)/orders")}>
+                      {t("order.customer.checkOrderHistory")}
+                    </Button>
+                  ) : null}
+                </View>
               ) : null}
               <Button
                 fullWidth

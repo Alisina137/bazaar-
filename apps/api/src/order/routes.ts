@@ -95,7 +95,17 @@ function sendError(reply: FastifyReply, error: unknown) {
   if (error instanceof OrderError) {
     return reply.code(error.statusCode).send(errorBody(error.code));
   }
-  throw error;
+  const reference = String(reply.request.id);
+  reply.log.error({
+    err: error,
+    reference,
+    method: reply.request.method,
+    route: reply.request.routeOptions.url
+  }, "Unexpected order service failure");
+  // A safe correlation ID, never SQL, session tokens or customer details.
+  return reply.code(503).send({
+    error: { code: "service_unavailable", reference }
+  } satisfies OrderErrorResponse);
 }
 
 export function registerOrderRoutes(

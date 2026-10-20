@@ -62,7 +62,7 @@ test("quantity steppers, price totals, cart coupons and checkout survive redesig
     /updateCartItem\(token, itemId, \{ quantity \}\)/,
     /item\.quantity >= item\.availableQuantity/,
     /item\.quantity <= 1/, /applyCartCoupon\(/,
-    /removeCartCoupon\(/, /cart\.totals\.preDeliveryTotal/,
+    /removeCartCoupon\(/, /visibleCart\.totals\.preDeliveryTotal/,
     /cart\.checkout/, /hasBlockingIssues/
   ]) assert.match(cart, pattern);
 });

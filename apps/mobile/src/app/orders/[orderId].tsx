@@ -5,10 +5,11 @@ import type {
 } from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, Linking, View } from "react-native";
 
 import { useAuth } from "@/auth/provider";
+import { addCartItem } from "@/cart-pricing/api";
 import {
   AppText,
   Badge,
@@ -54,6 +55,7 @@ export default function CustomerOrderDetailScreen() {
   const [order, setOrder] = useState<OrderRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const actionInFlight = useRef(false);
   const [reason, setReason] = useState("");
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
   const [reviewItems, setReviewItems] = useState<ReviewEligibilityRecord[]>([]);
@@ -93,11 +95,12 @@ export default function CustomerOrderDetailScreen() {
   }, [orderId, sessionToken, status]);
 
   const cancel = async () => {
-    if (!sessionToken || !orderId || !reason.trim()) {
+    if (actionInFlight.current || !sessionToken || !orderId || !reason.trim() || order?.state !== "pending_confirmation") {
       setErrorKey("order.error.invalidRequest");
       return;
     }
 
+    actionInFlight.current = true;
     setBusy(true);
     setErrorKey(null);
     try {
@@ -107,6 +110,7 @@ export default function CustomerOrderDetailScreen() {
         })
       );
       setReason("");
+      Alert.alert(t("order.customer.cancelTitle"), t("order.shopping.cancelled"));
     } catch (error) {
       const safe =
         error instanceof OrderApiError
@@ -114,6 +118,48 @@ export default function CustomerOrderDetailScreen() {
           : new OrderApiError("service_unavailable");
       setErrorKey(orderErrorKey(safe.code));
     } finally {
+      actionInFlight.current = false;
+      setBusy(false);
+    }
+  };
+
+  const reorder = async () => {
+    if (actionInFlight.current || !sessionToken || !order || !order.items.length) return;
+    actionInFlight.current = true;
+    setBusy(true);
+    setErrorKey(null);
+    let added = 0;
+    let changed = false;
+    const failed: string[] = [];
+    try {
+      // The existing cart API rechecks live stock, product visibility and prices.
+      // A partial success is explicitly reported: it is never presented as an order.
+      for (const item of order.items) {
+        try {
+          const cart = await addCartItem(sessionToken, {
+            productId: item.productId,
+            variantId: item.variantId,
+            quantity: item.quantity
+          });
+          added += 1;
+          const current = cart.groups.flatMap(group => group.items)
+            .find(candidate => candidate.productId === item.productId && candidate.variantId === item.variantId);
+          if (current && Math.abs(current.unitPrice - item.unitPrice) >= 0.005) changed = true;
+        } catch {
+          failed.push(item.productName);
+        }
+      }
+      if (added === 0) {
+        Alert.alert(t("order.shopping.reorderTitle"), t("order.shopping.reorderFailed") + "\n" + failed.join(", "));
+      } else {
+        const message = (failed.length ? t("order.shopping.reorderPartial") + "\n" + failed.join(", ") : t("order.shopping.reorderSuccess"))
+          + (changed ? "\n" + t("order.shopping.priceChanged") : "");
+        Alert.alert(t("order.shopping.reorderTitle"), message, [
+          { text: t("order.shopping.reviewCart"), onPress: () => router.push({ pathname: "/(tabs)/shopping", params: { section: "cart" } }) }
+        ]);
+      }
+    } finally {
+      actionInFlight.current = false;
       setBusy(false);
     }
   };
@@ -406,6 +452,20 @@ export default function CustomerOrderDetailScreen() {
         </View>
       </Card>
 
+      <Card>
+        <View style={{ gap: theme.spacing.md }}>
+          <AppText variant="title">{t("order.shopping.reorderTitle")}</AppText>
+          <AppText tone="muted">{t("order.shopping.reorderHint")}</AppText>
+          <Button variant="secondary" disabled={busy || !order.items.length} loading={busy}
+            onPress={() => Alert.alert(t("order.shopping.reorderTitle"), t("order.shopping.reorderConfirm"), [
+              { text: t("support.hub.cancel"), style: "cancel" },
+              { text: t("order.shopping.reorder"), onPress: () => { void reorder(); } }
+            ])}>
+            {t("order.shopping.reorder")}
+          </Button>
+        </View>
+      </Card>
+
       {order.state === "pending_confirmation" ? (
         <Card>
           <View style={{ gap: theme.spacing.md }}>
@@ -425,9 +485,10 @@ export default function CustomerOrderDetailScreen() {
               variant="danger"
               loading={busy}
               disabled={busy || !reason.trim()}
-              onPress={() => {
-                void cancel();
-              }}
+              onPress={() => Alert.alert(t("order.shopping.cancelConfirmTitle"), t("order.shopping.cancelConfirmMessage"), [
+                { text: t("support.hub.cancel"), style: "cancel" },
+                { text: t("order.customer.cancel"), style: "destructive", onPress: () => { void cancel(); } }
+              ])}
             >
               {t("order.customer.cancel")}
             </Button>

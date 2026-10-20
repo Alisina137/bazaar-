@@ -4,6 +4,8 @@ import type {
   ProductReviewsResponse
 } from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import type { ComponentProps } from "react";
 import {
   useFocusEffect,
   useLocalSearchParams,
@@ -16,7 +18,9 @@ import {
   useState
 } from "react";
 import {
+  ActivityIndicator,
   Image,
+  Pressable,
   Share,
   View
 } from "react-native";
@@ -29,6 +33,7 @@ import {
 } from "@/cart-pricing/api";
 import { cartPricingErrorKey } from "@/cart-pricing/messages";
 import { MarketplaceProductCard } from "@/components/marketplace/MarketplaceProductCard";
+import { ProductImageGallery } from "@/components/marketplace/ProductImageGallery";
 import {
   AppText,
   Badge,
@@ -54,6 +59,7 @@ import {
 import { marketplaceErrorKey } from "@/marketplace/messages";
 import { productReviews } from "@/trust/api";
 import { addCompareProduct, getCompareProductIds, removeCompareProduct } from "@/marketplace/compare";
+import { isProvinceName, provinceName } from "@/marketplace/provinces";
 
 function storefrontBaseUrl() {
   return (
@@ -62,12 +68,47 @@ function storefrontBaseUrl() {
   ).replace(/\/$/, "");
 }
 
+function ProductAction({
+  icon, label, onPress, selected = false, busy = false, disabled = false
+}: {
+  icon: ComponentProps<typeof Ionicons>["name"];
+  label: string;
+  onPress: () => void;
+  selected?: boolean;
+  busy?: boolean;
+  disabled?: boolean;
+}) {
+  const theme = useAppTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected, busy, disabled: disabled || busy }}
+      disabled={disabled || busy}
+      onPress={onPress}
+      style={({ pressed }) => ({
+        minWidth: 44, minHeight: 44, borderWidth: 1,
+        borderColor: selected ? theme.colors.primary : theme.colors.border,
+        borderRadius: theme.radii.full,
+        backgroundColor: selected ? theme.colors.primarySoft : theme.colors.surface,
+        alignItems: "center", justifyContent: "center",
+        opacity: disabled ? theme.opacity.disabled : pressed ? theme.opacity.pressed : 1
+      })}
+    >
+      {busy ? <ActivityIndicator size="small" color={theme.colors.primary} /> : (
+        <Ionicons name={icon} size={20}
+          color={selected ? theme.colors.primary : theme.colors.text} />
+      )}
+    </Pressable>
+  );
+}
+
 export default function MarketplaceProductScreen() {
   const { productId } = useLocalSearchParams<{ productId: string }>();
   const router = useRouter();
   const theme = useAppTheme();
   const { status: authStatus, sessionToken, user } = useAuth();
-  const { isRTL, formatAfn, formatNumber, t } = useLocalization();
+  const { isRTL, locale, formatAfn, formatNumber, t } = useLocalization();
 
   const [data, setData] = useState<MarketplaceProductDetailResponse | null>(
     null
@@ -164,6 +205,10 @@ export default function MarketplaceProductScreen() {
     }
 
     let active = true;
+    setData(null);
+    setSelectedVariantId(null);
+    setAddedToCart(false);
+    setReviews(null);
     const key = productCacheKey(productId);
 
     void (async () => {
@@ -276,8 +321,33 @@ export default function MarketplaceProductScreen() {
   const variantRequired =
     product.variants.length > 0 && selectedVariant === null;
   const purchaseDisabled = !available || variantRequired;
+  const images = product.images.length > 0
+    ? product.images.map(image => ({
+        id: image.id, url: image.url, altText: image.altText ?? product.name
+      }))
+    : product.imageUrl
+      ? [{ id: product.id, url: product.imageUrl, altText: product.name }]
+      : [];
+  const galleryImages = selectedVariant?.imageUrl
+    ? [{ id: selectedVariant.id, url: selectedVariant.imageUrl, altText: selectedVariant.title },
+        ...images.filter(image => image.url !== selectedVariant.imageUrl)]
+    : images;
+  const originalPrice = product.compareAtPrice !== null &&
+    product.compareAtPrice > price ? product.compareAtPrice : null;
+  const savingPercent = originalPrice === null
+    ? null : Math.round((1 - price / originalPrice) * 100);
+  const categoryName = product.marketplaceCategory
+    ? locale === "en" ? product.marketplaceCategory.nameEn
+      : locale === "ps-AF" ? product.marketplaceCategory.namePs
+      : product.marketplaceCategory.nameFa
+    : null;
+  const sellerProvince = isProvinceName(product.store.province)
+    ? provinceName(product.store.province, locale) : product.store.province;
+  const ratingCount = reviews?.summary.reviewCount ?? product.reviewCount;
+  const ratingAverage = reviews?.summary.averageRating ?? product.averageRating;
 
   const purchase = async (buyNow: boolean) => {
+    if (purchaseBusy !== null) return;
     setPurchaseError(null);
     setAddedToCart(false);
 
@@ -317,50 +387,34 @@ export default function MarketplaceProductScreen() {
   };
 
   return (
-    <Screen contentStyle={{ paddingBottom: theme.spacing["2xl"] * 2 }}>
-      <View
-        style={{
-          flexDirection: isRTL ? "row-reverse" : "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: theme.spacing.sm
-        }}
-      >
-        <Button
-          variant="ghost"
-          onPress={() => router.back()}
-        >
-          {t("marketplace.back")}
-        </Button>
+    <Screen contentStyle={{ gap: theme.spacing.lg, paddingBottom: theme.spacing["3xl"] }}>
+      <View style={{
+        flexDirection: isRTL ? "row-reverse" : "row",
+        alignItems: "center", justifyContent: "space-between",
+        gap: theme.spacing.sm
+      }}>
+        <ProductAction icon={isRTL ? "arrow-forward" : "arrow-back"}
+          label={t("marketplace.back")} onPress={() => router.back()} />
         <View style={{
           flexDirection: isRTL ? "row-reverse" : "row",
-          alignItems: "center", gap: theme.spacing.xs
+          gap: theme.spacing.sm, alignItems: "center"
         }}>
-          <Button variant="ghost" disabled={wishlistBusy}
-            loading={wishlistBusy} onPress={() => void toggleWishlist()}>
-            {t(wishlisted ? "account.shopping.saved" : "account.shopping.save")}
-          </Button>
-          <Button variant="ghost" disabled={compareBusy} loading={compareBusy} onPress={() => void toggleCompare()}>
-            {t(compareIds.includes(productId ?? "") ? "marketplace.compare.remove" : "marketplace.compare.add")}
-          </Button>
-          <Button variant="ghost" disabled={compareBusy} onPress={() => router.push("/marketplace/compare")}>
-            {t("marketplace.compare.open")} ({formatNumber(compareIds.length)})
-          </Button>
-        <Button
-          variant="ghost"
-          onPress={() => {
-            void Share.share({
-              message:
-                product.name +
-                " — " +
-                storefrontBaseUrl() +
-                "/product/" +
-                product.id
-            });
-          }}
-        >
-          {t("marketplace.share")}
-        </Button>
+          <ProductAction
+            icon={wishlisted ? "heart" : "heart-outline"}
+            label={t(wishlisted ? "account.shopping.saved" : "account.shopping.save")}
+            selected={wishlisted} busy={wishlistBusy}
+            onPress={() => { void toggleWishlist(); }} />
+          <ProductAction icon="git-compare-outline"
+            label={t(compareIds.includes(product.id) ? "marketplace.compare.remove" : "marketplace.compare.add")}
+            selected={compareIds.includes(product.id)} busy={compareBusy} disabled={compareBusy}
+            onPress={() => { void toggleCompare(); }} />
+          <ProductAction icon="share-social-outline"
+            label={t("marketplace.share")}
+            onPress={() => {
+              void Share.share({
+                message: product.name + " — " + storefrontBaseUrl() + "/product/" + product.id
+              });
+            }} />
         </View>
       </View>
 
@@ -370,104 +424,56 @@ export default function MarketplaceProductScreen() {
       {compareFull ? (
         <AppText tone="danger" accessibilityRole="alert">{t("marketplace.compare.full")}</AppText>
       ) : null}
-
       {cached ? (
         <Card muted>
-          <AppText variant="caption" tone="muted">
-            {t("marketplace.cachedNotice")}
-          </AppText>
+          <AppText variant="caption" tone="muted">{t("marketplace.cachedNotice")}</AppText>
         </Card>
       ) : null}
 
-      <HorizontalLocaleScroll
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: theme.spacing.sm }}
-      >
-        {product.images.length > 0 ? (
-          product.images.map((image) => (
-            <Image
-              key={image.id}
-              source={{ uri: image.url }}
-              accessibilityLabel={image.altText ?? product.name}
-              resizeMode="cover"
-              style={{
-                width: 320,
-                height: 320,
-                borderRadius: theme.radii.lg,
-                backgroundColor: theme.colors.surfaceMuted
-              }}
-            />
-          ))
-        ) : product.imageUrl ? (
-          <Image
-            source={{ uri: product.imageUrl }}
-            accessibilityLabel={product.name}
-            resizeMode="cover"
-            style={{
-              width: 320,
-              height: 320,
-              borderRadius: theme.radii.lg,
-              backgroundColor: theme.colors.surfaceMuted
-            }}
-          />
-        ) : (
-          <Card
-            muted
-            style={{
-              width: 320,
-              height: 240,
-              alignItems: "center",
-              justifyContent: "center"
-            }}
-          >
-            <AppText tone="muted">
-              {t("marketplace.imageUnavailable")}
-            </AppText>
-          </Card>
-        )}
-      </HorizontalLocaleScroll>
+      <ProductImageGallery
+        key={product.id + ":" + (selectedVariantId ?? "")}
+        images={galleryImages}
+        productName={product.name}
+      />
 
-      <View style={{ gap: theme.spacing.sm }}>
-        <View
-          style={{
-            flexDirection: isRTL ? "row-reverse" : "row",
-            flexWrap: "wrap",
-            gap: theme.spacing.sm
-          }}
-        >
-          <Badge
-            label={
-              available
-                ? t("marketplace.inStock")
-                : t("marketplace.outOfStock")
-            }
-            tone={available ? "success" : "warning"}
-          />
-          {product.hasDiscount ? (
-            <Badge label={t("marketplace.dealBadge")} tone="primary" />
+      <View style={{ gap: theme.spacing.md }}>
+        {categoryName ? (
+          <AppText variant="caption" tone="primary">{categoryName}</AppText>
+        ) : null}
+        <AppText variant="heading">{product.name}</AppText>
+        {product.brand ? (
+          <AppText tone="muted" variant="label">{product.brand}</AppText>
+        ) : null}
+        <View style={{
+          flexDirection: isRTL ? "row-reverse" : "row",
+          flexWrap: "wrap", alignItems: "center", gap: theme.spacing.sm
+        }}>
+          <Badge label={available ? t("marketplace.inStock") : t("marketplace.outOfStock")}
+            tone={available ? "success" : "warning"} />
+          {savingPercent !== null && savingPercent > 0 ? (
+            <Badge label={"−" + formatNumber(savingPercent) + "%"} tone="primary" />
+          ) : null}
+          {ratingAverage !== null && ratingCount > 0 ? (
+            <View style={{
+              flexDirection: isRTL ? "row-reverse" : "row",
+              alignItems: "center", gap: theme.spacing.xs
+            }}>
+              <Ionicons name="star" size={16} color={theme.colors.warning} />
+              <AppText variant="label">{formatNumber(ratingAverage)}</AppText>
+              <AppText variant="caption" tone="muted">
+                {"(" + formatNumber(ratingCount) + ")"}
+              </AppText>
+            </View>
           ) : null}
         </View>
-        <AppText variant="display">{product.name}</AppText>
-        {product.brand ? (
-          <AppText tone="muted">{product.brand}</AppText>
-        ) : null}
-        <View
-          style={{
-            flexDirection: isRTL ? "row-reverse" : "row",
-            alignItems: "baseline",
-            flexWrap: "wrap",
-            gap: theme.spacing.sm
-          }}
-        >
-          <AppText variant="title">{formatAfn(price)}</AppText>
-          {product.hasDiscount && product.compareAtPrice !== null ? (
-            <AppText
-              variant="body"
-              tone="muted"
-              style={{ textDecorationLine: "line-through" }}
-            >
-              {formatAfn(product.compareAtPrice)}
+        <View style={{
+          flexDirection: isRTL ? "row-reverse" : "row",
+          alignItems: "baseline", flexWrap: "wrap", gap: theme.spacing.md
+        }}>
+          <AppText variant="title" tone="primary">{formatAfn(price)}</AppText>
+          {originalPrice !== null ? (
+            <AppText variant="body" tone="muted" style={{ textDecorationLine: "line-through" }}>
+              {formatAfn(originalPrice)}
             </AppText>
           ) : null}
         </View>
@@ -476,31 +482,117 @@ export default function MarketplaceProductScreen() {
       {product.variants.length > 0 ? (
         <Card>
           <View style={{ gap: theme.spacing.md }}>
-            <AppText variant="heading">
-              {t("marketplace.product.variants")}
+            <AppText variant="heading">{t("marketplace.product.variants")}</AppText>
+            <AppText variant="caption" tone="muted">
+              {t("marketplace.product.optionsHint")}
             </AppText>
-            {product.variants.map((variant) => (
-              <Button
-                key={variant.id}
-                variant={
-                  selectedVariantId === variant.id
-                    ? "primary"
-                    : "secondary"
-                }
-                disabled={!variant.available || !variant.inStock}
-                onPress={() => setSelectedVariantId(variant.id)}
-              >
-                {variant.title}
-                {variant.priceOverride !== null
-                  ? " · " + formatAfn(variant.priceOverride)
-                  : ""}
-                {!variant.inStock
-                  ? " · " + t("marketplace.outOfStock")
-                  : ""}
-              </Button>
-            ))}
+            <View style={{
+              flexDirection: isRTL ? "row-reverse" : "row",
+              flexWrap: "wrap", gap: theme.spacing.sm
+            }}>
+              {product.variants.map(variant => {
+                const selected = selectedVariantId === variant.id;
+                const selectable = variant.available && variant.inStock;
+                return (
+                  <Pressable
+                    key={variant.id}
+                    accessibilityRole="radio"
+                    accessibilityLabel={variant.title}
+                    accessibilityState={{ checked: selected, disabled: !selectable }}
+                    disabled={!selectable}
+                    onPress={() => {
+                      setSelectedVariantId(variant.id);
+                      setPurchaseError(null);
+                      setAddedToCart(false);
+                    }}
+                    style={({ pressed }) => ({
+                      minWidth: "46%", flexGrow: 1, minHeight: 50,
+                      paddingHorizontal: theme.spacing.md,
+                      paddingVertical: theme.spacing.sm,
+                      gap: theme.spacing.xs,
+                      justifyContent: "center", alignItems: "center",
+                      borderRadius: theme.radii.md, borderWidth: selected ? 2 : 1,
+                      borderColor: selected ? theme.colors.primary : theme.colors.border,
+                      backgroundColor: selected ? theme.colors.primarySoft : theme.colors.surface,
+                      opacity: !selectable ? theme.opacity.disabled : pressed ? theme.opacity.pressed : 1
+                    })}
+                  >
+                    <AppText variant="label" align="center"
+                      tone={selected ? "primary" : "default"}>{variant.title}</AppText>
+                    {variant.priceOverride !== null ? (
+                      <AppText variant="caption" align="center">{formatAfn(variant.priceOverride)}</AppText>
+                    ) : null}
+                    {!selectable ? (
+                      <AppText variant="caption" align="center" tone="muted">
+                        {t("marketplace.outOfStock")}
+                      </AppText>
+                    ) : null}
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
         </Card>
+      ) : null}
+
+      <Card>
+        <View style={{ gap: theme.spacing.md }}>
+          <View style={{
+            flexDirection: isRTL ? "row-reverse" : "row",
+            alignItems: "center", justifyContent: "space-between",
+            gap: theme.spacing.sm
+          }}>
+            <View style={{ flex: 1 }}>
+              <AppText variant="heading">{t("marketplace.product.purchase")}</AppText>
+              <AppText variant="caption" tone="muted">
+                {variantRequired ? t("cart.selectVariant") : t("marketplace.product.cartPhaseReady")}
+              </AppText>
+            </View>
+            <AppText variant="bodyStrong" tone="primary">{formatAfn(price)}</AppText>
+          </View>
+          {!available ? (
+            <Badge label={t("marketplace.outOfStock")} tone="warning" />
+          ) : null}
+          {addedToCart ? (
+            <View style={{ gap: theme.spacing.sm }}>
+              <Badge label={t("cart.added")} tone="success" />
+              <Button variant="secondary"
+                onPress={() => router.push({
+                  pathname: "/(tabs)/shopping", params: { section: "cart" }
+                })}>
+                {t("marketplace.product.viewCart")}
+              </Button>
+            </View>
+          ) : null}
+          {purchaseError ? <AppText tone="danger" accessibilityRole="alert">{t(purchaseError)}</AppText> : null}
+          <View style={{
+            flexDirection: isRTL ? "row-reverse" : "row",
+            gap: theme.spacing.sm
+          }}>
+            <View style={{ flex: 1 }}>
+              <Button fullWidth
+                disabled={purchaseDisabled || purchaseBusy !== null}
+                loading={purchaseBusy === "cart"}
+                onPress={() => { void purchase(false); }}>
+                {t("marketplace.product.addToCart")}
+              </Button>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button fullWidth variant="secondary"
+                disabled={purchaseDisabled || purchaseBusy !== null}
+                loading={purchaseBusy === "buy"}
+                onPress={() => { void purchase(true); }}>
+                {t("marketplace.product.buyNow")}
+              </Button>
+            </View>
+          </View>
+        </View>
+      </Card>
+
+      {compareIds.length > 0 ? (
+        <Button variant="ghost" onPress={() => router.push("/marketplace/compare")}>
+          {t("marketplace.compare.open")} ({formatNumber(compareIds.length)})
+        </Button>
       ) : null}
 
       <Card>
@@ -508,10 +600,24 @@ export default function MarketplaceProductScreen() {
           <AppText variant="heading">
             {t("marketplace.product.seller")}
           </AppText>
-          <AppText variant="title">{product.store.name}</AppText>
-          <AppText tone="muted">
-            {product.store.province} · {product.store.cityDistrict}
-          </AppText>
+          <View style={{
+            flexDirection: isRTL ? "row-reverse" : "row",
+            alignItems: "center", gap: theme.spacing.md
+          }}>
+            {product.store.logoUrl ? (
+              <Image source={{ uri: product.store.logoUrl }}
+                style={{ width: 52, height: 52, borderRadius: theme.radii.md }}
+                resizeMode="cover" />
+            ) : (
+              <Ionicons name="storefront-outline" size={32} color={theme.colors.primary} />
+            )}
+            <View style={{ flex: 1, gap: theme.spacing.xs }}>
+              <AppText variant="bodyStrong">{product.store.name}</AppText>
+              <AppText variant="caption" tone="muted">
+                {sellerProvince} · {product.store.cityDistrict}
+              </AppText>
+            </View>
+          </View>
           <Badge
             label={t(
               product.store.trust.phoneVerified
@@ -538,24 +644,30 @@ export default function MarketplaceProductScreen() {
       </Card>
 
       <Card>
-        <View style={{ gap: theme.spacing.sm }}>
-          <AppText variant="heading">
-            {t("marketplace.product.delivery")}
-          </AppText>
-          <AppText tone="muted">
-            {t("marketplace.product.deliveryPending")}
-          </AppText>
-        </View>
-      </Card>
-
-      <Card>
-        <View style={{ gap: theme.spacing.sm }}>
-          <AppText variant="heading">
-            {t("marketplace.product.payment")}
-          </AppText>
-          <AppText tone="muted">
-            {t("marketplace.product.paymentPending")}
-          </AppText>
+        <View style={{ gap: theme.spacing.md }}>
+          <View style={{
+            flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.md
+          }}>
+            <Ionicons name="cube-outline" size={22} color={theme.colors.primary} />
+            <View style={{ flex: 1, gap: theme.spacing.xs }}>
+              <AppText variant="bodyStrong">{t("marketplace.product.delivery")}</AppText>
+              <AppText variant="caption" tone="muted">
+                {t("marketplace.product.deliveryPending")}
+              </AppText>
+            </View>
+          </View>
+          <View style={{ height: 1, backgroundColor: theme.colors.border }} />
+          <View style={{
+            flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.md
+          }}>
+            <Ionicons name="card-outline" size={22} color={theme.colors.primary} />
+            <View style={{ flex: 1, gap: theme.spacing.xs }}>
+              <AppText variant="bodyStrong">{t("marketplace.product.payment")}</AppText>
+              <AppText variant="caption" tone="muted">
+                {t("marketplace.product.paymentPending")}
+              </AppText>
+            </View>
+          </View>
         </View>
       </Card>
 
@@ -568,69 +680,6 @@ export default function MarketplaceProductScreen() {
             <AppText>{product.description}</AppText>
           </View>
         </Card>
-      ) : null}
-
-      <Card>
-        <View style={{ gap: theme.spacing.md }}>
-          <AppText variant="heading">
-            {t("marketplace.product.purchase")}
-          </AppText>
-          <AppText tone="muted">
-            {t("marketplace.product.cartPhaseReady")}
-          </AppText>
-          {variantRequired ? (
-            <AppText variant="caption" tone="muted">
-              {t("cart.selectVariant")}
-            </AppText>
-          ) : null}
-          {addedToCart ? (
-            <Badge label={t("cart.added")} tone="success" />
-          ) : null}
-          {purchaseError ? (
-            <AppText tone="danger">{t(purchaseError)}</AppText>
-          ) : null}
-          <Button
-            fullWidth
-            disabled={purchaseDisabled || purchaseBusy !== null}
-            loading={purchaseBusy === "cart"}
-            onPress={() => {
-              void purchase(false);
-            }}
-          >
-            {t("marketplace.product.addToCart")}
-          </Button>
-          <Button
-            fullWidth
-            variant="secondary"
-            disabled={purchaseDisabled || purchaseBusy !== null}
-            loading={purchaseBusy === "buy"}
-            onPress={() => {
-              void purchase(true);
-            }}
-          >
-            {t("marketplace.product.buyNow")}
-          </Button>
-        </View>
-      </Card>
-
-      {data.relatedProducts.length > 0 ? (
-        <View style={{ gap: theme.spacing.md }}>
-          <AppText variant="title">
-            {t("marketplace.product.related")}
-          </AppText>
-          <HorizontalLocaleScroll
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: theme.spacing.md }}
-          >
-            {data.relatedProducts.map((related) => (
-              <MarketplaceProductCard
-                key={related.id}
-                product={related}
-                compact
-              />
-            ))}
-          </HorizontalLocaleScroll>
-        </View>
       ) : null}
 
       <Card>
@@ -720,6 +769,26 @@ export default function MarketplaceProductScreen() {
           )}
         </View>
       </Card>
+      {data.relatedProducts.length > 0 ? (
+        <View style={{ gap: theme.spacing.md }}>
+          <AppText variant="heading">
+            {t("marketplace.product.related")}
+          </AppText>
+          <HorizontalLocaleScroll
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: theme.spacing.md }}
+          >
+            {data.relatedProducts.map((related) => (
+              <MarketplaceProductCard
+                key={related.id}
+                product={related}
+                compact
+              />
+            ))}
+          </HorizontalLocaleScroll>
+        </View>
+      ) : null}
+
     </Screen>
   );
 }

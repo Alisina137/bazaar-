@@ -17,9 +17,11 @@ import {
   useRef,
   useState
 } from "react";
-import { View } from "react-native";
+import { Image, View } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { useAuth } from "@/auth/provider";
+import { CheckoutChoice, CheckoutSectionHeading } from "@/components/checkout/CheckoutChoice";
 import {
   CartPricingApiError,
   getCart,
@@ -345,11 +347,14 @@ export default function CheckoutScreen() {
   };
 
   const selectAddress = (addressId: string) => {
+    if (selectedAddressId === addressId) return;
     setSelectedAddressId(addressId);
     setDelivery(null);
     setSelectedOptions({});
     setQuote(null);
     setPaymentReady(false);
+    setOrderError(null);
+    orderIdempotencyRef.current = null;
     setErrorKey(null);
   };
 
@@ -424,77 +429,61 @@ export default function CheckoutScreen() {
   }
 
   return (
-    <Screen>
-      <View
-        style={{
-          flexDirection: isRTL ? "row-reverse" : "row",
-          justifyContent: "space-between",
-          gap: theme.spacing.sm
-        }}
-      >
-        <Button variant="ghost" onPress={() => router.back()}>
-          {t("marketplace.back")}
-        </Button>
-        <Badge label={t("delivery.phaseBadge")} tone="primary" />
-      </View>
-
-      <View style={{ gap: theme.spacing.sm }}>
-        <AppText variant="display">{t("checkout.title")}</AppText>
-        <AppText tone="muted">{t("checkout.description")}</AppText>
+    <Screen contentStyle={{ gap: theme.spacing.lg, paddingHorizontal: theme.spacing.lg, paddingVertical: theme.spacing.lg, paddingBottom: theme.spacing["3xl"] }}>
+      <View style={{
+        flexDirection: isRTL ? "row-reverse" : "row",
+        alignItems: "center", gap: theme.spacing.sm
+      }}>
+        <View style={{ flex: 1, gap: theme.spacing.xs }}>
+          <AppText variant="bodyStrong" style={{ fontSize: 22, lineHeight: 29 }}>{t("checkout.title")}</AppText>
+          <AppText variant="caption" tone="muted">{t("checkout.description")}</AppText>
+        </View>
+        <Button variant="ghost" onPress={() => router.back()}>{t("marketplace.back")}</Button>
       </View>
 
       <CheckoutSteps
+        addressReady={Boolean(selectedAddress)}
         deliveryReady={Boolean(quote)}
         paymentReady={paymentReady}
       />
 
       {errorKey ? (
-        <Card>
-          <AppText tone="danger">{t(errorKey)}</AppText>
+        <Card style={{ borderColor: theme.colors.danger, backgroundColor: theme.colors.dangerSoft }}>
+          <View style={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm, alignItems: "flex-start" }}>
+            <Ionicons name="alert-circle-outline" size={20} color={theme.colors.danger} />
+            <View style={{ flex: 1 }}>
+              <AppText variant="label" tone="danger" accessibilityRole="alert">{t(errorKey)}</AppText>
+            </View>
+          </View>
         </Card>
       ) : null}
 
-      <Card>
+      <Card style={{ padding: theme.spacing.lg }}>
         <View style={{ gap: theme.spacing.md }}>
-          <AppText variant="title">
-            {t("checkout.step.address")}
-          </AppText>
-
+          <CheckoutSectionHeading step={1} title={t("checkout.step.address")}
+            subtitle={t("checkout.addressHint")} />
           {addresses.length === 0 ? (
             <View style={{ gap: theme.spacing.md }}>
-              <AppText tone="muted">
-                {t("checkout.noAddress")}
-              </AppText>
-              <Button
-                variant="secondary"
-                onPress={() => router.push("/checkout/addresses")}
-              >
+              <AppText variant="label" tone="muted">{t("checkout.noAddress")}</AppText>
+              <Button variant="secondary" onPress={() => router.push("/checkout/addresses")}>
                 {t("address.add")}
               </Button>
             </View>
           ) : (
             <>
-              {addresses.map((address) => (
-                <Button
+              {addresses.map(address => (
+                <CheckoutChoice
                   key={address.id}
-                  variant={
-                    selectedAddressId === address.id
-                      ? "primary"
-                      : "secondary"
-                  }
+                  icon="location-outline"
+                  title={address.label || address.recipientName}
+                  subtitle={address.recipientName + " · " + address.phone}
+                  secondary={[address.addressDescription, address.districtCity, address.province]
+                    .filter(Boolean).join(" · ")}
+                  selected={selectedAddressId === address.id}
                   onPress={() => selectAddress(address.id)}
-                >
-                  {(address.label ?? address.recipientName) +
-                    " · " +
-                    address.province +
-                    " · " +
-                    address.districtCity}
-                </Button>
+                />
               ))}
-              <Button
-                variant="ghost"
-                onPress={() => router.push("/checkout/addresses")}
-              >
+              <Button variant="ghost" onPress={() => router.push("/checkout/addresses")}>
                 {t("address.manage")}
               </Button>
             </>
@@ -502,63 +491,79 @@ export default function CheckoutScreen() {
         </View>
       </Card>
 
-      <Card>
+      <Card style={{ padding: theme.spacing.lg }}>
         <View style={{ gap: theme.spacing.md }}>
-          <AppText variant="title">{t("checkout.cartReview")}</AppText>
-          {cart.groups.map((group) => (
-            <View key={group.store.id} style={{ gap: theme.spacing.sm }}>
-              <AppText variant="heading">{group.store.name}</AppText>
-              {group.items.map((item) => (
-                <View
-                  key={item.id}
-                  style={{
-                    flexDirection: isRTL ? "row-reverse" : "row",
-                    justifyContent: "space-between",
-                    gap: theme.spacing.md
-                  }}
-                >
-                  <AppText style={{ flex: 1 }}>
-                    {item.name +
-                      (item.variantTitle ? " · " + item.variantTitle : "") +
-                      " × " +
-                      item.quantity}
+          <CheckoutSectionHeading step={2} title={t("checkout.cartReview")}
+            subtitle={t("checkout.itemsHint")} />
+          {cart.groups.map((group, groupIndex) => (
+            <View key={group.store.id} style={{
+              gap: theme.spacing.sm,
+              borderTopWidth: groupIndex > 0 ? 1 : 0,
+              borderTopColor: theme.colors.border,
+              paddingTop: groupIndex > 0 ? theme.spacing.md : 0
+            }}>
+              <View style={{ flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center", gap: theme.spacing.sm }}>
+                <Ionicons name="storefront-outline" size={17} color={theme.colors.primary} />
+                <View style={{ flex: 1 }}>
+                  <AppText variant="bodyStrong" style={{ fontSize: 14, lineHeight: 21 }}>
+                    {group.store.name}
                   </AppText>
-                  <AppText>{formatAfn(item.lineTotal)}</AppText>
+                </View>
+              </View>
+              {group.items.map(item => (
+                <View key={item.id} style={{
+                  flexDirection: isRTL ? "row-reverse" : "row",
+                  alignItems: "center", gap: theme.spacing.md,
+                  paddingVertical: theme.spacing.xs
+                }}>
+                  {item.imageUrl ? (
+                    <Image source={{ uri: item.imageUrl }} resizeMode="contain"
+                      style={{ width: 56, height: 56, borderRadius: theme.radii.md, backgroundColor: theme.colors.surfaceMuted }} />
+                  ) : (
+                    <View style={{
+                      width: 56, height: 56, borderRadius: theme.radii.md,
+                      backgroundColor: theme.colors.surfaceMuted,
+                      alignItems: "center", justifyContent: "center"
+                    }}>
+                      <Ionicons name="image-outline" size={21} color={theme.colors.textMuted} />
+                    </View>
+                  )}
+                  <View style={{ flex: 1, gap: theme.spacing.xs }}>
+                    <AppText variant="label" numberOfLines={2}>{item.name}</AppText>
+                    {item.variantTitle ? (
+                      <AppText variant="caption" tone="muted" numberOfLines={1}>{item.variantTitle}</AppText>
+                    ) : null}
+                    <AppText variant="caption" tone="muted">
+                      {t("cart.itemCount")}: {item.quantity}
+                    </AppText>
+                  </View>
+                  <AppText variant="label" tone="primary">{formatAfn(item.lineTotal)}</AppText>
                 </View>
               ))}
             </View>
           ))}
-
-          <SummaryRow
-            label={t("cart.preDeliveryTotal")}
-            value={formatAfn(cart.totals.preDeliveryTotal)}
-            emphasized
-          />
+          <View style={{ height: 1, backgroundColor: theme.colors.border }} />
+          <SummaryRow label={t("cart.preDeliveryTotal")}
+            value={formatAfn(cart.totals.preDeliveryTotal)} emphasized />
+          <AppText variant="caption" tone="muted">{t("checkout.preDeliveryDisclaimer")}</AppText>
         </View>
       </Card>
 
-      <Button
-        fullWidth
-        loading={deliveryLoading}
-        disabled={
-          !selectedAddressId ||
-          cart.hasBlockingIssues ||
-          deliveryLoading
-        }
-        onPress={() => {
-          void calculateDelivery();
-        }}
-      >
-        {delivery
-          ? t("delivery.customer.recalculate")
-          : t("delivery.customer.calculate")}
-      </Button>
-
-      {cart.hasBlockingIssues ? (
-        <AppText tone="danger">
-          {t("cart.blockingIssues")}
-        </AppText>
-      ) : null}
+      <View style={{ gap: theme.spacing.sm }}>
+        <Button fullWidth loading={deliveryLoading}
+          disabled={!selectedAddressId || cart.hasBlockingIssues || deliveryLoading || quoting || placingOrder}
+          onPress={() => { void calculateDelivery(); }}>
+          {delivery ? t("delivery.customer.recalculate") : t("delivery.customer.calculate")}
+        </Button>
+        {cart.hasBlockingIssues ? (
+          <AppText variant="caption" tone="danger" accessibilityRole="alert">{t("cart.blockingIssues")}</AppText>
+        ) : null}
+        {!delivery ? (
+          <AppText variant="caption" tone="muted" align="center">
+            {t("checkout.calculateHint")}
+          </AppText>
+        ) : null}
+      </View>
 
       {delivery ? (
         <View style={{ gap: theme.spacing.lg }}>
@@ -587,6 +592,9 @@ export default function CheckoutScreen() {
                   [group.storeId]: optionId
                 }));
                 setQuote(null);
+                setPaymentReady(false);
+                setOrderError(null);
+                orderIdempotencyRef.current = null;
               }}
             />
           ))}

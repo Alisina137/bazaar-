@@ -27,7 +27,7 @@
     "test": "pnpm -r --if-present test",
     "build": "pnpm -r --if-present build",
     "verify:localization": "node scripts/verify-mobile-localization.mjs",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm verify:localization && pnpm verify:release-ux && pnpm test:api-dev && pnpm test:admin-login && pnpm test:expo-go && pnpm test:home-phase1 && pnpm test:home-phase2 && pnpm test:home-phase3 && pnpm test:home-phase4 && pnpm test:home-phase5 && pnpm test:home-phase6 && pnpm test:home-phase7 && pnpm test:home-phase8 && pnpm test:rtl-layout && pnpm test:account-phase1 && pnpm test:account-phase2 && pnpm test:account-phase3 && pnpm test:seller-plan-cards && pnpm test:seller-onboarding-selects && pnpm test:seller-map-hours && pnpm test:account-phase4 && pnpm test:account-phase5 && pnpm test:account-phase6 && pnpm test:account-phase7 && pnpm test:account-phase8 && pnpm test:marketplace-phase1 && pnpm test:marketplace-phase2 && pnpm test:marketplace-phase3 && pnpm test:marketplace-phase4 && pnpm test:marketplace-phase5 && pnpm test:marketplace-phase6 && pnpm test:marketplace-phase7 && pnpm test:marketplace-phase8 && pnpm test:product-detail-ui && pnpm test:wishlist-reliability && pnpm test:shopping-phase8 && pnpm test:expo-root-layout && pnpm build",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm verify:localization && pnpm verify:release-ux && pnpm test:api-dev && pnpm test:admin-login && pnpm test:expo-go && pnpm test:home-phase1 && pnpm test:home-phase2 && pnpm test:home-phase3 && pnpm test:home-phase4 && pnpm test:home-phase5 && pnpm test:home-phase6 && pnpm test:home-phase7 && pnpm test:home-phase8 && pnpm test:rtl-layout && pnpm test:account-phase1 && pnpm test:account-phase2 && pnpm test:account-phase3 && pnpm test:seller-plan-cards && pnpm test:seller-onboarding-selects && pnpm test:seller-map-hours && pnpm test:account-phase4 && pnpm test:account-phase5 && pnpm test:account-phase6 && pnpm test:account-phase7 && pnpm test:account-phase8 && pnpm test:marketplace-phase1 && pnpm test:marketplace-phase2 && pnpm test:marketplace-phase3 && pnpm test:marketplace-phase4 && pnpm test:marketplace-phase5 && pnpm test:marketplace-phase6 && pnpm test:marketplace-phase7 && pnpm test:marketplace-phase8 && pnpm test:product-detail-ui && pnpm test:wishlist-reliability && pnpm test:shopping-phase8 && pnpm test:shopping-cart-ui && pnpm test:expo-root-layout && pnpm build",
     "test:integration": "pnpm --filter @bazaarlink/api test:integration",
     "verify:release-ux": "node scripts/verify-release-ux.mjs",
     "release:preflight": "node scripts/production-preflight.mjs",
@@ -67,6 +67,7 @@
     "test:product-detail-ui": "node --test scripts/product-detail-ui.test.mjs",
     "test:wishlist-reliability": "node --test scripts/wishlist-reliability.test.mjs",
     "test:shopping-phase8": "node --test scripts/shopping-phase8.test.mjs",
+    "test:shopping-cart-ui": "node --test scripts/shopping-cart-ui.test.mjs",
     "test:expo-root-layout": "node --test scripts/expo-router-root-layout.test.mjs"
   },
   "devDependencies": {

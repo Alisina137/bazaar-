@@ -10,11 +10,14 @@ import {
 } from "expo-router";
 import {
   useCallback,
+  useRef,
   useState
 } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Image,
+  Pressable,
   View
 } from "react-native";
 
@@ -55,7 +58,9 @@ function issueKey(
   }
 }
 
-export default function CartScreen() {
+export default function CartScreen({ onCartChange }: {
+  onCartChange?: ((next: CartResponse) => void) | undefined;
+} = {}) {
   const router = useRouter();
   const theme = useAppTheme();
   const { status, sessionToken } = useAuth();
@@ -65,10 +70,17 @@ export default function CartScreen() {
   const [loading, setLoading] = useState(false);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
+  const requestEpoch = useRef(0);
+  const mutationLock = useRef(false);
+  const [loadedToken, setLoadedToken] = useState<string | null>(null);
+  const visibleCart = loadedToken === sessionToken ? cart : null;
 
   const load = useCallback(async () => {
+    const requestId = ++requestEpoch.current;
     if (status !== "signedIn" || !sessionToken) {
       setCart(null);
+      setLoadedToken(null);
+      setLoading(false);
       return;
     }
 
@@ -76,21 +88,24 @@ export default function CartScreen() {
     setErrorKey(null);
 
     try {
-      setCart(await getCart(sessionToken));
+      const next = await getCart(sessionToken);
+      if (requestId !== requestEpoch.current || mutationLock.current) return;
+      setLoadedToken(sessionToken);
+      setCart(next);
     } catch (error) {
-      const safe =
-        error instanceof CartPricingApiError
-          ? error
-          : new CartPricingApiError("service_unavailable");
+      if (requestId !== requestEpoch.current || mutationLock.current) return;
+      const safe = error instanceof CartPricingApiError
+        ? error : new CartPricingApiError("service_unavailable");
       setErrorKey(cartPricingErrorKey(safe.code));
     } finally {
-      setLoading(false);
+      if (requestId === requestEpoch.current) setLoading(false);
     }
   }, [sessionToken, status]);
 
   useFocusEffect(
     useCallback(() => {
       void load();
+      return () => { requestEpoch.current += 1; };
     }, [load])
   );
 
@@ -98,20 +113,24 @@ export default function CartScreen() {
     key: string,
     action: (token: string) => Promise<CartResponse>
   ) => {
-    if (!sessionToken || busyKey !== null) return;
-
+    if (!sessionToken || mutationLock.current) return;
+    mutationLock.current = true;
+    ++requestEpoch.current; // An earlier GET must not restore a deleted item.
+    setLoading(false);
     setBusyKey(key);
     setErrorKey(null);
 
     try {
-      setCart(await action(sessionToken));
+      const next = await action(sessionToken);
+      setLoadedToken(sessionToken);
+      setCart(next);
+      onCartChange?.(next);
     } catch (error) {
-      const safe =
-        error instanceof CartPricingApiError
-          ? error
-          : new CartPricingApiError("service_unavailable");
+      const safe = error instanceof CartPricingApiError
+        ? error : new CartPricingApiError("service_unavailable");
       setErrorKey(cartPricingErrorKey(safe.code));
     } finally {
+      mutationLock.current = false;
       setBusyKey(null);
     }
   };
@@ -142,7 +161,7 @@ export default function CartScreen() {
     );
   }
 
-  if (loading && !cart) {
+  if (loading && !visibleCart) {
     return (
       <Screen scrollable={false}>
         <StateView
@@ -154,7 +173,7 @@ export default function CartScreen() {
     );
   }
 
-  if (errorKey && !cart) {
+  if (errorKey && !visibleCart) {
     return (
       <Screen scrollable={false}>
         <StateView
@@ -170,7 +189,7 @@ export default function CartScreen() {
     );
   }
 
-  if (!cart || cart.itemCount === 0) {
+  if (!visibleCart || visibleCart.itemCount === 0) {
     return (
       <Screen scrollable={false}>
         <StateView
@@ -188,10 +207,10 @@ export default function CartScreen() {
     <Screen scrollKey="shopping-cart" refreshing={loading} onRefresh={() => { void load(); }} contentStyle={{ gap: theme.spacing.lg }}>
       <View style={{ flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center", justifyContent: "space-between" }}>
         <AppText variant="heading">{t("cart.title")}</AppText>
-        <Badge label={formatNumber(cart.itemCount) + " " + t("cart.itemCount")} tone="neutral" />
+        <Badge label={formatNumber(visibleCart.itemCount) + " " + t("cart.itemCount")} tone="neutral" />
       </View>
 
-      {cart.priceChanged ? (
+      {visibleCart.priceChanged ? (
         <Card muted>
           <AppText variant="heading">
             {t("cart.priceChangedTitle")}
@@ -208,7 +227,7 @@ export default function CartScreen() {
         </Card>
       ) : null}
 
-      {cart.groups.map((group) => (
+      {visibleCart.groups.map((group) => (
         <MerchantGroupCard
           key={group.store.id}
           group={group}
@@ -255,23 +274,23 @@ export default function CartScreen() {
           <AppText variant="title">{t("cart.summary")}</AppText>
           <PriceRow
             label={t("cart.itemsSubtotal")}
-            value={formatAfn(cart.totals.itemsSubtotal)}
+            value={formatAfn(visibleCart.totals.itemsSubtotal)}
           />
-          {cart.totals.productDiscount > 0 ? (
+          {visibleCart.totals.productDiscount > 0 ? (
             <PriceRow
               label={t("cart.productDiscount")}
-              value={"-" + formatAfn(cart.totals.productDiscount)}
+              value={"-" + formatAfn(visibleCart.totals.productDiscount)}
             />
           ) : null}
-          {cart.totals.couponDiscount > 0 ? (
+          {visibleCart.totals.couponDiscount > 0 ? (
             <PriceRow
               label={t("cart.couponDiscount")}
-              value={"-" + formatAfn(cart.totals.couponDiscount)}
+              value={"-" + formatAfn(visibleCart.totals.couponDiscount)}
             />
           ) : null}
           <PriceRow
             label={t("cart.preDeliveryTotal")}
-            value={formatAfn(cart.totals.preDeliveryTotal)}
+            value={formatAfn(visibleCart.totals.preDeliveryTotal)}
             emphasized
           />
           <AppText variant="caption" tone="muted">
@@ -282,20 +301,20 @@ export default function CartScreen() {
 
       <Button
         fullWidth
-        disabled={cart.hasBlockingIssues || busyKey !== null || loading}
+        disabled={visibleCart.hasBlockingIssues || busyKey !== null || loading}
         onPress={() => router.push("/checkout")}
       >
         {t("cart.checkout")}
       </Button>
 
-      {cart.hasBlockingIssues ? (
+      {visibleCart.hasBlockingIssues ? (
         <AppText tone="danger">
           {t("cart.blockingIssues")}
         </AppText>
       ) : null}
 
       <AppText variant="caption" tone="muted">
-        {t("cart.itemCount")}: {formatNumber(cart.itemCount)}
+        {t("cart.itemCount")}: {formatNumber(visibleCart.itemCount)}
       </AppText>
     </Screen>
   );

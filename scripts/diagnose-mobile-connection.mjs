@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 export function mobileApiUrl(envText) {
@@ -25,10 +26,10 @@ export function explainConnectivity({
 }
 
 async function probe(url, opts = {}) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 3500);
+  const controller = new globalThis.AbortController();
+  const timer = globalThis.setTimeout(() => controller.abort(), 3500);
   try {
-    const res = await fetch(url, {
+    const res = await globalThis.fetch(url, {
       headers: { "ngrok-skip-browser-warning": "1" },
       redirect: "error", signal: controller.signal
     });
@@ -41,15 +42,15 @@ async function probe(url, opts = {}) {
     return res.status === 200 && body.includes("packager-status:running");
   } catch {
     return false;
-  } finally { clearTimeout(timer); }
+  } finally { globalThis.clearTimeout(timer); }
 }
 
 async function inspectorPublicUrl() {
   for (const port of [4040, 4041, 4042, 4043]) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 1500);
+    const controller = new globalThis.AbortController();
+    const timer = globalThis.setTimeout(() => controller.abort(), 1500);
     try {
-      const res = await fetch("http://127.0.0.1:" + port + "/api/tunnels", { signal: controller.signal });
+      const res = await globalThis.fetch("http://127.0.0.1:" + port + "/api/tunnels", { signal: controller.signal });
       if (!res.ok) continue;
       const data = await res.json();
       const tunnel = data.tunnels?.find(item =>
@@ -59,7 +60,7 @@ async function inspectorPublicUrl() {
       if (tunnel) return tunnel.public_url;
     } catch {
       // ngrok inspector may not be running.
-    } finally { clearTimeout(timer); }
+    } finally { globalThis.clearTimeout(timer); }
   }
   return null;
 }
@@ -83,20 +84,20 @@ async function main() {
     : false;
   const flags = {apiLocalReady, metroReady, mobileApiReady, urlMismatch: apiTunnelMismatch(configuredUrl, publicUrl)};
 
-  console.log("[dev:diagnose] API localhost:4000 /ready:", apiLocalReady ? "ready" : "unavailable");
-  console.log("[dev:diagnose] Active ngrok tunnel:", publicUrl ? "detected" : "not detected");
-  console.log("[dev:diagnose] apps/mobile/.env.local API:", configuredUrl ? "configured" : "not configured");
-  console.log("[dev:diagnose] API through phone-facing tunnel:", mobileApiReady ? "ready" : "unavailable");
-  console.log("[dev:diagnose] Metro/Expo CLI localhost:8081:", metroReady ? "responding" : "not responding");
-  for (const issue of explainConnectivity(flags)) console.log("[dev:diagnose] " + issue);
-  if (!configuredUrl) console.log("[dev:diagnose] Start pnpm dev:api before pnpm dev:mobile so ngrok fills EXPO_PUBLIC_API_URL.");
-  if (!validPublicUrl) console.log("[dev:diagnose] Expo Go needs an HTTPS public API URL; localhost:4000 refers to the phone.");
+  globalThis.console.log("[dev:diagnose] API localhost:4000 /ready:", apiLocalReady ? "ready" : "unavailable");
+  globalThis.console.log("[dev:diagnose] Active ngrok tunnel:", publicUrl ? "detected" : "not detected");
+  globalThis.console.log("[dev:diagnose] apps/mobile/.env.local API:", configuredUrl ? "configured" : "not configured");
+  globalThis.console.log("[dev:diagnose] API through phone-facing tunnel:", mobileApiReady ? "ready" : "unavailable");
+  globalThis.console.log("[dev:diagnose] Metro/Expo CLI localhost:8081:", metroReady ? "responding" : "not responding");
+  for (const issue of explainConnectivity(flags)) globalThis.console.log("[dev:diagnose] " + issue);
+  if (!configuredUrl) globalThis.console.log("[dev:diagnose] Start pnpm dev:api before pnpm dev:mobile so ngrok fills EXPO_PUBLIC_API_URL.");
+  if (!validPublicUrl) globalThis.console.log("[dev:diagnose] Expo Go needs an HTTPS public API URL; localhost:4000 refers to the phone.");
   // Deliberately return success: this is a diagnostic, not a blocking build gate.
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   main().catch(error => {
-    console.error("[dev:diagnose] Could not complete diagnostics:", error.message);
+    globalThis.console.error("[dev:diagnose] Could not complete diagnostics:", error.message);
     process.exitCode = 1;
   });
 }

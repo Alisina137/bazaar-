@@ -6,6 +6,7 @@ import type {
   PaymentOptionsResponse
 } from "@bazaarlink/contracts";
 import type { TranslationKey } from "@bazaarlink/localization";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   useEffect,
   useMemo,
@@ -18,6 +19,7 @@ import {
   View
 } from "react-native";
 
+import { CheckoutChoice, CheckoutSectionHeading } from "@/components/checkout/CheckoutChoice";
 import {
   AppText,
   Badge,
@@ -273,6 +275,7 @@ export function CheckoutPaymentSection({
       <Card>
         <StateView
           kind="loading"
+          loadingVariant="form"
           title={t("payment.customer.loadingTitle")}
           message={t("payment.customer.loadingMessage")}
         />
@@ -282,17 +285,11 @@ export function CheckoutPaymentSection({
 
   return (
     <View style={{ gap: theme.spacing.lg }}>
-      <Card>
+      <Card style={{ padding: theme.spacing.lg }}>
         <View style={{ gap: theme.spacing.md }}>
-          <View style={{ gap: theme.spacing.xs }}>
-            <Badge label={t("payment.phaseBadge")} tone="primary" />
-            <AppText variant="title">
-              {t("checkout.step.payment")}
-            </AppText>
-            <AppText tone="muted">
-              {t("payment.customer.description")}
-            </AppText>
-          </View>
+          <CheckoutSectionHeading step={4}
+            title={t("checkout.step.payment")}
+            subtitle={t("payment.customer.description")} />
 
           {errorKey ? (
             <AppText tone="danger">{t(errorKey)}</AppText>
@@ -303,49 +300,48 @@ export function CheckoutPaymentSection({
               key={group.storeId}
               style={{ gap: theme.spacing.sm }}
             >
-              <AppText variant="heading">{group.storeName}</AppText>
-              <AppText tone="muted">
-                {formatAfn(group.amount)} ·{" "}
-                {t(
-                  group.fulfillmentType === "pickup"
-                    ? "delivery.customer.fulfillment.pickup"
-                    : group.fulfillmentType === "digital"
-                      ? "delivery.customer.fulfillment.digital"
-                      : "delivery.customer.fulfillment.delivery"
-                )}
-              </AppText>
-
-              {group.methods.map((method) => (
-                <View
-                  key={method.method}
-                  style={{ gap: theme.spacing.xs }}
-                >
-                  <Button
-                    variant={
-                      selected[group.storeId] === method.method
-                        ? "primary"
-                        : "secondary"
-                    }
-                    disabled={!method.available || busy !== null}
-                    onPress={() => {
-                      setSelected((current) => ({
-                        ...current,
-                        [group.storeId]: method.method
-                      }));
-                      setCheckout(null);
-                      onPaymentReady(false);
-                      idempotencyKeyRef.current =
-                        makeIdempotencyKey(quote.sessionId);
-                    }}
-                  >
-                    {t(methodKey(method.method))}
-                  </Button>
-                  {!method.available ? (
-                    <AppText variant="caption" tone="muted">
-                      {t(unavailableKey(method.unavailableReason))}
-                    </AppText>
-                  ) : null}
+              <View style={{
+                flexDirection: isRTL ? "row-reverse" : "row",
+                alignItems: "center", justifyContent: "space-between", gap: theme.spacing.sm
+              }}>
+                <View style={{ flex: 1, gap: theme.spacing.xs }}>
+                  <AppText variant="bodyStrong" style={{ fontSize: 14, lineHeight: 21 }}>
+                    {group.storeName}
+                  </AppText>
+                  <AppText variant="caption" tone="muted">
+                    {t(
+                      group.fulfillmentType === "pickup"
+                        ? "delivery.customer.fulfillment.pickup"
+                        : group.fulfillmentType === "digital"
+                          ? "delivery.customer.fulfillment.digital"
+                          : "delivery.customer.fulfillment.delivery"
+                    )}
+                  </AppText>
                 </View>
+                <AppText variant="label" tone="primary">{formatAfn(group.amount)}</AppText>
+              </View>
+
+              {group.methods.map(method => (
+                <CheckoutChoice key={method.method}
+                  icon={method.method === "cash_on_delivery" ? "cash-outline"
+                    : method.method === "pay_at_store" ? "storefront-outline"
+                      : method.method === "card" ? "card-outline" : "wallet-outline"}
+                  title={t(methodKey(method.method))}
+                  subtitle={!method.available
+                    ? t(unavailableKey(method.unavailableReason))
+                    : undefined}
+                  selected={selected[group.storeId] === method.method}
+                  disabled={!method.available || busy !== null}
+                  onPress={() => {
+                    setSelected(current => ({
+                      ...current,
+                      [group.storeId]: method.method
+                    }));
+                    setCheckout(null);
+                    onPaymentReady(false);
+                    idempotencyKeyRef.current = makeIdempotencyKey(quote.sessionId);
+                  }}
+                />
               ))}
             </View>
           ))}
@@ -364,11 +360,14 @@ export function CheckoutPaymentSection({
       </Card>
 
       {checkout ? (
-        <Card>
+        <Card style={{ padding: theme.spacing.lg }}>
           <View style={{ gap: theme.spacing.md }}>
-            <AppText variant="title">
-              {t("payment.customer.statusTitle")}
-            </AppText>
+            <View style={{ flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center", gap: theme.spacing.sm }}>
+              <Ionicons name="shield-checkmark-outline" size={20} color={theme.colors.primary} />
+              <AppText variant="bodyStrong" style={{ fontSize: 16, lineHeight: 22 }}>
+                {t("payment.customer.statusTitle")}
+              </AppText>
+            </View>
 
             {checkout.attempts.map((attempt) => (
               <View
@@ -398,9 +397,7 @@ export function CheckoutPaymentSection({
                     }
                   />
                 </View>
-                <AppText tone="muted">
-                  {formatAfn(attempt.amount)}
-                </AppText>
+                <AppText variant="label" tone="primary">{formatAfn(attempt.amount)}</AppText>
 
                 {attempt.hostedCheckoutUrl &&
                 attempt.state === "pending" ? (
@@ -463,11 +460,15 @@ export function CheckoutPaymentSection({
         </Card>
       ) : null}
 
-      <Card muted>
-        <AppText variant="caption" tone="muted">
-          {t("payment.customer.securityHint")}
-        </AppText>
-      </Card>
+      <View style={{
+        flexDirection: isRTL ? "row-reverse" : "row",
+        gap: theme.spacing.sm, alignItems: "flex-start", paddingHorizontal: theme.spacing.sm
+      }}>
+        <Ionicons name="lock-closed-outline" size={17} color={theme.colors.textMuted} />
+        <View style={{ flex: 1 }}>
+          <AppText variant="caption" tone="muted">{t("payment.customer.securityHint")}</AppText>
+        </View>
+      </View>
     </View>
   );
 }

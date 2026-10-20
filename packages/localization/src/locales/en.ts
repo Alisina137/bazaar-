@@ -322,6 +322,12 @@ export const enMessages = {
     "Add an address using the location details people commonly use in Afghanistan.",
 
   "checkout.phaseBadge": "Checkout foundation",
+  "checkout.addressHint": "Select where you want your order delivered.",
+  "checkout.itemsHint": "Review your products before delivery and payment.",
+  "checkout.calculateHint": "Delivery options and the final total are calculated after selecting an address.",
+  "checkout.deliveryHint": "Choose a delivery option for each store.",
+  "checkout.reviewHint": "Confirm payment before placing your order.",
+  "checkout.breakdown": "Price breakdown",
   "checkout.title": "Checkout",
   "checkout.description":
     "Confirm your address and receive a server-authoritative cart price before delivery and payment are added.",

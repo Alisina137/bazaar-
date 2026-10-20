@@ -319,6 +319,12 @@ export const faAfMessages = {
     "با جزئیات مکانی رایج در افغانستان یک آدرس اضافه کنید.",
 
   "checkout.phaseBadge": "بنیاد پرداخت",
+  "checkout.addressHint": "آدرس تحویل سفارش خود را انتخاب کنید.",
+  "checkout.itemsHint": "پیش از انتخاب ارسال و پرداخت، کالاهای خود را بررسی کنید.",
+  "checkout.calculateHint": "پس از انتخاب آدرس، روش ارسال و مبلغ نهایی محاسبه می‌شود.",
+  "checkout.deliveryHint": "برای هر فروشگاه روش ارسال را انتخاب کنید.",
+  "checkout.reviewHint": "پیش از ثبت سفارش، پرداخت را تأیید کنید.",
+  "checkout.breakdown": "جزئیات قیمت",
   "checkout.title": "پرداخت",
   "checkout.description":
     "آدرس را تأیید کنید و پیش از اضافه‌شدن تحویل و پرداخت، قیمت معتبر سرور را دریافت کنید.",

@@ -17,9 +17,11 @@ import {
   useRef,
   useState
 } from "react";
-import { View } from "react-native";
+import { Image, View } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { useAuth } from "@/auth/provider";
+import { CheckoutChoice, CheckoutSectionHeading } from "@/components/checkout/CheckoutChoice";
 import {
   CartPricingApiError,
   getCart,
@@ -345,11 +347,14 @@ export default function CheckoutScreen() {
   };
 
   const selectAddress = (addressId: string) => {
+    if (selectedAddressId === addressId) return;
     setSelectedAddressId(addressId);
     setDelivery(null);
     setSelectedOptions({});
     setQuote(null);
     setPaymentReady(false);
+    setOrderError(null);
+    orderIdempotencyRef.current = null;
     setErrorKey(null);
   };
 
@@ -424,77 +429,61 @@ export default function CheckoutScreen() {
   }
 
   return (
-    <Screen>
-      <View
-        style={{
-          flexDirection: isRTL ? "row-reverse" : "row",
-          justifyContent: "space-between",
-          gap: theme.spacing.sm
-        }}
-      >
-        <Button variant="ghost" onPress={() => router.back()}>
-          {t("marketplace.back")}
-        </Button>
-        <Badge label={t("delivery.phaseBadge")} tone="primary" />
-      </View>
-
-      <View style={{ gap: theme.spacing.sm }}>
-        <AppText variant="display">{t("checkout.title")}</AppText>
-        <AppText tone="muted">{t("checkout.description")}</AppText>
+    <Screen contentStyle={{ gap: theme.spacing.lg, paddingHorizontal: theme.spacing.lg, paddingVertical: theme.spacing.lg, paddingBottom: theme.spacing["3xl"] }}>
+      <View style={{
+        flexDirection: isRTL ? "row-reverse" : "row",
+        alignItems: "center", gap: theme.spacing.sm
+      }}>
+        <View style={{ flex: 1, gap: theme.spacing.xs }}>
+          <AppText variant="bodyStrong" style={{ fontSize: 22, lineHeight: 29 }}>{t("checkout.title")}</AppText>
+          <AppText variant="caption" tone="muted">{t("checkout.description")}</AppText>
+        </View>
+        <Button variant="ghost" onPress={() => router.back()}>{t("marketplace.back")}</Button>
       </View>
 
       <CheckoutSteps
+        addressReady={Boolean(selectedAddress)}
         deliveryReady={Boolean(quote)}
         paymentReady={paymentReady}
       />
 
       {errorKey ? (
-        <Card>
-          <AppText tone="danger">{t(errorKey)}</AppText>
+        <Card style={{ borderColor: theme.colors.danger, backgroundColor: theme.colors.dangerSoft }}>
+          <View style={{ flexDirection: isRTL ? "row-reverse" : "row", gap: theme.spacing.sm, alignItems: "flex-start" }}>
+            <Ionicons name="alert-circle-outline" size={20} color={theme.colors.danger} />
+            <View style={{ flex: 1 }}>
+              <AppText variant="label" tone="danger" accessibilityRole="alert">{t(errorKey)}</AppText>
+            </View>
+          </View>
         </Card>
       ) : null}
 
-      <Card>
+      <Card style={{ padding: theme.spacing.lg }}>
         <View style={{ gap: theme.spacing.md }}>
-          <AppText variant="title">
-            {t("checkout.step.address")}
-          </AppText>
-
+          <CheckoutSectionHeading step={1} title={t("checkout.step.address")}
+            subtitle={t("checkout.addressHint")} />
           {addresses.length === 0 ? (
             <View style={{ gap: theme.spacing.md }}>
-              <AppText tone="muted">
-                {t("checkout.noAddress")}
-              </AppText>
-              <Button
-                variant="secondary"
-                onPress={() => router.push("/checkout/addresses")}
-              >
+              <AppText variant="label" tone="muted">{t("checkout.noAddress")}</AppText>
+              <Button variant="secondary" onPress={() => router.push("/checkout/addresses")}>
                 {t("address.add")}
               </Button>
             </View>
           ) : (
             <>
-              {addresses.map((address) => (
-                <Button
+              {addresses.map(address => (
+                <CheckoutChoice
                   key={address.id}
-                  variant={
-                    selectedAddressId === address.id
-                      ? "primary"
-                      : "secondary"
-                  }
+                  icon="location-outline"
+                  title={address.label || address.recipientName}
+                  subtitle={address.recipientName + " · " + address.phone}
+                  secondary={[address.addressDescription, address.districtCity, address.province]
+                    .filter(Boolean).join(" · ")}
+                  selected={selectedAddressId === address.id}
                   onPress={() => selectAddress(address.id)}
-                >
-                  {(address.label ?? address.recipientName) +
-                    " · " +
-                    address.province +
-                    " · " +
-                    address.districtCity}
-                </Button>
+                />
               ))}
-              <Button
-                variant="ghost"
-                onPress={() => router.push("/checkout/addresses")}
-              >
+              <Button variant="ghost" onPress={() => router.push("/checkout/addresses")}>
                 {t("address.manage")}
               </Button>
             </>
@@ -502,79 +491,84 @@ export default function CheckoutScreen() {
         </View>
       </Card>
 
-      <Card>
+      <Card style={{ padding: theme.spacing.lg }}>
         <View style={{ gap: theme.spacing.md }}>
-          <AppText variant="title">{t("checkout.cartReview")}</AppText>
-          {cart.groups.map((group) => (
-            <View key={group.store.id} style={{ gap: theme.spacing.sm }}>
-              <AppText variant="heading">{group.store.name}</AppText>
-              {group.items.map((item) => (
-                <View
-                  key={item.id}
-                  style={{
-                    flexDirection: isRTL ? "row-reverse" : "row",
-                    justifyContent: "space-between",
-                    gap: theme.spacing.md
-                  }}
-                >
-                  <AppText style={{ flex: 1 }}>
-                    {item.name +
-                      (item.variantTitle ? " · " + item.variantTitle : "") +
-                      " × " +
-                      item.quantity}
+          <CheckoutSectionHeading step={2} title={t("checkout.cartReview")}
+            subtitle={t("checkout.itemsHint")} />
+          {cart.groups.map((group, groupIndex) => (
+            <View key={group.store.id} style={{
+              gap: theme.spacing.sm,
+              borderTopWidth: groupIndex > 0 ? 1 : 0,
+              borderTopColor: theme.colors.border,
+              paddingTop: groupIndex > 0 ? theme.spacing.md : 0
+            }}>
+              <View style={{ flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center", gap: theme.spacing.sm }}>
+                <Ionicons name="storefront-outline" size={17} color={theme.colors.primary} />
+                <View style={{ flex: 1 }}>
+                  <AppText variant="bodyStrong" style={{ fontSize: 14, lineHeight: 21 }}>
+                    {group.store.name}
                   </AppText>
-                  <AppText>{formatAfn(item.lineTotal)}</AppText>
+                </View>
+              </View>
+              {group.items.map(item => (
+                <View key={item.id} style={{
+                  flexDirection: isRTL ? "row-reverse" : "row",
+                  alignItems: "center", gap: theme.spacing.md,
+                  paddingVertical: theme.spacing.xs
+                }}>
+                  {item.imageUrl ? (
+                    <Image source={{ uri: item.imageUrl }} resizeMode="contain"
+                      style={{ width: 56, height: 56, borderRadius: theme.radii.md, backgroundColor: theme.colors.surfaceMuted }} />
+                  ) : (
+                    <View style={{
+                      width: 56, height: 56, borderRadius: theme.radii.md,
+                      backgroundColor: theme.colors.surfaceMuted,
+                      alignItems: "center", justifyContent: "center"
+                    }}>
+                      <Ionicons name="image-outline" size={21} color={theme.colors.textMuted} />
+                    </View>
+                  )}
+                  <View style={{ flex: 1, gap: theme.spacing.xs }}>
+                    <AppText variant="label" numberOfLines={2}>{item.name}</AppText>
+                    {item.variantTitle ? (
+                      <AppText variant="caption" tone="muted" numberOfLines={1}>{item.variantTitle}</AppText>
+                    ) : null}
+                    <AppText variant="caption" tone="muted">
+                      {t("cart.itemCount")}: {item.quantity}
+                    </AppText>
+                  </View>
+                  <AppText variant="label" tone="primary">{formatAfn(item.lineTotal)}</AppText>
                 </View>
               ))}
             </View>
           ))}
-
-          <SummaryRow
-            label={t("cart.preDeliveryTotal")}
-            value={formatAfn(cart.totals.preDeliveryTotal)}
-            emphasized
-          />
+          <View style={{ height: 1, backgroundColor: theme.colors.border }} />
+          <SummaryRow label={t("cart.preDeliveryTotal")}
+            value={formatAfn(cart.totals.preDeliveryTotal)} emphasized />
+          <AppText variant="caption" tone="muted">{t("checkout.preDeliveryDisclaimer")}</AppText>
         </View>
       </Card>
 
-      <Button
-        fullWidth
-        loading={deliveryLoading}
-        disabled={
-          !selectedAddressId ||
-          cart.hasBlockingIssues ||
-          deliveryLoading
-        }
-        onPress={() => {
-          void calculateDelivery();
-        }}
-      >
-        {delivery
-          ? t("delivery.customer.recalculate")
-          : t("delivery.customer.calculate")}
-      </Button>
-
-      {cart.hasBlockingIssues ? (
-        <AppText tone="danger">
-          {t("cart.blockingIssues")}
-        </AppText>
-      ) : null}
+      <View style={{ gap: theme.spacing.sm }}>
+        <Button fullWidth loading={deliveryLoading}
+          disabled={!selectedAddressId || cart.hasBlockingIssues || deliveryLoading || quoting || placingOrder}
+          onPress={() => { void calculateDelivery(); }}>
+          {delivery ? t("delivery.customer.recalculate") : t("delivery.customer.calculate")}
+        </Button>
+        {cart.hasBlockingIssues ? (
+          <AppText variant="caption" tone="danger" accessibilityRole="alert">{t("cart.blockingIssues")}</AppText>
+        ) : null}
+        {!delivery ? (
+          <AppText variant="caption" tone="muted" align="center">
+            {t("checkout.calculateHint")}
+          </AppText>
+        ) : null}
+      </View>
 
       {delivery ? (
         <View style={{ gap: theme.spacing.lg }}>
-          <Card>
-            <View style={{ gap: theme.spacing.sm }}>
-              <AppText variant="title">
-                {t("checkout.step.delivery")}
-              </AppText>
-              {selectedAddress ? (
-                <AppText tone="muted">
-                  {selectedAddress.recipientName} · {selectedAddress.province} ·{" "}
-                  {selectedAddress.districtCity}
-                </AppText>
-              ) : null}
-            </View>
-          </Card>
+          <CheckoutSectionHeading step={3} title={t("checkout.step.delivery")}
+            subtitle={t("checkout.deliveryHint")} />
 
           {delivery.merchantGroups.map((group) => (
             <DeliveryGroupCard
@@ -587,15 +581,16 @@ export default function CheckoutScreen() {
                   [group.storeId]: optionId
                 }));
                 setQuote(null);
+                setPaymentReady(false);
+                setOrderError(null);
+                orderIdempotencyRef.current = null;
               }}
             />
           ))}
 
           {!delivery.canContinue ? (
-            <Card>
-              <AppText tone="danger">
-                {t("delivery.customer.resolveUnavailable")}
-              </AppText>
+            <Card style={{ backgroundColor: theme.colors.dangerSoft, borderColor: theme.colors.danger }}>
+              <AppText variant="label" tone="danger">{t("delivery.customer.resolveUnavailable")}</AppText>
             </Card>
           ) : null}
 
@@ -614,18 +609,24 @@ export default function CheckoutScreen() {
 
       {quote ? (
         <View style={{ gap: theme.spacing.lg }}>
-          <Card>
+          <Card style={{ padding: theme.spacing.lg }}>
             <View style={{ gap: theme.spacing.md }}>
-              <Badge
-                label={t("delivery.customer.pricingVerified")}
-                tone="success"
-              />
-              <AppText variant="title">
-                {t("delivery.customer.finalBeforePayment")}
-              </AppText>
-              <AppText variant="display">
-                {formatAfn(quote.totals.finalBeforePaymentTotal)}
-              </AppText>
+              <View style={{ flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center", gap: theme.spacing.sm }}>
+                <Ionicons name="checkmark-circle" size={21} color={theme.colors.success} />
+                <AppText variant="bodyStrong" style={{ fontSize: 16, lineHeight: 22 }}>
+                  {t("delivery.customer.pricingVerified")}
+                </AppText>
+              </View>
+              <View style={{
+                padding: theme.spacing.lg, borderRadius: theme.radii.md,
+                backgroundColor: theme.colors.primarySoft, gap: theme.spacing.xs
+              }}>
+                <AppText variant="caption" tone="muted">{t("delivery.customer.finalBeforePayment")}</AppText>
+                <AppText variant="bodyStrong" tone="primary" style={{ fontSize: 26, lineHeight: 34 }}>
+                  {formatAfn(quote.totals.finalBeforePaymentTotal)}
+                </AppText>
+              </View>
+              <AppText variant="bodyStrong">{t("checkout.breakdown")}</AppText>
 
               <SummaryRow
                 label={t("cart.itemsSubtotal")}
@@ -672,12 +673,6 @@ export default function CheckoutScreen() {
                 value={formatAfn(quote.totals.deliveryTotal)}
                 emphasized
               />
-              <SummaryRow
-                label={t("delivery.customer.finalBeforePayment")}
-                value={formatAfn(quote.totals.finalBeforePaymentTotal)}
-                emphasized
-              />
-
               <AppText variant="caption" tone="muted">
                 {t("delivery.customer.noTaxAssumed")}
               </AppText>
@@ -690,16 +685,23 @@ export default function CheckoutScreen() {
             onPaymentReady={setPaymentReady}
           />
 
-          <Card muted>
+          <Card style={{ padding: theme.spacing.lg }}>
             <View style={{ gap: theme.spacing.md }}>
-              <AppText variant="title">
-                {t("checkout.step.review")}
-              </AppText>
-              <AppText tone="muted">
-                {paymentReady
-                  ? t("payment.customer.reviewReady")
-                  : t("payment.customer.reviewBlocked")}
-              </AppText>
+              <CheckoutSectionHeading step={5} title={t("checkout.step.review")}
+                subtitle={t("checkout.reviewHint")} />
+              <View style={{
+                borderRadius: theme.radii.md, padding: theme.spacing.md,
+                backgroundColor: paymentReady ? theme.colors.successSoft : theme.colors.surfaceMuted,
+                flexDirection: isRTL ? "row-reverse" : "row", alignItems: "center", gap: theme.spacing.sm
+              }}>
+                <Ionicons name={paymentReady ? "checkmark-circle" : "lock-closed-outline"}
+                  size={20} color={paymentReady ? theme.colors.success : theme.colors.textMuted} />
+                <View style={{ flex: 1 }}>
+                  <AppText variant="label" tone={paymentReady ? "success" : "muted"}>
+                    {paymentReady ? t("payment.customer.reviewReady") : t("payment.customer.reviewBlocked")}
+                  </AppText>
+                </View>
+              </View>
               {orderError ? (
                 <AppText tone="danger">{t(orderError)}</AppText>
               ) : null}
@@ -737,159 +739,161 @@ function DeliveryGroupCard({
 }) {
   const theme = useAppTheme();
   const { formatAfn, formatNumber, locale, t } = useLocalization();
+  const selected = group.options.find(option => option.optionId === selectedOptionId) ?? null;
 
   return (
-    <Card>
-      <View style={{ gap: theme.spacing.lg }}>
-        <View style={{ gap: theme.spacing.xs }}>
-          <AppText variant="title">{group.storeName}</AppText>
-          <Badge
-            label={
-              group.available
-                ? t("delivery.customer.available")
-                : t("delivery.customer.unavailable")
-            }
-            tone={group.available ? "success" : "danger"}
-          />
+    <Card style={{ padding: theme.spacing.lg }}>
+      <View style={{ gap: theme.spacing.md }}>
+        <View style={{ gap: theme.spacing.sm }}>
+          <AppText variant="bodyStrong" style={{ fontSize: 15, lineHeight: 22 }}>{group.storeName}</AppText>
+          {!group.available ? (
+            <Badge label={t("delivery.customer.unavailable")} tone="danger" />
+          ) : null}
         </View>
 
         {!group.available ? (
-          <AppText tone="danger">
+          <AppText variant="label" tone="danger" accessibilityRole="alert">
             {t(unavailableKey(group.unavailableReason))}
           </AppText>
-        ) : (
-          group.options.map((option) => (
-            <Button
-              key={option.optionId}
-              variant={
-                selectedOptionId === option.optionId
-                  ? "primary"
-                  : "secondary"
-              }
-              onPress={() => onSelect(option.optionId)}
-            >
-              {option.label} · {formatAfn(option.price.finalDeliveryPrice)}
-            </Button>
-          ))
-        )}
+        ) : group.options.map(option => (
+          <CheckoutChoice
+            key={option.optionId}
+            icon={option.fulfillmentType === "pickup" ? "storefront-outline"
+              : option.fulfillmentType === "digital" ? "cloud-download-outline" : "cube-outline"}
+            title={option.label}
+            subtitle={t(fulfillmentKey(option))}
+            trailing={formatAfn(option.price.finalDeliveryPrice)}
+            selected={selectedOptionId === option.optionId}
+            onPress={() => onSelect(option.optionId)}
+          />
+        ))}
 
-        {group.options.map((option) =>
-          selectedOptionId === option.optionId ? (
-            <View key={"detail:" + option.optionId} style={{ gap: theme.spacing.sm }}>
-              <AppText variant="heading">
-                {t(fulfillmentKey(option))}: {option.label}
-              </AppText>
-              <SummaryRow
-                label={t("delivery.customer.deliveryBase")}
-                value={formatAfn(option.price.baseDelivery)}
-              />
-              {option.price.urgencySurcharge > 0 ? (
-                <SummaryRow
-                  label={t("delivery.customer.urgencySurcharge")}
-                  value={formatAfn(option.price.urgencySurcharge)}
-                />
-              ) : null}
-              {option.price.productDeliverySurcharge > 0 ? (
-                <SummaryRow
-                  label={t("delivery.customer.productSurcharge")}
-                  value={formatAfn(option.price.productDeliverySurcharge)}
-                />
-              ) : null}
-              {option.price.freeDeliveryDiscount > 0 ? (
-                <SummaryRow
-                  label={t("delivery.customer.freeDelivery")}
-                  value={"-" + formatAfn(option.price.freeDeliveryDiscount)}
-                />
-              ) : null}
-              <SummaryRow
-                label={t("delivery.customer.deliveryTotal")}
-                value={formatAfn(option.price.finalDeliveryPrice)}
-                emphasized
-              />
-
+        {selected ? (
+          <View style={{
+            gap: theme.spacing.sm,
+            padding: theme.spacing.md,
+            backgroundColor: theme.colors.surfaceMuted,
+            borderRadius: theme.radii.md
+          }}>
+            <SummaryRow label={t("delivery.customer.deliveryBase")}
+              value={formatAfn(selected.price.baseDelivery)} />
+            {selected.price.urgencySurcharge > 0 ? (
+              <SummaryRow label={t("delivery.customer.urgencySurcharge")}
+                value={formatAfn(selected.price.urgencySurcharge)} />
+            ) : null}
+            {selected.price.productDeliverySurcharge > 0 ? (
+              <SummaryRow label={t("delivery.customer.productSurcharge")}
+                value={formatAfn(selected.price.productDeliverySurcharge)} />
+            ) : null}
+            {selected.price.freeDeliveryDiscount > 0 ? (
+              <SummaryRow label={t("delivery.customer.freeDelivery")}
+                value={"-" + formatAfn(selected.price.freeDeliveryDiscount)} />
+            ) : null}
+            <SummaryRow label={t("delivery.customer.deliveryTotal")}
+              value={formatAfn(selected.price.finalDeliveryPrice)} emphasized />
+            <AppText variant="caption" tone="muted">
+              {t("delivery.customer.ruleUsed")}: {t(ruleKey(selected))} · {selected.ruleUsed.label}
+            </AppText>
+            {selected.ruleUsed.distanceKm !== null ? (
               <AppText variant="caption" tone="muted">
-                {t("delivery.customer.ruleUsed")}: {t(ruleKey(option))} ·{" "}
-                {option.ruleUsed.label}
+                {t("delivery.customer.distance")}: {formatNumber(selected.ruleUsed.distanceKm)} km
               </AppText>
-
-              {option.ruleUsed.distanceKm !== null ? (
-                <AppText variant="caption" tone="muted">
-                  {t("delivery.customer.distance")}:{" "}
-                  {formatNumber(option.ruleUsed.distanceKm)} km ·{" "}
-                  {t(
-                    option.ruleUsed.distanceSource ===
-                      "straight_line_fallback"
-                      ? "delivery.customer.distanceFallback"
-                      : "delivery.customer.distanceNotRequired"
-                  )}
-                </AppText>
-              ) : null}
-
-              {option.estimatedMinAt && option.estimatedMaxAt ? (
-                <AppText variant="caption" tone="muted">
-                  {t("delivery.customer.estimate")}:{" "}
-                  {new Date(option.estimatedMinAt).toLocaleString(
-                    locale === "fa-AF"
-                      ? "fa-AF"
-                      : locale === "ps-AF"
-                        ? "ps-AF"
-                        : "en"
-                  )}
-                  {" – "}
-                  {new Date(option.estimatedMaxAt).toLocaleString(
-                    locale === "fa-AF"
-                      ? "fa-AF"
-                      : locale === "ps-AF"
-                        ? "ps-AF"
-                        : "en"
-                  )}
-                </AppText>
-              ) : null}
-            </View>
-          ) : null
-        )}
+            ) : null}
+            {selected.estimatedMinAt && selected.estimatedMaxAt ? (
+              <AppText variant="caption" tone="muted">
+                {t("delivery.customer.estimate")}:{" "}
+                {new Date(selected.estimatedMinAt).toLocaleString(
+                  locale === "fa-AF" ? "fa-AF" : locale === "ps-AF" ? "ps-AF" : "en"
+                )}
+                {" – "}
+                {new Date(selected.estimatedMaxAt).toLocaleString(
+                  locale === "fa-AF" ? "fa-AF" : locale === "ps-AF" ? "ps-AF" : "en"
+                )}
+              </AppText>
+            ) : null}
+          </View>
+        ) : null}
       </View>
     </Card>
   );
 }
 
 function CheckoutSteps({
+  addressReady,
   deliveryReady,
   paymentReady
 }: {
+  addressReady: boolean;
   deliveryReady: boolean;
   paymentReady: boolean;
 }) {
   const theme = useAppTheme();
-  const { t, isRTL } = useLocalization();
+  const { t, isRTL, formatNumber } = useLocalization();
+  const current = !addressReady ? 0 : !deliveryReady ? 1 : !paymentReady ? 2 : 3;
+  const labels: TranslationKey[] = [
+    "checkout.step.address",
+    "checkout.step.delivery",
+    "checkout.step.payment",
+    "checkout.step.review"
+  ];
 
   return (
-    <Card muted>
-      <View style={{ gap: theme.spacing.sm }}>
-        {[
-          ["1", "checkout.step.address", true],
-          ["2", "checkout.step.delivery", deliveryReady],
-          ["3", "checkout.step.payment", paymentReady],
-          ["4", "checkout.step.review", paymentReady],
-          ["5", "checkout.step.placeOrder", paymentReady]
-        ].map(([number, key, ready]) => (
-          <View
-            key={String(key)}
-            style={{
-              flexDirection: isRTL ? "row-reverse" : "row",
-              gap: theme.spacing.sm,
-              alignItems: "center"
-            }}
-          >
-            <Badge
-              label={String(number)}
-              tone={ready ? "success" : "neutral"}
-            />
-            <AppText>{t(key as TranslationKey)}</AppText>
-          </View>
-        ))}
+    <View accessibilityRole="progressbar"
+      accessibilityLabel={t("checkout.title")}
+      style={{ gap: theme.spacing.sm }}
+    >
+      <View style={{
+        flexDirection: isRTL ? "row-reverse" : "row",
+        alignItems: "center", justifyContent: "space-between",
+        gap: theme.spacing.xs
+      }}>
+        {labels.map((key, index) => {
+          const complete = index < current;
+          const active = index === current;
+          return (
+            <View key={key} style={{
+              flex: 1, alignItems: "center", gap: theme.spacing.xs,
+              paddingVertical: theme.spacing.sm
+            }}>
+              <View style={{
+                height: 29, width: 29, borderRadius: theme.radii.full,
+                alignItems: "center", justifyContent: "center",
+                backgroundColor: complete ? theme.colors.successSoft
+                  : active ? theme.colors.primary : theme.colors.surfaceMuted,
+                borderWidth: active ? 0 : 1,
+                borderColor: complete ? theme.colors.success : theme.colors.border
+              }}>
+                {complete ? (
+                  <Ionicons name="checkmark" color={theme.colors.success} size={17} />
+                ) : (
+                  <AppText variant="caption"
+                    style={{ color: active ? theme.colors.onPrimary : theme.colors.textMuted }}>
+                    {formatNumber(index + 1)}
+                  </AppText>
+                )}
+              </View>
+              <AppText variant="caption" align="center" numberOfLines={2}
+                tone={active ? "primary" : complete ? "success" : "muted"}
+                style={{ fontSize: 11, lineHeight: 16 }}>
+                {t(key)}
+              </AppText>
+            </View>
+          );
+        })}
       </View>
-    </Card>
+      <View style={{
+        height: 4, backgroundColor: theme.colors.surfaceMuted,
+        borderRadius: theme.radii.full, overflow: "hidden"
+      }}>
+        <View style={{
+          width: `${(current + 1) / labels.length * 100}%` as `${number}%`,
+          alignSelf: isRTL ? "flex-end" : "flex-start",
+          height: 4,
+          borderRadius: theme.radii.full,
+          backgroundColor: theme.colors.primary
+        }} />
+      </View>
+    </View>
   );
 }
 
@@ -906,17 +910,20 @@ function SummaryRow({
   const { isRTL } = useLocalization();
 
   return (
-    <View
-      style={{
-        flexDirection: isRTL ? "row-reverse" : "row",
-        justifyContent: "space-between",
-        gap: theme.spacing.md
-      }}
-    >
-      <AppText variant={emphasized ? "heading" : "body"}>
-        {label}
-      </AppText>
-      <AppText variant={emphasized ? "heading" : "body"}>
+    <View style={{
+      flexDirection: isRTL ? "row-reverse" : "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: theme.spacing.md
+    }}>
+      <View style={{ flex: 1 }}>
+        <AppText variant={emphasized ? "bodyStrong" : "label"}
+          tone={emphasized ? "default" : "muted"}>
+          {label}
+        </AppText>
+      </View>
+      <AppText variant="bodyStrong" tone={emphasized ? "primary" : "default"}
+        style={{ fontSize: emphasized ? 16 : 14, lineHeight: 21 }}>
         {value}
       </AppText>
     </View>

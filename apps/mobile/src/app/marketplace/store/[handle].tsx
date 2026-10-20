@@ -24,6 +24,7 @@ import {
 } from "@/components/ui";
 import { useAppTheme } from "@/design/theme";
 import { useLocalization } from "@/localization/provider";
+import { StoreMapPreview } from "@/store/StoreMapPicker";
 import {
   MarketplaceApiError,
   marketplaceStore
@@ -228,6 +229,10 @@ export default function MarketplaceStoreScreen() {
             <AppText>{store.description}</AppText>
           ) : null}
 
+          {store.physicalAddress ? (
+            <AppText tone="muted">{t("seller.onboarding.address")}: {store.physicalAddress}</AppText>
+          ) : null}
+
           {store.businessHours ? (
             <AppText variant="caption" tone="muted">
               {t("storefront.hoursLabel")}: {store.businessHours}
@@ -235,6 +240,10 @@ export default function MarketplaceStoreScreen() {
           ) : null}
         </View>
       </Card>
+
+      {store.mapLatitude !== null && store.mapLongitude !== null ? (
+        <Card><StoreMapPreview coordinates={{ latitude: store.mapLatitude, longitude: store.mapLongitude }} /></Card>
+      ) : null}
 
       {data.categories.length > 0 ? (
         <View style={{ gap: theme.spacing.md }}>

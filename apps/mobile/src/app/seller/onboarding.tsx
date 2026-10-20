@@ -8,6 +8,9 @@ import {
 import { useRouter } from "expo-router";
 import { OnboardingPlanCards } from "@/components/seller/OnboardingPlanCards";
 import { useEffect, useState } from "react";
+import { BusinessHoursRange } from "@/store/BusinessHoursRange";
+import { StoreMapPicker, type StoreCoordinates } from "@/store/StoreMapPicker";
+import { validMapPin } from "@/store/map-utils";
 import {
   Pressable,
   StyleSheet,
@@ -77,6 +80,7 @@ export default function SellerOnboardingScreen() {
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [physicalAddress, setPhysicalAddress] = useState("");
   const [businessHours, setBusinessHours] = useState("");
+  const [storePin, setStorePin] = useState<StoreCoordinates | null>(null);
   const [storeTheme, setStoreTheme] = useState<StoreTheme>("minimal");
   const [busy, setBusy] = useState(false);
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
@@ -153,10 +157,12 @@ export default function SellerOnboardingScreen() {
     Boolean(selectedCategory?.nameEn.trim()) &&
     AFGHAN_PROVINCES.some(([value]) => value === province) &&
     validDistrict &&
-    phone.trim().length >= 7;
+    /^\+?[0-9 ()-]{7,32}$/.test(phone.trim()) &&
+    /^(?:[A-Za-z0-9]{3}|[A-Za-z0-9][A-Za-z0-9 _-]*[A-Za-z0-9])$/.test(handle.trim()) &&
+    handle.trim().length <= 80;
 
   const submit = async () => {
-    if (!requiredComplete) {
+    if (!requiredComplete || !validMapPin(storePin)) {
       setErrorKey("store.error.invalidRequest");
       setStep("store");
       return;
@@ -176,14 +182,19 @@ export default function SellerOnboardingScreen() {
         preferredLocale,
         description: description || null,
         whatsappNumber: whatsappNumber || null,
-        physicalAddress: physicalAddress || null,
+        physicalAddress: physicalAddress.trim() || null,
+        mapLatitude: storePin?.latitude ?? null,
+        mapLongitude: storePin?.longitude ?? null,
         businessHours: businessHours || null,
         theme: storeTheme
       });
 
       router.replace("/seller/(tabs)");
     } catch (requestError) {
-      setErrorKey(storeErrorKey(getStoreError(requestError).code));
+      const failure = getStoreError(requestError);
+      setErrorKey(failure.code === "service_unavailable"
+        ? (failure.httpStatus === null ? "seller.onboarding.networkError" : "seller.onboarding.serverError")
+        : storeErrorKey(failure.code));
     } finally {
       setBusy(false);
     }
@@ -432,13 +443,11 @@ export default function SellerOnboardingScreen() {
               label={t("seller.onboarding.address")}
               value={physicalAddress}
               onChangeText={setPhysicalAddress}
+              maxLength={1000}
               multiline
             />
-            <TextField
-              label={t("seller.onboarding.businessHours")}
-              value={businessHours}
-              onChangeText={setBusinessHours}
-            />
+            <StoreMapPicker province={province} value={storePin} onChange={setStorePin} />
+            <BusinessHoursRange value={businessHours} onChange={setBusinessHours} />
 
             <View style={{ gap: theme.spacing.sm }}>
               <AppText variant="label">{t("seller.onboarding.theme")}</AppText>
@@ -515,6 +524,7 @@ export default function SellerOnboardingScreen() {
                 <Button
                   fullWidth
                   loading={busy}
+                  disabled={!requiredComplete || !validMapPin(storePin)}
                   onPress={() => {
                     void submit();
                   }}

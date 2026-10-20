@@ -5,6 +5,8 @@ import {
   type SupportedLocale
 } from "@bazaarlink/localization";
 import { useEffect, useState } from "react";
+import { StoreMapPicker, type StoreCoordinates } from "@/store/StoreMapPicker";
+import { BusinessHoursRange } from "@/store/BusinessHoursRange";
 import {
   Pressable,
   StyleSheet,
@@ -63,6 +65,7 @@ export default function SellerSettingsScreen() {
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [physicalAddress, setPhysicalAddress] = useState("");
   const [businessHours, setBusinessHours] = useState("");
+  const [storePin, setStorePin] = useState<StoreCoordinates | null>(null);
   const [storeTheme, setStoreTheme] = useState<StoreTheme>("minimal");
   const [accentColor, setAccentColor] = useState("#0F766E");
   const [featuredCategoryIds, setFeaturedCategoryIds] = useState<string[]>([]);
@@ -88,6 +91,9 @@ export default function SellerSettingsScreen() {
     setWhatsappNumber(currentStore.whatsappNumber ?? "");
     setPhysicalAddress(currentStore.physicalAddress ?? "");
     setBusinessHours(currentStore.businessHours ?? "");
+    setStorePin(currentStore.mapLatitude !== null && currentStore.mapLongitude !== null
+      ? { latitude: currentStore.mapLatitude, longitude: currentStore.mapLongitude }
+      : null);
     setStoreTheme(currentStore.theme);
     setAccentColor(currentStore.accentColor);
     setFeaturedCategoryIds(currentStore.featuredCategoryIds);
@@ -153,7 +159,9 @@ export default function SellerSettingsScreen() {
         preferredLocale,
         description: description || null,
         whatsappNumber: whatsappNumber || null,
-        physicalAddress: physicalAddress || null,
+        physicalAddress: physicalAddress.trim() || null,
+        mapLatitude: storePin?.latitude ?? null,
+        mapLongitude: storePin?.longitude ?? null,
         businessHours: businessHours || null,
         ...(premium
           ? {
@@ -287,13 +295,11 @@ export default function SellerSettingsScreen() {
             label={t("seller.onboarding.address")}
             value={physicalAddress}
             onChangeText={setPhysicalAddress}
+            maxLength={1000}
             multiline
           />
-          <TextField
-            label={t("seller.onboarding.businessHours")}
-            value={businessHours}
-            onChangeText={setBusinessHours}
-          />
+          <StoreMapPicker province={province} value={storePin} onChange={setStorePin} />
+          <BusinessHoursRange value={businessHours} onChange={setBusinessHours} />
           {premium ? (
             <>
               <AppText variant="heading">{t("growth.storefront.premium")}</AppText>

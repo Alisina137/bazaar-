@@ -13,5 +13,14 @@ export default function appConfig({ config }: ConfigContext): ExpoConfig {
       );
     }
   }
+  // Expo Go bundles the native Google Map on Android. Standalone builds
+  // need an Android Maps SDK key; add it only when configured.
+  const mapsKey = process.env.GOOGLE_MAPS_ANDROID_API_KEY?.trim();
+  if (mapsKey) {
+    config.plugins = [
+      ...(config.plugins ?? []),
+      ["react-native-maps", { androidGoogleMapsApiKey: mapsKey }]
+    ];
+  }
   return config;
 }

@@ -122,10 +122,32 @@ export function StoreProvider({ children }: PropsWithChildren) {
         throw new StoreApiError("invalid_session");
       }
 
-      const created = await createStoreRequest(sessionToken, input);
+      let created: StoreRecord;
+      try {
+        created = await createStoreRequest(sessionToken, input);
+      } catch (error) {
+        // A lost response does not prove the insert failed. Reconcile the
+        // authenticated user's stores before allowing another POST.
+        if (!(error instanceof StoreApiError) ||
+            !["service_unavailable", "handle_in_use"].includes(error.code)) throw error;
+        let recovered: StoreRecord | undefined;
+        try {
+          const result = await listStores(sessionToken);
+          const expectedHandle = input.handle.trim().toLowerCase()
+            .replace(/[_\s]+/g, "-").replace(/[^a-z0-9-]/g, "")
+            .replace(/-+/g, "-").replace(/^-|-$/g, "");
+          recovered = result.stores.find(store => store.handle === expectedHandle);
+        } catch {
+          // Keep the original actionable error (e.g., connectivity).
+        }
+        if (!recovered) throw error;
+        created = recovered;
+      }
       replaceStore(created);
       setStatus("ready");
-      await refreshSession();
+      // Session refresh may temporarily fail after the transaction succeeds.
+      // It must not turn a successful store creation into a second POST.
+      try { await refreshSession(); } catch { /* Store has already been created. */ }
       return created;
     },
     [sessionToken, replaceStore, refreshSession]

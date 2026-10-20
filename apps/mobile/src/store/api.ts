@@ -18,7 +18,7 @@ function apiBaseUrl(): string {
 }
 
 export class StoreApiError extends Error {
-  constructor(public readonly code: StoreErrorCode) {
+  constructor(public readonly code: StoreErrorCode, public readonly httpStatus: number | null = null) {
     super(code);
     this.name = "StoreApiError";
   }
@@ -55,7 +55,7 @@ async function requestJson<T>(
         // Keep the safe generic code.
       }
 
-      throw new StoreApiError(code);
+      throw new StoreApiError(code, response.status);
     }
 
     if (response.status === 204) {

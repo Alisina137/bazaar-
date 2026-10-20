@@ -819,42 +819,81 @@ function DeliveryGroupCard({
 }
 
 function CheckoutSteps({
+  addressReady,
   deliveryReady,
   paymentReady
 }: {
+  addressReady: boolean;
   deliveryReady: boolean;
   paymentReady: boolean;
 }) {
   const theme = useAppTheme();
-  const { t, isRTL } = useLocalization();
+  const { t, isRTL, formatNumber } = useLocalization();
+  const current = !addressReady ? 0 : !deliveryReady ? 1 : !paymentReady ? 2 : 3;
+  const labels: TranslationKey[] = [
+    "checkout.step.address",
+    "checkout.step.delivery",
+    "checkout.step.payment",
+    "checkout.step.review"
+  ];
 
   return (
-    <Card muted>
-      <View style={{ gap: theme.spacing.sm }}>
-        {[
-          ["1", "checkout.step.address", true],
-          ["2", "checkout.step.delivery", deliveryReady],
-          ["3", "checkout.step.payment", paymentReady],
-          ["4", "checkout.step.review", paymentReady],
-          ["5", "checkout.step.placeOrder", paymentReady]
-        ].map(([number, key, ready]) => (
-          <View
-            key={String(key)}
-            style={{
-              flexDirection: isRTL ? "row-reverse" : "row",
-              gap: theme.spacing.sm,
-              alignItems: "center"
-            }}
-          >
-            <Badge
-              label={String(number)}
-              tone={ready ? "success" : "neutral"}
-            />
-            <AppText>{t(key as TranslationKey)}</AppText>
-          </View>
-        ))}
+    <View accessibilityRole="progressbar"
+      accessibilityLabel={t("checkout.title")}
+      style={{ gap: theme.spacing.sm }}
+    >
+      <View style={{
+        flexDirection: isRTL ? "row-reverse" : "row",
+        alignItems: "center", justifyContent: "space-between",
+        gap: theme.spacing.xs
+      }}>
+        {labels.map((key, index) => {
+          const complete = index < current;
+          const active = index === current;
+          return (
+            <View key={key} style={{
+              flex: 1, alignItems: "center", gap: theme.spacing.xs,
+              paddingVertical: theme.spacing.sm
+            }}>
+              <View style={{
+                height: 29, width: 29, borderRadius: theme.radii.full,
+                alignItems: "center", justifyContent: "center",
+                backgroundColor: complete ? theme.colors.successSoft
+                  : active ? theme.colors.primary : theme.colors.surfaceMuted,
+                borderWidth: active ? 0 : 1,
+                borderColor: complete ? theme.colors.success : theme.colors.border
+              }}>
+                {complete ? (
+                  <Ionicons name="checkmark" color={theme.colors.success} size={17} />
+                ) : (
+                  <AppText variant="caption"
+                    style={{ color: active ? theme.colors.onPrimary : theme.colors.textMuted }}>
+                    {formatNumber(index + 1)}
+                  </AppText>
+                )}
+              </View>
+              <AppText variant="caption" align="center" numberOfLines={2}
+                tone={active ? "primary" : complete ? "success" : "muted"}
+                style={{ fontSize: 11, lineHeight: 16 }}>
+                {t(key)}
+              </AppText>
+            </View>
+          );
+        })}
       </View>
-    </Card>
+      <View style={{
+        height: 4, backgroundColor: theme.colors.surfaceMuted,
+        borderRadius: theme.radii.full, overflow: "hidden"
+      }}>
+        <View style={{
+          width: ((current + 1) / labels.length * 100) + "%",
+          alignSelf: isRTL ? "flex-end" : "flex-start",
+          height: 4,
+          borderRadius: theme.radii.full,
+          backgroundColor: theme.colors.primary
+        }} />
+      </View>
+    </View>
   );
 }
 
@@ -871,17 +910,20 @@ function SummaryRow({
   const { isRTL } = useLocalization();
 
   return (
-    <View
-      style={{
-        flexDirection: isRTL ? "row-reverse" : "row",
-        justifyContent: "space-between",
-        gap: theme.spacing.md
-      }}
-    >
-      <AppText variant={emphasized ? "heading" : "body"}>
-        {label}
-      </AppText>
-      <AppText variant={emphasized ? "heading" : "body"}>
+    <View style={{
+      flexDirection: isRTL ? "row-reverse" : "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: theme.spacing.md
+    }}>
+      <View style={{ flex: 1 }}>
+        <AppText variant={emphasized ? "bodyStrong" : "label"}
+          tone={emphasized ? "default" : "muted"}>
+          {label}
+        </AppText>
+      </View>
+      <AppText variant="bodyStrong" tone={emphasized ? "primary" : "default"}
+        style={{ fontSize: emphasized ? 16 : 14, lineHeight: 21 }}>
         {value}
       </AppText>
     </View>

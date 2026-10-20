@@ -319,6 +319,12 @@ export const psAfMessages = {
     "په افغانستان کې د عامو ځایي معلوماتو له مخې پته زیاته کړئ.",
 
   "checkout.phaseBadge": "د پېر بنسټ",
+  "checkout.addressHint": "د فرمایش د سپارلو پته وټاکئ.",
+  "checkout.itemsHint": "د لېږد او تادیې مخکې خپل توکي وګورئ.",
+  "checkout.calculateHint": "د پتې تر ټاکلو وروسته د لېږد لارې او وروستی قیمت حسابېږي.",
+  "checkout.deliveryHint": "د هر پلورنځي لپاره د لېږد لاره وټاکئ.",
+  "checkout.reviewHint": "د فرمایش تر ثبتولو مخکې تادیه تایید کړئ.",
+  "checkout.breakdown": "د بیې تفصیل",
   "checkout.title": "پېر",
   "checkout.description":
     "پته تایید کړئ او تر تحویل او تادیې مخکې د سرور معتبره بیه ترلاسه کړئ.",

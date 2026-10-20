@@ -188,5 +188,7 @@ export type CartPricingErrorCode =
 export interface CartPricingErrorResponse {
   error: {
     code: CartPricingErrorCode;
+    /** Non-secret request ID for matching unexpected 503s to backend logs. */
+    reference?: string;
   };
 }

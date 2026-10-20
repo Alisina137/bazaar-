@@ -33,7 +33,7 @@ import {
   addCartItem,
   CartPricingApiError
 } from "@/cart-pricing/api";
-import { cartPricingErrorKey } from "@/cart-pricing/messages";
+import { cartPricingRequestErrorKey } from "@/cart-pricing/messages";
 import { MarketplaceProductCard } from "@/components/marketplace/MarketplaceProductCard";
 import { ProductImageGallery } from "@/components/marketplace/ProductImageGallery";
 import {
@@ -125,6 +125,7 @@ export default function MarketplaceProductScreen() {
   const [purchaseError, setPurchaseError] = useState<TranslationKey | null>(
     null
   );
+  const [purchaseErrorRef, setPurchaseErrorRef] = useState<string | null>(null);
   const [addedToCart, setAddedToCart] = useState(false);
   const [reviews, setReviews] = useState<ProductReviewsResponse | null>(null);
   const [wishlisted, setWishlisted] = useState(false);
@@ -381,6 +382,7 @@ export default function MarketplaceProductScreen() {
   const purchase = async (buyNow: boolean) => {
     if (purchaseBusy !== null) return;
     setPurchaseError(null);
+    setPurchaseErrorRef(null);
     setAddedToCart(false);
 
     if (authStatus !== "signedIn" || !sessionToken) {
@@ -412,7 +414,8 @@ export default function MarketplaceProductScreen() {
         requestError instanceof CartPricingApiError
           ? requestError
           : new CartPricingApiError("service_unavailable");
-      setPurchaseError(cartPricingErrorKey(error.code));
+      setPurchaseError(cartPricingRequestErrorKey(error));
+      setPurchaseErrorRef(error.reference);
     } finally {
       setPurchaseBusy(null);
     }
@@ -592,7 +595,7 @@ export default function MarketplaceProductScreen() {
             <View style={{ flex: 1 }}>
               <AppText variant="heading">{t("marketplace.product.purchase")}</AppText>
               <AppText variant="caption" tone="muted">
-                {variantRequired ? t("cart.selectVariant") : t("marketplace.product.cartPhaseReady")}
+                {variantRequired ? t("cart.selectVariant") : t("marketplace.product.purchaseHint")}
               </AppText>
             </View>
             <AppText variant="bodyStrong" tone="primary">{formatAfn(price)}</AppText>
@@ -611,7 +614,14 @@ export default function MarketplaceProductScreen() {
               </Button>
             </View>
           ) : null}
-          {purchaseError ? <AppText tone="danger" accessibilityRole="alert">{t(purchaseError)}</AppText> : null}
+          {purchaseError ? (
+            <View style={{ gap: theme.spacing.xs }}>
+              <AppText tone="danger" accessibilityRole="alert">{t(purchaseError)}</AppText>
+              {purchaseErrorRef ? <AppText variant="caption" tone="muted">
+                {t("cart.error.reference")}: {purchaseErrorRef}
+              </AppText> : null}
+            </View>
+          ) : null}
           <View style={{
             flexDirection: isRTL ? "row-reverse" : "row",
             gap: theme.spacing.sm

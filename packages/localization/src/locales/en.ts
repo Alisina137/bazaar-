@@ -188,6 +188,7 @@ export const enMessages = {
     "Available payment methods are confirmed during checkout from the seller's current payment settings.",
   "marketplace.product.description": "Description",
   "marketplace.product.purchase": "Purchase",
+  "marketplace.product.purchaseHint": "Add to your cart or continue directly to checkout.",
   "marketplace.product.cartPhaseReady":
     "Cart and authoritative pricing are connected in Phase 5.",
   "marketplace.product.addToCart": "Add to cart",
@@ -288,6 +289,7 @@ export const enMessages = {
   "cart.error.networkUnreachable": "The cart API cannot be reached. Check that pnpm dev:api and its ngrok tunnel are running, then retry.",
   "cart.error.requestTimedOut": "The cart request timed out. Check your connection and the API tunnel, then refresh the cart.",
   "cart.error.serverUnavailable": "The cart server returned an error. Check the pnpm dev:api terminal and database connection, then retry.",
+  "cart.error.reference": "Error reference",
   "cart.error.serviceUnavailable":
     "BazaarLink could not reach the cart and pricing service. Check your connection and try again.",
 

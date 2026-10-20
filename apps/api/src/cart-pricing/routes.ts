@@ -162,8 +162,17 @@ function sendError(reply: FastifyReply, error: unknown) {
     return reply.code(error.statusCode).send(errorBody(error.code));
   }
 
-  reply.log.error({ err: error }, "Unexpected cart/pricing request failure");
-  return reply.code(503).send(errorBody("service_unavailable"));
+  const reference = String(reply.request.id);
+  reply.log.error({
+    err: error,
+    reference,
+    operation: reply.request.method,
+    route: reply.request.routeOptions.url
+  }, "Unexpected cart/pricing request failure");
+  // Never expose database error details, SQL, account IDs or access tokens.
+  return reply.code(503).send({
+    error: { code: "service_unavailable", reference }
+  } satisfies CartPricingErrorResponse);
 }
 
 export function registerCartPricingRoutes(

@@ -26,7 +26,8 @@ export class CartPricingApiError extends Error {
   constructor(
     public readonly code: CartPricingErrorCode,
     public readonly httpStatus: number | null = null,
-    public readonly transport: "network" | "timeout" | null = null
+    public readonly transport: "network" | "timeout" | null = null,
+    public readonly reference: string | null = null
   ) {
     super(code);
     this.name = "CartPricingApiError";
@@ -54,6 +55,7 @@ async function requestJson<T>(
 
     if (!response.ok) {
       let code: CartPricingErrorCode = "service_unavailable";
+      let reference: string | null = null;
 
       try {
         const payload =
@@ -61,11 +63,15 @@ async function requestJson<T>(
         if (payload.error?.code) {
           code = payload.error.code;
         }
+        const safeReference = payload.error?.reference;
+        if (typeof safeReference === "string" && /^[a-zA-Z0-9_-]{1,64}$/.test(safeReference)) {
+          reference = safeReference;
+        }
       } catch {
         // Preserve the safe generic error.
       }
 
-      throw new CartPricingApiError(code, response.status);
+      throw new CartPricingApiError(code, response.status, null, reference);
     }
 
     if (response.status === 204) {

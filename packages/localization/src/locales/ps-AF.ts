@@ -190,6 +190,7 @@ export const psAfMessages = {
     "د تادیې موجودې لارې د پېرود پر مهال د پلورونکي له اوسنیو باوري تنظیماتو تاییدېږي.",
   "marketplace.product.description": "تشریح",
   "marketplace.product.purchase": "پېرود",
+  "marketplace.product.purchaseHint": "توکی د پېرود سبد ته ورزیات کړئ یا نېغ تادیې ته لاړ شئ.",
   "marketplace.product.cartPhaseReady":
     "سبد او باوري قیمت‌محاسبه په ۵ پړاو کې نښلول کېږي.",
   "marketplace.product.addToCart": "سبد ته زیاتول",
@@ -285,6 +286,7 @@ export const psAfMessages = {
   "cart.error.networkUnreachable": "د پېرود سبد API ته اړیکه نه نیول کېږي. pnpm dev:api او ngrok تونل وګورئ او بیا هڅه وکړئ.",
   "cart.error.requestTimedOut": "د سبد د غوښتنې وخت پای ته ورسېد. انټرنېټ او API تونل وګورئ او سبد تازه کړئ.",
   "cart.error.serverUnavailable": "د سبد سرور تېروتنه ورکړه. د pnpm dev:api ترمینل او د ډیټابېس اړیکه وګورئ.",
+  "cart.error.reference": "د تېروتنې پېژندنه",
   "cart.error.serviceUnavailable":
     "بازارلینک د ټوکرۍ او بیې خدمت ته ونه رسېد. خپله اړیکه وګورئ او بیا هڅه وکړئ.",
 

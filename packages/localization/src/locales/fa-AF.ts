@@ -190,6 +190,7 @@ export const faAfMessages = {
     "روش‌های پرداخت موجود هنگام تسویه‌حساب از تنظیمات فعلی و معتبر فروشنده تأیید می‌شوند.",
   "marketplace.product.description": "توضیحات",
   "marketplace.product.purchase": "خرید",
+  "marketplace.product.purchaseHint": "کالا را به سبد خرید بیفزایید یا مستقیماً به پرداخت بروید.",
   "marketplace.product.cartPhaseReady":
     "سبد خرید و قیمت‌گذاری معتبر در مرحله ۵ وصل می‌شود.",
   "marketplace.product.addToCart": "افزودن به سبد",
@@ -285,6 +286,7 @@ export const faAfMessages = {
   "cart.error.networkUnreachable": "اتصال به API سبد خرید برقرار نشد. اجرای pnpm dev:api و تونل ngrok را بررسی کرده و دوباره تلاش کنید.",
   "cart.error.requestTimedOut": "زمان درخواست سبد خرید پایان یافت. اتصال اینترنت و تونل API را بررسی کرده و سبد را تازه کنید.",
   "cart.error.serverUnavailable": "سرور سبد خرید خطا داد. ترمینال pnpm dev:api و اتصال دیتابیس را بررسی کرده و دوباره تلاش کنید.",
+  "cart.error.reference": "شماره پیگیری خطا",
   "cart.error.serviceUnavailable":
     "بازارلینک به سرویس سبد و قیمت‌گذاری دسترسی پیدا نکرد. اتصال خود را بررسی و دوباره تلاش کنید.",
 
